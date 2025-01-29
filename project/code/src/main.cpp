@@ -6,7 +6,7 @@
 
 namespace po = boost::program_options;
 
-static void make_options_description(int argc, char *argv[]) {
+static void handle_command_line_arguments(int argc, char *argv[]) {
   po::options_description description("Allowed options");
   description.add_options()           //
       ("help,h", "Show help message") //
@@ -22,6 +22,6 @@ static void make_options_description(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  make_options_description(argc, argv);
+  handle_command_line_arguments(argc, argv);
   return 0;
 }

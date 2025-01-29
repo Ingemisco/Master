@@ -3,10 +3,12 @@ cmake_minimum_required(VERSION 3.10)
 project(polyline LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(INCLUDE_DIRECTORY include)
 
-include_directories(include)
+include_directories(${INCLUDE_DIRECTORY})
+include_directories(${CMAKE_BINARY_DIR})
 
-file(GLOB_RECURSE HEADERS include/*.h)
+file(GLOB_RECURSE HEADERS ${INCLUDE_DIRECTORY}/*.h)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
@@ -32,12 +34,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE
-  -Wall                     
-  -Wextra                   
-  -Wpedantic                
+  -Wall
+  -Wextra
+  -Wpedantic
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(DEBUG_VALUE 1)
+
   target_compile_options(${PROJECT_NAME} PRIVATE
     -O0                       # No optimizations
     -g                        # Debug flags
@@ -52,9 +56,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   )
 
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(DEBUG_VALUE 0)
   target_compile_options(${PROJECT_NAME} PRIVATE
     -O3 
     -DNDEBUG
   )
 endif()
+
+configure_file(
+  ${INCLUDE_DIRECTORY}/config.h.in
+  ${CMAKE_BINARY_DIR}/config.h
+  @ONLY
+)
 

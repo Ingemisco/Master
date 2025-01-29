@@ -4,25 +4,33 @@
 #include <cstddef>
 #include <vector>
 
+namespace DataStructures {
+
 class Point {
 private:
-  std::vector<float> coordinates_;
+  std::vector<float> coordinates;
 
 public:
   Point(size_t dimension);
 
-  float &operator[](size_t);
+  inline float &operator[](size_t);
+  inline float operator[](size_t) const;
+  inline size_t dimension() const;
 };
 
 class Polyline {
 private:
-  std::vector<Point> points_;
+  std::vector<Point> points;
 
 public:
   Polyline(size_t = 0);
 
-  void add_point(Point &);
-  Point &operator[](size_t);
+  inline void add_point(Point &);
+  inline Point &operator[](size_t);
 };
+
+Point interpolate(Point const &, Point const &, float);
+
+} // namespace DataStructures
 
 #endif // INCLUDE_INCLUDE_DATASTRUCTURES_H_
