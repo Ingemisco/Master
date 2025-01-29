@@ -4,19 +4,25 @@
 #include <cstddef>
 #include <vector>
 
-template <typename T> class Point {
+class Point {
 private:
-  std::vector<T> coordinates_;
+  std::vector<float> coordinates_;
 
 public:
   Point(size_t dimension);
-  T &operator[](size_t);
+
+  float &operator[](size_t);
 };
 
-template <typename T> class Polyline {
+class Polyline {
 private:
+  std::vector<Point> points_;
+
 public:
-  Polyline();
+  Polyline(size_t = 0);
+
+  void add_point(Point &);
+  Point &operator[](size_t);
 };
 
 #endif // INCLUDE_INCLUDE_DATASTRUCTURES_H_
