@@ -1,45 +1,139 @@
 #include "datastructures.h"
 #include <cstddef>
+#include <fstream>
+#include <memory>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
 #include "config.h"
 
-using namespace DataStructures;
+namespace DataStructures {
 
-Point::Point(size_t dimension) { this->coordinates.resize(dimension); }
+Point::Point(float *coordinates, size_t dimension)
+    : coordinates(coordinates), dimension(dimension) {}
 
-float &Point::operator[](size_t index) { return this->coordinates[index]; }
-
-float Point::operator[](size_t index) const { return this->coordinates[index]; }
-
-size_t Point::dimension() const { return this->coordinates.size(); }
-
-Polyline::Polyline(size_t min_size) { this->points.reserve(min_size); }
-
-void Polyline::add_point(Point &point) { this->points.push_back(point); }
-
-Point &Polyline::operator[](size_t index) { return this->points[index]; }
-
-Point interpolate(Point const &point1, Point const &point2, float ratio) {
-  size_t const dimension = point1.dimension();
+float &Point::operator[](size_t index) {
 #if DEBUG
-  if (ratio > 1 || ratio < 0) {
-    throw std::runtime_error("Value of ratio is not between 0 and 1.");
-  } else if (dimension != point2.dimension()) {
-    std::string message =
-        "Dimensions of points do not match. First point has dimension " +
-        std::to_string(dimension) + " but second point has dimension " +
-        std::to_string(point2.dimension()) + ".";
-    throw std::runtime_error(message);
+  if (index > this->dimension) {
+    throw std::runtime_error("Index accessed is not in bounds. Index is " +
+                             std::to_string(index) + " but dimension is only " +
+                             std::to_string(this->dimension) + ".");
   }
 #endif
+  return this->coordinates[index];
+}
 
-  Point p(dimension);
+float Point::operator[](size_t index) const {
+#if DEBUG
+  if (index > this->dimension) {
+    throw std::runtime_error("Index accessed is not in bounds. Index is " +
+                             std::to_string(index) + " but dimension is only " +
+                             std::to_string(this->dimension) + ".");
+  }
+#endif
+  return this->coordinates[index];
+}
 
-  for (unsigned int i = 0; i < dimension; i++) {
-    p[i] = (1 - ratio) * point1[i] + ratio * point2[i];
+std::ostream &operator<<(std::ostream &os, Point const &point) {
+  os << "(" << point[0];
+  for (unsigned int coordinate = 1; coordinate < point.dimension;
+       coordinate++) {
+    os << ", " << point[coordinate];
+  }
+  os << ")";
+
+  return os;
+}
+
+Polyline::Polyline(size_t point_count, size_t dimension)
+    : data(new float[point_count * dimension]), point_count(point_count),
+      dimension(dimension) {}
+
+Polyline::~Polyline() { delete[] this->data; }
+
+float &Polyline::operator[](size_t point, size_t coordinate) {
+#if DEBUG
+  if (point >= this->point_count || coordinate >= this->dimension) {
+    throw std::runtime_error("Accessed coordinate is not in bounds. Accessed " +
+                             std::to_string(point) + ", " +
+                             std::to_string(coordinate) +
+                             " but amount of points and dimension is " +
+                             std::to_string(this->point_count) + "," +
+                             std::to_string(this->dimension) + ".");
+  }
+#endif
+  return this->data[point * dimension + coordinate];
+}
+
+float Polyline::operator[](size_t point, size_t coordinate) const {
+#if DEBUG
+  if (point >= this->point_count || coordinate >= this->dimension) {
+    throw std::runtime_error("Accessed coordinate is not in bounds. Accessed " +
+                             std::to_string(point) + ", " +
+                             std::to_string(coordinate) +
+                             " but amount of points and dimension is " +
+                             std::to_string(this->point_count) + "," +
+                             std::to_string(this->dimension) + ".");
+  }
+#endif
+  return this->data[point * dimension + coordinate];
+}
+
+Point Polyline::get_point(size_t index) {
+#if DEBUG
+  if (index >= this->point_count) {
+    throw std::runtime_error(
+        "Point accessed is not in bounds. Accessed " + std::to_string(index) +
+        " but amount of points is " + std::to_string(this->point_count) + ".");
+  }
+#endif
+  return Point(&this->data[index * this->dimension], this->dimension);
+}
+
+std::unique_ptr<Polyline> Polyline::from_file(std::filesystem::path path) {
+  std::ifstream input(path);
+  if (!input) {
+    throw std::runtime_error("Failed to open file: " + path.string());
   }
 
-  return p;
+  // allow comments starting with '#' and empty lines at the beginning of the
+  // file
+  std::string line;
+  while (std::getline(input, line)) {
+    if (!line.empty() && line[0] != '#') {
+      break;
+    }
+  }
+
+  size_t point_count;
+  size_t dimension;
+  std::istringstream first_line_stream(line);
+
+  if (!(first_line_stream >> point_count >> dimension)) {
+    throw std::runtime_error("Fist line: " + path.string());
+  }
+
+  auto polyline = std::make_unique<Polyline>(point_count, dimension);
+  for (unsigned int point = 0; point < point_count; point++) {
+    for (unsigned int coordinate = 0; coordinate < dimension; coordinate++) {
+      if (!(input >> (*polyline)[point, coordinate])) {
+        throw std::runtime_error("Invalid file format: Not enough floats.");
+      }
+    }
+  }
+
+  return polyline;
 }
+
+std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
+  os << "[" << polyline.get_point(0);
+  for (unsigned int point = 1; point < polyline.point_count; point++) {
+    os << ";\n" << polyline.get_point(point);
+  }
+  os << "]";
+
+  return os;
+}
+} // namespace DataStructures

@@ -2,34 +2,52 @@
 #define INCLUDE_INCLUDE_DATASTRUCTURES_H_
 
 #include <cstddef>
-#include <vector>
+#include <filesystem>
 
 namespace DataStructures {
 
+// does not own the data. Only lets you view a point in a polyline
 class Point {
 private:
-  std::vector<float> coordinates;
+  float *const coordinates;
 
 public:
-  Point(size_t dimension);
+  size_t const dimension;
+
+  Point(float *, size_t);
 
   inline float &operator[](size_t);
   inline float operator[](size_t) const;
-  inline size_t dimension() const;
 };
+
+std::ostream &operator<<(std::ostream &, Point const &);
 
 class Polyline {
 private:
-  std::vector<Point> points;
+  // matrix containing all points
+  float *const data;
 
 public:
-  Polyline(size_t = 0);
+  size_t const point_count;
+  size_t const dimension;
 
-  inline void add_point(Point &);
-  inline Point &operator[](size_t);
+  Polyline(size_t, size_t);
+  ~Polyline();
+
+  Polyline(Polyline const &) = delete;
+  Polyline(Polyline &&) = delete;
+  Polyline operator=(Polyline const &) = delete;
+  Polyline operator=(Polyline &&) = delete;
+
+  inline float &operator[](size_t, size_t);
+  inline float operator[](size_t, size_t) const;
+
+  Point get_point(size_t);
+
+  static std::unique_ptr<Polyline> from_file(std::filesystem::path);
+
+  friend std::ostream &operator<<(std::ostream &, Polyline &);
 };
-
-Point interpolate(Point const &, Point const &, float);
 
 } // namespace DataStructures
 

@@ -14,13 +14,15 @@ file(GLOB_RECURSE SOURCES src/*.cpp)
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 # Set compile flags for clangd
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.30.0")
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30.0")
   cmake_policy(SET CMP0167 NEW)
-endif ()
+endif()
 
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_NO_WARN_NEW_VERSIONS 1)
@@ -39,6 +41,15 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   -Wpedantic
 )
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wweak-vtables)
+    if(WIN32)
+        add_compile_options(-fms-extensions)
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # using GCC
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG_VALUE 1)
 
@@ -54,6 +65,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     -fsanitize=address        # Link with AddressSanitizer
     -fsanitize=undefined      # Link with Undefined Behavior Sanitizer
   )
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wweak-vtables)
+  endif ()
 
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(DEBUG_VALUE 0)
