@@ -16,8 +16,8 @@ public:
 
   Point(float *, size_t);
 
-  inline float &operator[](size_t);
-  inline float operator[](size_t) const;
+  float &operator[](size_t);
+  float operator[](size_t) const;
 };
 
 std::ostream &operator<<(std::ostream &, Point const &);
@@ -39,8 +39,8 @@ public:
   Polyline operator=(Polyline const &) = delete;
   Polyline operator=(Polyline &&) = delete;
 
-  inline float &operator[](size_t, size_t);
-  inline float operator[](size_t, size_t) const;
+  float &operator[](size_t, size_t);
+  float operator[](size_t, size_t) const;
 
   Point get_point(size_t);
 
@@ -48,6 +48,9 @@ public:
 
   friend std::ostream &operator<<(std::ostream &, Polyline &);
 };
+
+void assert_compatible_points(Point const &, Point const &);
+void assert_compatible_polylines(Polyline const &, Polyline const &);
 
 } // namespace DataStructures
 

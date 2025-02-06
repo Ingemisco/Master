@@ -5,11 +5,17 @@
 
 namespace DataStructures {
 
-float frechet_distance(DataStructures::Polyline const &,
-                       DataStructures::Polyline const &);
+typedef float Distance(Point &, Point &);
+
+float euclidean_distance(Point &, Point &);
 
 bool frechet_distance_at_most(DataStructures::Polyline const &,
-                       DataStructures::Polyline const &, float);
+                              DataStructures::Polyline const &, float,
+                              Distance = euclidean_distance);
 
-}
+float frechet_distance(DataStructures::Polyline const &,
+                       DataStructures::Polyline const &,
+                       Distance = euclidean_distance);
+
+} // namespace DataStructures
 #endif // INCLUDE_INCLUDE_DISTANCE_H_

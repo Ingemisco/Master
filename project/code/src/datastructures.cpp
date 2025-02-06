@@ -49,7 +49,15 @@ std::ostream &operator<<(std::ostream &os, Point const &point) {
 
 Polyline::Polyline(size_t point_count, size_t dimension)
     : data(new float[point_count * dimension]), point_count(point_count),
-      dimension(dimension) {}
+      dimension(dimension) {
+#if DEBUG
+  if (dimension == 0) {
+    throw std::runtime_error("Dimension of 0 is not allowed!");
+  } else if (point_count == 0) {
+    throw std::runtime_error("A polyline must consist of at least 1 point!");
+  }
+#endif
+}
 
 Polyline::~Polyline() { delete[] this->data; }
 
@@ -135,5 +143,29 @@ std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
   os << "]";
 
   return os;
+}
+
+void assert_compatible_points(Point const &point1, Point const &point2) {
+#if DEBUG
+  if (point1.dimension != point2.dimension) {
+    throw std::runtime_error(
+        "Dimensions of points do not match. First point has dimension " +
+        std::to_string(point1.dimension) + " but second point has dimension " +
+        std::to_string(point2.dimension) + ".");
+  }
+#endif
+}
+
+void assert_compatible_polylines(Polyline const &polyline1,
+                                 Polyline const &polyline2) {
+#if DEBUG
+  if (polyline1.dimension != polyline2.dimension) {
+    throw std::runtime_error(
+        "Dimensions of polylines do not match. First polyline has dimension " +
+        std::to_string(polyline1.dimension) +
+        " but second polyline has dimension " +
+        std::to_string(polyline2.dimension) + ".");
+  }
+#endif
 }
 } // namespace DataStructures
