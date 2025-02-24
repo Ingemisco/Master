@@ -52,7 +52,6 @@ public:
 
 void assert_compatible_points(Point const &, Point const &);
 void assert_compatible_polylines(Polyline const &, Polyline const &);
-
 } // namespace DataStructures
 
 #endif // INCLUDE_INCLUDE_DATASTRUCTURES_H_
