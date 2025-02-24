@@ -52,7 +52,8 @@ Polyline::Polyline(size_t point_count, size_t dimension)
       dimension(dimension) {
 #if DEBUG
   if (dimension == 0) {
-    throw std::runtime_error("Dimension of 0 is not allowed!");
+    throw std::runtime_error(
+        "Dimension of 0 is not allowed when constructing a Polyline!");
   } else if (point_count == 0) {
     throw std::runtime_error("A polyline must consist of at least 1 point!");
   }
@@ -89,15 +90,25 @@ float Polyline::operator[](size_t point, size_t coordinate) const {
   return this->data[point * dimension + coordinate];
 }
 
-Point Polyline::get_point(size_t index) {
+template <typename T>
+static inline Point _get_point(T *data, size_t index, size_t dimension,
+                               size_t point_count) {
 #if DEBUG
-  if (index >= this->point_count) {
+  if (index >= point_count) {
     throw std::runtime_error(
         "Point accessed is not in bounds. Accessed " + std::to_string(index) +
-        " but amount of points is " + std::to_string(this->point_count) + ".");
+        " but amount of points is " + std::to_string(point_count) + ".");
   }
 #endif
-  return Point(&this->data[index * this->dimension], this->dimension);
+  return Point(&data[index * dimension], dimension);
+}
+
+Point Polyline::get_point(size_t index) {
+  return _get_point(this->data, index, this->dimension, this->point_count);
+}
+
+Point const Polyline::get_point(size_t index) const {
+  return _get_point(this->data, index, this->dimension, this->point_count);
 }
 
 std::unique_ptr<Polyline> Polyline::from_file(std::filesystem::path path) {
@@ -138,7 +149,7 @@ std::unique_ptr<Polyline> Polyline::from_file(std::filesystem::path path) {
 std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
   os << "[" << polyline.get_point(0);
   for (unsigned int point = 1; point < polyline.point_count; point++) {
-    os << ";\n" << polyline.get_point(point);
+    os << ",\n  " << polyline.get_point(point);
   }
   os << "]";
 
@@ -146,19 +157,16 @@ std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
 }
 
 void assert_compatible_points(Point const &point1, Point const &point2) {
-#if DEBUG
   if (point1.dimension != point2.dimension) {
     throw std::runtime_error(
         "Dimensions of points do not match. First point has dimension " +
         std::to_string(point1.dimension) + " but second point has dimension " +
         std::to_string(point2.dimension) + ".");
   }
-#endif
 }
 
 void assert_compatible_polylines(Polyline const &polyline1,
                                  Polyline const &polyline2) {
-#if DEBUG
   if (polyline1.dimension != polyline2.dimension) {
     throw std::runtime_error(
         "Dimensions of polylines do not match. First polyline has dimension " +
@@ -166,6 +174,5 @@ void assert_compatible_polylines(Polyline const &polyline1,
         " but second polyline has dimension " +
         std::to_string(polyline2.dimension) + ".");
   }
-#endif
 }
 } // namespace DataStructures

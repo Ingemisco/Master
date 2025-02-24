@@ -43,6 +43,7 @@ public:
   float operator[](size_t, size_t) const;
 
   Point get_point(size_t);
+  Point const get_point(size_t) const;
 
   static std::unique_ptr<Polyline> from_file(std::filesystem::path);
 

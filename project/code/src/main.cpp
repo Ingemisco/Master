@@ -1,4 +1,5 @@
 #include "datastructures.h"
+#include "distance.h"
 #include <boost/program_options.hpp>
 #include <boost/program_options/detail/parsers.hpp>
 #include <boost/program_options/options_description.hpp>
