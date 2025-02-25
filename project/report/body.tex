@@ -1,3 +1,11 @@
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+
+\SetKw{Continue}{continue}
+
+\renewcommand*{\O}{\mathcal{O}}
+
 \section{Introduction}
 \label{sec:introduction}
 
@@ -9,6 +17,166 @@
 
 \section{Algorithm \& Implementation}
 \label{sec:algorithm_implementation}
+
+
+\subsection{Equation Solving}
+\label{subsec:equation_solving}
+Here we derive explicit formulae to solve equations of the type 
+\begin{equation}
+  \delta(u + t \cdot (v-u), w) = \varepsilon \label{eq:eq_solve_main}
+\end{equation}
+for arbitrary fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R_{>0}\) for the variable \(t \in \R\) or determine that there is no such solution. This will have a smallest solution \(\hat{t}_0\) and largest solution \(\hat{t}_1\) in which we are interested. Those two solutions may be the same or may not exist at all.
+
+In general, this will require finding roots of polynomials and thus there is no exact solution algorithm for distances derived from the norms\(L_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
+
+We can also make use of restrictions on \(t\) that are needed during the algorithms: 
+\begin{enumerate}
+  \item If \(\delta(u, w) < \varepsilon\) we can return as the first solution \(0\). 
+  \item If \(\delta(v, w) < \varepsilon\) we can return as the second solution \(1\).
+  \item We are only interested in values \(t\in [0, 1]\). 
+  \item If none of the above properties is applicable, we can return that there is no solution.
+\end{enumerate}
+
+This gives us the following six cases 
+\begin{enumerate}
+  \item \(\hat t_1 < 0\) in which case we want to report that there is no solution.
+  \item \(0 = \hat t_0 < \hat t_1 < 1\) in which the solution pair is \((0, \hat t_1)\).
+  \item \(0 = \hat t_0 < \hat t_1 = 1\) in which the solution pair is \((0, 1)\).
+  \item \(0 < \hat t_0 < \hat t_1 < 1\) in which the solution pair is \((\hat t_0, \hat t_1)\).
+  \item \(0 < \hat t_0 < \hat t_1 = 1\) in which the solution pair is \((\hat t_0, 1)\).
+  \item \(\hat t_0 > 0\) in which case we want to report that there is no solution.
+\end{enumerate}
+
+Case \(3\) is trivial for all distances and does not require solving an equation. Cases \(2, 4\) and \(5\) happen if there are solutions in the interval and optionally one of the distances \(\delta(u,w) < \varepsilon\) or \(\delta(v,w) < \varepsilon\).
+
+
+\subsubsection{Euclidean Distance}
+\label{subsubsec:eq_euclidean_distance}
+In the case of the Euclidean distance, \cref{eq:eq_solve_main} simplifies to the equation 
+\begin{align*}
+  \| (u - w) + t(v - u) \|_2 &= \varepsilon \\
+  \| (u - w) + t(v - u) \|_2^2 &= \varepsilon^2 \\
+  \| u - w \|_2^2 + 2\braket{u - w | v - u} t  +  \| v - u \|_2^2 t^2 &= \varepsilon^2 \\
+  \underbrace{\delta(u,w)^2 - \varepsilon^2}_{\alpha_0} + \underbrace{2\braket{u - w | v - u} }_{\alpha_1}t  +  \underbrace{\delta(v, u)^2}_{\alpha_2} t^2 &= 0 \\
+  \alpha_0 + \alpha_1 t  + \alpha_2 t^2 &= 0,
+\end{align*}
+
+which is a quadratic equation in \(t\) and can be solved explicitly as 
+
+\begin{equation}
+  t_{0,1} = \frac{-\alpha_1 \pm \sqrt{\alpha_1^2 - 4\alpha_0\alpha_2}}{2\alpha_2}.\label{eq:sol_explicit_euclidean}
+\end{equation}
+
+If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is smaller than \(0\) there is no solution. Otherwise we can compute the two solutions and have the lower and smallest and largest solution. These values might need to be clamped to be between \(0\) and \(1\). 
+
+
+\subsubsection{Manhattan Distance}
+\label{subsubsec:eq_manhattan_distance}
+In the case of the Manhattan distance, \cref{eq:eq_solve_main} simplifies to 
+\begin{equation}
+  \sum_{i=0}^d |u_i - w_i + t (v_i - u_i)| = \varepsilon. \label{eq:solve_manhattan}
+\end{equation}
+
+We note that \(|u_i - w_i + t (v_i - u_i )|\) can only assume the two values \(u_i - w_i + t(v_i - u_i)\) or \(w_i - u_i - t(v_i - u_i)\) depending on \(t\). For a fixed \(t\) we can evaluate all terms in the sum in \cref{eq:solve_manhattan} to get a linear equation in \(t\) which is trivial to solve, and the check if the resulting solution is valid. We define \(t_i \coloneq \frac{w_i - u_i}{v_i - u_i} \). Let \(\sigma:\set{1,\dots, d} \to \set{1,\dots, d}\) be the sorting permutation with \(t_{\sigma(1)} < t_{\sigma(2)} < \cdots < t_{\sigma(d)}\). For \(t \in [t_{\sigma(i)}, t_{\sigma(i+1)}]\) each of the terms in the sum can be simplified to a linear term without the absolute value and thus the whole sum degenerates into a linear equation which can be trivially solved. Finally we can check if the solution found for this interval does indeed lie in the interval. 
+
+This whole process can be implemented na\"ively using a Sweepline algorithm in time \(\O(d^2)\) by constructing the values \(t_i\), sorting them and for each interval we compute the whole sum in linear time and solve the equation. As there are \(d\) many such values to consider we get quadratic runtime. We can improve this by using the fact that by iterating from smallest to largest during each testing step only a single term changes its sign, thus we can maintain the current linear equation and update it accordingly in constant time. The bulk of the computation now lies in sorting which gives us a runtime og \(\O(d \log d)\). 
+
+Let us consider the non-trivial cases we defined earlier. Case \(4\) is the only case where we find two solutions in the interval and is thus covered. In cases \(2\) and \(5\) only one solution will be found and one of the distances will be smaller \(\varepsilon\). In the other two cases no solution will be found so the behaviour of returning no answer is correct.
+
+There are a few edge cases, namely those being that multiple \(t_i\) coincide as well as that there are \(u_i = v_i\). The former case can easily be handled by treating all terms with the same value for \(t_i\) as a single term. The second case degenerates the term into a constant which can be pulled out of the sum and into the right side.
+
+% TODO: Pseudocode
+
+
+\subsubsection{Chebyshev Distance}
+\label{subsubsec:eq_chebyshev_distance}
+In the case of the Chebyshev distance \cref{eq:eq_solve_main} becomes 
+\begin{equation}
+  \max_{i = 1,\dots, d} |u_i - w_i + t(v_i - u_i)| = \varepsilon\label{eq:solve_chebyshev}
+\end{equation}
+which a na\"ive solution can be found easily as the maximum will only assume as value one of the terms and each term has two possible values depending on the absolute value. Thus there are \(2d\) possible solutions which can be checked each in linear time if they indeed are the maximum resulting in a simple quadratic runtime algorithm. 
+
+Just as in the case of the Manhattan distance, we only need to consider the solutions in the interval \([0,1]\) which eliminates possible solutions and in small dimensions this is probably the best choice. 
+
+We can also reduce the runtime to \(d \log d\) by efficiently updating the current maximum. As each term is a line, we can find the initial maximum line at the start and update it when it crosses another line thus a modified version of the Bentley-Ottmann algorithm for line segment intersection can be used where where the handling of intersections is modified to remove the line segment that falls below the other and only computing new intersections upwards. This guarantees that even if there are quadratically many intersecions only \(\O(d \log d)\) runtime is needed as irrelevant intersections are omitted. 
+This allows a simplification in that we do not need a self-balancing binary search tree to store the line segments. A doubly linked list suffices as we remove for each intersection a line segment and the relative ordering remains the same. This list can be stored in an array where each array entry has an index to the previous and next line segment and its data, i.e., the offset and slope. A more detailed version of this idea can be seen in \cref{algo:solve_chebyshev}. For a full implementation, the case distinction in \cref{subsec:equation_solving} needs to be implemented, the handling of the marked solutions.
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{vectors \(u, v, w \in \R^d\)}
+  \BlankLine
+  \(candidates \gets \set{(2i, u_i - w_i, v_i - u_i), (2i+1, w_i - u_i, u_i - v_i) | i = 0, \dots, d - 1}\) \;
+  \(queue \gets PriorityQueue()\) \;
+  \(list \gets Array(|candidates|)\) \;
+  sort candidates according to second component descendingly,
+  in case of ties use the third component as tie breaker descendingly \;
+  \(PREV \gets 0, NEXT \gets 1\) \tcp{constants for readability}
+  \(curr \gets -1\) \;
+  \For{\((i, a, b) \in candidates\)}{
+    \If{\(curr = -1\)} {
+      \(curr \gets i, a' \gets a, b' \gets b\)\;
+      \(list[curr] \gets (-1, -1, a, b)\) \;
+      \Continue
+    } 
+
+    \If{\(curr \neq HEAD \land a' + b' \geq a + b\)}{
+      \Continue \tcp{new line fully below current line so never maximum}
+    } 
+
+    \(list[curr][NEXT] \gets i, list[i] \gets (curr, TAIL, a, b)\) \;
+    \(intersection \gets \frac{a' - a}{b - b'}\) \tcp{always in \([0,1]\)}
+    \(queue.insert\_with\_priority((curr, i), intersection)\) \;
+    \(curr \gets i, a' \gets a, b' \gets b\) \;
+  }
+
+  \caption{chebyshev\_solver\_initialization(\(u, v, w\))}
+  \label{algo:solve_chebyshev_init}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{vectors \(u, v, w \in \R^d\), \(\varepsilon > 0\)}
+  \KwResult{Solution to \cref{eq:solve_chebyshev}}
+  \BlankLine
+  \(chebyshev\_solver\_initialization(u, v, w)\) \;
+  \(last\_intersection \gets 0\) \;
+  \While{\(\lnot queue.empty()\)}{
+    \((i, j), intersection \gets queue.poll()\) \;
+    \If{\(list[i][PREV] = -1 \lor list[j][PREV] = -1\)}{
+      \Continue \tcp{One of the lines already removed, no intersection}
+    } 
+    \If{\(i = HEAD\)}{
+      \(HEAD \gets j\) \;
+      \(\_, \_, a, b \gets list[i]\) \;
+      \If{\(b = 0\)}{
+        \If{\(a = \varepsilon\) }{
+          Mark \(last\_intersection\) as earliest solution or \(intersection\) as last solution \;
+        }
+        \(last\_intersection \gets intersection\) \;
+        \Continue 
+      }
+      \(solution \gets \frac{\varepsilon - a}{b}\) \;
+      Mark \(solution\) as earliest or last solution if \(solution \in [last\_intersection, intersection]\) \;
+      \(last\_intersection \gets intersection\) \;
+      \Continue
+    }
+    \(before_i \gets list[i][PREV]\) \;
+    \(list[before_i][NEXT] \gets j, list[j][PREV] \gets before_i\) \;
+    \(list[i][PREV] \gets -1\) \tcp{mark as removed}
+    \(last\_intersection \gets intersection\) \;
+    \If{\(before_i \neq HEAD\)}{
+      \(\_, \_, a, b \gets list[j]\) \;
+      \(\_, \_, a', b' \gets list[before_i]\) \;
+      \(intersection \gets \frac{a' - a}{b - b'}\) \tcp{also in \([0,1]\)}
+      \(queue.insert\_with\_priority((before_i, j), intersection)\) \;
+    }
+  }
+  Check for solution in \([last\_intersection, 1]\) \;
+
+  \caption{chebyshev\_solver(\(u, v, w, \varepsilon\))}
+  \label{algo:solve_chebyshev}
+  
+\end{algorithm}
 
 \subsection{Simple Generic Algorithm}
 \label{subsec:simple_algo}
