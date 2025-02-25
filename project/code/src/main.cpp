@@ -31,6 +31,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
     auto polyline = DataStructures::Polyline::from_file(
         std::filesystem::path(poly_line_file_name));
     std::cout << *polyline << std::endl;
+
+    auto res = DataStructures::solve_maximum(polyline->get_point(0),
+                                             polyline->get_point(1),
+                                             polyline->get_point(2), 3.2);
+    std::cout << res.first << ", " << res.last << std::endl;
   }
 }
 

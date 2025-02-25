@@ -119,11 +119,11 @@ This allows a simplification in that we do not need a self-balancing binary sear
       \Continue
     } 
 
-    \If{\(curr \neq HEAD \land a' + b' \geq a + b\)}{
+    \If{\( a' + b' \geq a + b\)}{
       \Continue \tcp{new line fully below current line so never maximum}
     } 
 
-    \(list[curr][NEXT] \gets i, list[i] \gets (curr, TAIL, a, b)\) \;
+    \(list[curr][NEXT] \gets i, list[i] \gets (curr, -1, a, b)\) \;
     \(intersection \gets \frac{a' - a}{b - b'}\) \tcp{always in \([0,1]\)}
     \(queue.insert\_with\_priority((curr, i), intersection)\) \;
     \(curr \gets i, a' \gets a, b' \gets b\) \;
