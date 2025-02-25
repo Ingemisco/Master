@@ -1,5 +1,5 @@
 #include "distance.h"
-#include "config.h"
+#include "../config.h"
 #include "datastructures.h"
 #include <cassert>
 #include <cmath>

@@ -1,4 +1,4 @@
-#include "config.h"
+#include "../config.h"
 #include "datastructures.h"
 #include "distance.h"
 #include <algorithm>
