@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "../config.h"
+#include "config.h"
 
 namespace DataStructures {
 

@@ -19,8 +19,6 @@ add_executable(datagen ${DATAGEN_SRC_FILES})
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 
-target_include_directories(polyline PRIVATE ${CMAKE_SOURCE_DIR}/include)
-
 target_link_libraries(polyline PRIVATE
   -fsanitize=address  
   -fsanitize=undefined

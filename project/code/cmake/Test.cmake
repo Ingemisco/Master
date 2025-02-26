@@ -10,9 +10,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wweak-vtables)
 endif()
 
+set(DEBUG_VALUE 1)
 file(GLOB TEST_SRC_FILES "test/*.cpp")
-
-target_include_directories(polyline PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(test_algorithms ${TEST_SRC_FILES})
 

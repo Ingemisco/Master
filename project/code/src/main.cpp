@@ -14,10 +14,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   po::options_description description("Allowed options");
   std::string poly_line_file_name;
 
-  description.add_options()           //
-      ("help,h", "Show help message") //
-      ("read,r", po::value<std::string>(&poly_line_file_name),
-       "Read a polyline from a file");
+  auto options = description.add_options();
+
+  options("help,h", "Show help message");
+  options("read,r", po::value<std::string>(&poly_line_file_name),
+          "Read a polyline from a file");
 
   po::variables_map map;
   po::store(po::parse_command_line(argc, argv, description), map);

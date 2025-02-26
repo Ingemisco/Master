@@ -4,7 +4,6 @@ project(PolylineSimplification LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(DEBUG_VALUE 1)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30.0")
   cmake_policy(SET CMP0167 NEW)
 endif()
@@ -17,10 +16,7 @@ add_compile_options(
 )
 
 # include directories 
-include_directories(${CMAKE_SOURCE_DIR})
-
-# config file 
-configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/config.h @ONLY)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   include(${CMAKE_SOURCE_DIR}/cmake/Debug.cmake)
@@ -31,4 +27,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Test")
 else()
   message(FATAL_ERROR "Unknown build type: ${CMAKE_BUILD_TYPE}")
 endif()
+
+# config file 
+configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/include/config.h @ONLY)
 
