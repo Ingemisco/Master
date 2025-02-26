@@ -11,7 +11,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 set(DEBUG_VALUE 1)
-file(GLOB TEST_SRC_FILES "test/*.cpp")
+file(GLOB TEST_SRC_FILES "test/*.cpp" "src/datastructures.cpp" "src/distance.cpp")
 
 add_executable(test_algorithms ${TEST_SRC_FILES})
 

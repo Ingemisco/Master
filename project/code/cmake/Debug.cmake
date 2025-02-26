@@ -12,7 +12,7 @@ endif()
 
 set(DEBUG_VALUE 1)
 file(GLOB SRC_FILES "src/*.cpp")
-file(GLOB DATAGEN_SRC_FILES "datageneration/*.cpp")
+file(GLOB DATAGEN_SRC_FILES "datageneration/*.cpp" "src/datastructures.cpp" "src/distance.cpp")
 
 add_executable(polyline ${SRC_FILES})
 add_executable(datagen ${DATAGEN_SRC_FILES})
