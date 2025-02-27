@@ -4,6 +4,7 @@
 #include "datastructures.h"
 
 namespace DataStructures {
+#define NO_POINT_REACHABLE -1
 
 typedef float Distance(Point const &, Point const &);
 typedef struct {
@@ -32,20 +33,16 @@ float euclidean_distance(Point const &, Point const &);
 float chebyshev_distance(Point const &, Point const &);
 float manhattan_distance(Point const &, Point const &);
 
-bool frechet_distance_decision(DataStructures::Polyline const &,
-                               DataStructures::Polyline const &, float,
-                               Distance = euclidean_distance);
-
-bool frechet_distance_decision_eucliean_sqrt(DataStructures::Polyline const &,
-                                             DataStructures::Polyline const &,
-                                             float);
-bool frechet_distance_decision_eucliean_nosqrt(DataStructures::Polyline const &,
-                                               DataStructures::Polyline const &,
-                                               float);
-
-float frechet_distance(DataStructures::Polyline const &,
-                       DataStructures::Polyline const &,
-                       Distance = euclidean_distance);
+float alt_godau_manhattan(Polyline const &, Point const &, Point const &,
+                          float);
+float alt_godau_euclidean(Polyline const &, Point const &, Point const &,
+                          float);
+size_t alt_godau_euclidean_implicit(Polyline const &, Point const &,
+                                    Point const &, float);
+float alt_godau_chebyshev(Polyline const &, Point const &, Point const &,
+                          float);
+size_t alt_godau_minkowski_implicit(Polyline const &, Point const &,
+                                    Point const &, float, unsigned int);
 
 ReachabilityData solve_manhattan(Point const &, Point const &, Point const &,
                                  float);

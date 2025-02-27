@@ -98,7 +98,6 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
 #if DEBUG
   _solver_sanity_check(point1, point2, point3);
 #endif
-  // TODO: Implement
   bool const first_reachable = chebyshev_distance(point1, point3) < epsilon;
   bool const last_reachable = chebyshev_distance(point2, point3) < epsilon;
   if (first_reachable && last_reachable) {
