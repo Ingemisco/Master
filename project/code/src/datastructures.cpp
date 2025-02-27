@@ -47,6 +47,13 @@ std::ostream &operator<<(std::ostream &os, Point const &point) {
   return os;
 }
 
+LineSegment::LineSegment(Point const &start, Point const &end)
+    : start(start), end(end) {
+#if DEBUG
+  assert_compatible_points(start, end);
+#endif
+}
+
 Polyline::Polyline(size_t point_count, size_t dimension)
     : data(new float[point_count * dimension]), point_count(point_count),
       dimension(dimension) {
@@ -155,6 +162,11 @@ std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
 
   return os;
 }
+
+PolylineRange::PolylineRange(Polyline &polyline, size_t start_point,
+                             size_t end_point, float start_offset)
+    : polyline(polyline), start_point_index(start_point),
+      end_point_index(end_point), start_point_offset(start_offset) {}
 
 void assert_compatible_points(Point const &point1, Point const &point2) {
   if (point1.dimension != point2.dimension) {

@@ -7,11 +7,8 @@
 namespace DataStructures {
 
 // does not own the data. Only lets you view a point in a polyline
-class Point {
-private:
+struct Point final {
   float *const coordinates;
-
-public:
   size_t const dimension;
 
   Point(float *, size_t);
@@ -22,12 +19,17 @@ public:
 
 std::ostream &operator<<(std::ostream &, Point const &);
 
-class Polyline {
-private:
+// only used as logical grouping
+struct LineSegment final {
+  Point const &start;
+  Point const &end;
+
+  LineSegment(Point const &, Point const &);
+};
+
+struct Polyline final {
   // matrix containing all points
   float *const data;
-
-public:
   size_t const point_count;
   size_t const dimension;
 
@@ -48,6 +50,17 @@ public:
   static std::unique_ptr<Polyline> from_file(std::filesystem::path);
 
   friend std::ostream &operator<<(std::ostream &, Polyline &);
+};
+
+// only used as logical grouping for Alt and Godau Algorithm and Polyline
+// Simplification algorithms
+struct PolylineRange final {
+  Polyline &polyline;
+  size_t const start_point_index;
+  size_t const end_point_index;
+  float const start_point_offset;
+
+  PolylineRange(Polyline &, size_t, size_t, float);
 };
 
 void assert_compatible_points(Point const &, Point const &);

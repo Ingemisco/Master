@@ -33,14 +33,11 @@ float euclidean_distance(Point const &, Point const &);
 float chebyshev_distance(Point const &, Point const &);
 float manhattan_distance(Point const &, Point const &);
 
-float alt_godau_manhattan(Polyline const &, Point const &, Point const &,
-                          float);
-float alt_godau_euclidean(Polyline const &, Point const &, Point const &,
-                          float);
+float alt_godau_manhattan(PolylineRange, LineSegment, float);
+float alt_godau_euclidean(PolylineRange, LineSegment, float);
 size_t alt_godau_euclidean_implicit(Polyline const &, Point const &,
                                     Point const &, float);
-float alt_godau_chebyshev(Polyline const &, Point const &, Point const &,
-                          float);
+float alt_godau_chebyshev(PolylineRange, LineSegment, float);
 size_t alt_godau_minkowski_implicit(Polyline const &, Point const &,
                                     Point const &, float, unsigned int);
 

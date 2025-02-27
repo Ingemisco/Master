@@ -33,10 +33,17 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
         std::filesystem::path(poly_line_file_name));
     std::cout << *polyline << std::endl;
 
-    auto res = DataStructures::solve_chebyshev(polyline->get_point(0),
-                                               polyline->get_point(1),
-                                               polyline->get_point(2), 3.2);
-    std::cout << res.first << ", " << res.last << std::endl;
+    // auto res = DataStructures::solve_chebyshev(polyline->get_point(0),
+    //                                            polyline->get_point(1),
+    //                                            polyline->get_point(2), 3.2);
+    // std::cout << res.first << ", " << res.last << std::endl;
+
+    std::cout << DataStructures::alt_godau_euclidean(
+                     DataStructures::PolylineRange(*polyline, 0, 3, 0.1),
+                     DataStructures::LineSegment(polyline->get_point(0),
+                                                 polyline->get_point(3)),
+                     2)
+              << std::endl;
   }
 }
 
