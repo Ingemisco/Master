@@ -15,9 +15,28 @@
 #include "distance.h"
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 namespace DataStructures {
+
+template <ReachabilityData _solver(Point const &, Point const &, Point const &,
+                                   float)>
+static inline float _alt_godau_main(PolylineRange polyline, LineSegment line,
+                                    float epsilon) {
+  float first_reachable = 0;
+
+  // first points already matched so start with 1 instead of 0
+  for (unsigned int i = polyline.start_point_index + 1;
+       i <= polyline.end_point_index; i++) {
+    auto data =
+        _solver(line.start, line.end, polyline.polyline.get_point(i), epsilon);
+    if (data.first == UNREACHABLE || data.last < first_reachable) {
+      return UNREACHABLE;
+    }
+
+    first_reachable = std::max(first_reachable, data.first);
+  }
+  return first_reachable;
+}
 
 float alt_godau_manhattan(PolylineRange polyline, LineSegment line,
                           float epsilon);
@@ -45,23 +64,7 @@ float alt_godau_euclidean(PolylineRange polyline, LineSegment line,
     return UNREACHABLE;
   }
 
-  float first_reachable = 0;
-
-  // first points already matched so start with 1 instead of 0
-  for (unsigned int i = polyline.start_point_index + 1;
-       i <= polyline.end_point_index; i++) {
-    auto data = solve_euclidean(line.start, line.end,
-                                polyline.polyline.get_point(i), epsilon);
-    if (data.first == UNREACHABLE || data.last < first_reachable) {
-      std::cout << "unreachable" << std::endl;
-      return UNREACHABLE;
-    }
-
-    first_reachable = std::max(first_reachable, data.first);
-    std::cout << first_reachable << std::endl;
-  }
-
-  return first_reachable;
+  return _alt_godau_main<solve_euclidean>(polyline, line, epsilon);
 }
 
 size_t alt_godau_euclidean_implicit(Polyline const &polyline,
