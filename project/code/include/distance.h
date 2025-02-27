@@ -29,7 +29,7 @@ float minkowski_distance(Point const &, Point const &, int);
 float unnormalized_euclidean_distance(Point const &, Point const &);
 float euclidean_distance(Point const &, Point const &);
 
-float maximum_norm_distance(Point const &, Point const &);
+float chebyshev_distance(Point const &, Point const &);
 float manhattan_distance(Point const &, Point const &);
 
 bool frechet_distance_decision(DataStructures::Polyline const &,
@@ -49,8 +49,8 @@ float frechet_distance(DataStructures::Polyline const &,
 
 ReachabilityData solve_manhattan(Point const &, Point const &, Point const &,
                                  float);
-ReachabilityData solve_maximum(Point const &, Point const &, Point const &,
-                               float);
+ReachabilityData solve_chebyshev(Point const &, Point const &, Point const &,
+                                 float);
 ReachabilityData solve_euclidean(Point const &, Point const &, Point const &,
                                  float);
 

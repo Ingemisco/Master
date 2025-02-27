@@ -35,24 +35,24 @@ ReachabilityData solve_manhattan(Point const &point1, Point const &point2,
 typedef struct {
   float offset;
   float slope;
-} MaxNormCandidate;
+} ChebyshevCandidate;
 
 typedef struct {
   int prev;
   int next;
   float offset;
   float slope;
-} MaxNormList;
+} ChebyshevList;
 
-typedef struct max_norm_queue_elem {
+typedef struct chebyshev_queue_elem {
   float intersection;
   int prev_above;
   int prev_below;
 
-  bool operator>(struct max_norm_queue_elem const &other) const {
+  bool operator>(struct chebyshev_queue_elem const &other) const {
     return this->intersection > other.intersection;
   }
-} MaxNormQueueElement;
+} ChebyshevQueueElement;
 
 #define LINE_REMOVED -1
 
@@ -93,14 +93,14 @@ static inline bool update_solution(float &first_sol, float &last_sol, float a,
   return false;
 }
 
-ReachabilityData solve_maximum(Point const &point1, Point const &point2,
-                               Point const &point3, float epsilon) {
+ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
+                                 Point const &point3, float epsilon) {
 #if DEBUG
   _solver_sanity_check(point1, point2, point3);
 #endif
   // TODO: Implement
-  bool const first_reachable = maximum_norm_distance(point1, point3) < epsilon;
-  bool const last_reachable = maximum_norm_distance(point2, point3) < epsilon;
+  bool const first_reachable = chebyshev_distance(point1, point3) < epsilon;
+  bool const last_reachable = chebyshev_distance(point2, point3) < epsilon;
   if (first_reachable && last_reachable) {
     return {0, 1};
   }
@@ -108,7 +108,7 @@ ReachabilityData solve_maximum(Point const &point1, Point const &point2,
   float first_sol = first_reachable ? 0 : UNREACHABLE;
   float last_sol = last_reachable ? 1 : UNREACHABLE;
 
-  MaxNormCandidate *candidates = new MaxNormCandidate[2 * point1.dimension];
+  ChebyshevCandidate *candidates = new ChebyshevCandidate[2 * point1.dimension];
   unsigned int index = 0;
   for (unsigned int i = 0; i < point1.dimension; i++) {
     float const offset = point1[i] - point3[i];
@@ -122,16 +122,16 @@ ReachabilityData solve_maximum(Point const &point1, Point const &point2,
   }
 
   std::sort(candidates, candidates + index,
-            [](MaxNormCandidate a, MaxNormCandidate b) {
+            [](ChebyshevCandidate a, ChebyshevCandidate b) {
               return a.offset > b.offset;
             });
-  MaxNormList *list = new MaxNormList[index];
+  ChebyshevList *list = new ChebyshevList[index];
 
-  std::vector<MaxNormQueueElement> inner_vector;
+  std::vector<ChebyshevQueueElement> inner_vector;
   inner_vector.reserve(index);
-  std::priority_queue<MaxNormQueueElement, std::vector<MaxNormQueueElement>,
-                      std::greater<MaxNormQueueElement>>
-      queue(std::greater<MaxNormQueueElement>(), std::move(inner_vector));
+  std::priority_queue<ChebyshevQueueElement, std::vector<ChebyshevQueueElement>,
+                      std::greater<ChebyshevQueueElement>>
+      queue(std::greater<ChebyshevQueueElement>(), std::move(inner_vector));
 
   list[0].offset = candidates[0].offset;
   list[0].slope = candidates[0].slope;

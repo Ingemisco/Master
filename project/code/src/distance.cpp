@@ -47,7 +47,7 @@ float manhattan_distance(Point const &point1, Point const &point2) {
   return result;
 }
 
-float maximum_norm_distance(Point const &point1, Point const &point2) {
+float chebyshev_distance(Point const &point1, Point const &point2) {
 #if DEBUG
   assert_compatible_points(point1, point2);
 #endif
