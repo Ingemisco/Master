@@ -32,22 +32,40 @@ Create a `build` directory and navigate into it:
 > cd build 
 ```
 
-After that you can build the project:
+After that you can build the project in debug mode:
 
 ```bash
-> cmake ..
+> cmake .. -DCMAKE_BUILD_TYPE=Debug
 > cmake --build .
 ```
 
-By default, the debug build will be created. To create the
-release build (i.e., without debug flags and with optimizations)
-do the following:
+Or in Release mode:
 
 ```bash
 > cmake .. -DCMAKE_BUILD_TYPE=Release 
 > cmake --build .
 ```
 
+Additionally, there is a test build (does not do anything as of yet):
+
+```bash
+> cmake .. -DCMAKE_BUILD_TYPE=Test 
+> cmake --build .
+```
+
 ## Usage
 
-TODO
+The debug and release build create two executables: polyline and datagen.
+datagen allows creation of polyline data and store them in files.
+It has various options which can be seen using the -h flag
+
+```bash
+> ./datagen -h
+```
+
+polyline can read polyline data files and perform algorithms on them.
+For more information see the -h flag
+
+```bash
+> ./polyline -h
+```
