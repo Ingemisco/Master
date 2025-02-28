@@ -23,38 +23,10 @@ static inline void _solver_sanity_check(Point const &point1,
   }
 }
 
-ReachabilityData solve_manhattan(Point const &point1, Point const &point2,
-                                 Point const &point3, float epsilon) {
-#if DEBUG
-  _solver_sanity_check(point1, point2, point3);
-#endif
-  // TODO: Implement
-  return {UNREACHABLE, UNREACHABLE};
-}
-
 typedef struct {
   float offset;
   float slope;
-} ChebyshevCandidate;
-
-typedef struct {
-  int prev;
-  int next;
-  float offset;
-  float slope;
-} ChebyshevList;
-
-typedef struct chebyshev_queue_elem {
-  float intersection;
-  int prev_above;
-  int prev_below;
-
-  bool operator>(struct chebyshev_queue_elem const &other) const {
-    return this->intersection > other.intersection;
-  }
-} ChebyshevQueueElement;
-
-#define LINE_REMOVED -1
+} CoordCandidate;
 
 // returns true if no further computation would change result
 static inline bool make_solution(float &first_sol, float &last_sol,
@@ -93,6 +65,102 @@ static inline bool update_solution(float &first_sol, float &last_sol, float a,
   return false;
 }
 
+ReachabilityData solve_manhattan(Point const &point1, Point const &point2,
+                                 Point const &point3, float epsilon) {
+#if DEBUG
+  _solver_sanity_check(point1, point2, point3);
+#endif
+
+  bool const first_reachable = manhattan_distance(point1, point3) < epsilon;
+  bool const last_reachable = manhattan_distance(point2, point3) < epsilon;
+  if (first_reachable && last_reachable) {
+    return {0, 1};
+  }
+
+  float first_sol = first_reachable ? 0 : UNREACHABLE;
+  float last_sol = last_reachable ? 1 : UNREACHABLE;
+
+  CoordCandidate *candidates = new CoordCandidate[point1.dimension];
+  unsigned int index = 0;
+  float global_offset = 0;
+  float global_slope = 0;
+  for (unsigned int i = 0; i < point1.dimension; i++) {
+    float slope = point2[i] - point1[i];
+    float offset = point1[i] - point3[i];
+    if (slope < 0) {
+      slope *= -1;
+      offset *= -1;
+    } else if (slope == 0) {
+      epsilon -= std::abs(offset);
+      continue;
+    }
+    float const zero = -offset / slope;
+    // if the zero is outside of [0,1] the value will never change in the
+    // algorithm so we don't need to sort the values to find the intervals
+    if (0 >= zero) {
+      global_offset += offset;
+      global_slope += slope;
+      continue;
+    } else if (1 <= zero) {
+      global_offset -= offset;
+      global_slope -= slope;
+      continue;
+    }
+    candidates[index].slope = slope;
+    candidates[index].offset = offset;
+
+    // we start at zero, so all values (which are in  [0,1]) are positive
+    global_offset -= offset;
+    global_slope -= slope;
+
+    index++;
+  }
+
+  // sort according to zero of the line segments
+  std::sort(candidates, candidates + index,
+            [](CoordCandidate a, CoordCandidate b) {
+              return -a.offset / a.slope < -b.offset / b.slope;
+            });
+
+  float interval_start = 0;
+  for (unsigned int i = 0; i < index; i++) {
+    if (update_solution(first_sol, last_sol, global_offset, global_slope,
+                        interval_start,
+                        -candidates[i].offset / candidates[i].slope, epsilon)) {
+      delete[] candidates;
+      return {first_sol, last_sol};
+    }
+
+    global_offset += 2 * candidates[i].offset;
+    global_slope += 2 * candidates[i].slope;
+  }
+
+  update_solution(first_sol, last_sol, global_offset, global_slope,
+                  interval_start, 1, epsilon);
+
+  delete[] candidates;
+  return {first_sol, last_sol};
+}
+
+typedef struct {
+  int prev;
+  int next;
+  float offset;
+  float slope;
+} ChebyshevList;
+
+typedef struct chebyshev_queue_elem {
+  float intersection;
+  int prev_above;
+  int prev_below;
+
+  bool operator>(struct chebyshev_queue_elem const &other) const {
+    return this->intersection > other.intersection;
+  }
+} ChebyshevQueueElement;
+
+#define LINE_REMOVED -1
+
 ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
                                  Point const &point3, float epsilon) {
 #if DEBUG
@@ -107,7 +175,7 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
   float first_sol = first_reachable ? 0 : UNREACHABLE;
   float last_sol = last_reachable ? 1 : UNREACHABLE;
 
-  ChebyshevCandidate *candidates = new ChebyshevCandidate[2 * point1.dimension];
+  CoordCandidate *candidates = new CoordCandidate[2 * point1.dimension];
   unsigned int index = 0;
   for (unsigned int i = 0; i < point1.dimension; i++) {
     float const offset = point1[i] - point3[i];
@@ -120,10 +188,9 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
     }
   }
 
-  std::sort(candidates, candidates + index,
-            [](ChebyshevCandidate a, ChebyshevCandidate b) {
-              return a.offset > b.offset;
-            });
+  std::sort(
+      candidates, candidates + index,
+      [](CoordCandidate a, CoordCandidate b) { return a.offset > b.offset; });
   ChebyshevList *list = new ChebyshevList[index];
 
   std::vector<ChebyshevQueueElement> inner_vector;

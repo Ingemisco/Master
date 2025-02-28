@@ -15,6 +15,7 @@
 #include "distance.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 
 namespace DataStructures {
 
@@ -39,7 +40,30 @@ static inline float _alt_godau_main(PolylineRange polyline, LineSegment line,
 }
 
 float alt_godau_manhattan(PolylineRange polyline, LineSegment line,
-                          float epsilon);
+                          float epsilon) {
+#if DEBUG
+  assert_compatible_points(polyline.polyline.get_point(0), line.start);
+#endif
+
+  // compute distance of first point on polyline (p[start] + t(p[start + 1] -
+  // p[start])) to first point of line segment and compare if distance greater
+  // then epsilon, if so, the line segment is too far away
+  float initial_dist = 0;
+  for (unsigned int i = 0; i < line.start.dimension; i++) {
+    float const coord =
+        polyline.polyline[polyline.start_point_index, i] +
+        polyline.start_point_offset *
+            (polyline.polyline[polyline.start_point_index + 1, i] -
+             polyline.polyline[polyline.start_point_index, i]) -
+        line.start[i];
+    initial_dist += std::abs(coord);
+  }
+  if (initial_dist > epsilon) {
+    return UNREACHABLE;
+  }
+
+  return _alt_godau_main<solve_manhattan>(polyline, line, epsilon);
+}
 
 float alt_godau_euclidean(PolylineRange polyline, LineSegment line,
                           float epsilon) {
@@ -72,7 +96,29 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline,
                                     Point const &line_end, float epsilon);
 
 float alt_godau_chebyshev(PolylineRange polyline, LineSegment line,
-                          float epsilon);
+                          float epsilon) {
+#if DEBUG
+  assert_compatible_points(polyline.polyline.get_point(0), line.start);
+#endif
+  // compute distance of first point on polyline (p[start] + t(p[start + 1] -
+  // p[start])) to first point of line segment and compare if distance greater
+  // then epsilon, if so, the line segment is too far away
+  float initial_dist = 0;
+  for (unsigned int i = 0; i < line.start.dimension; i++) {
+    float const coord =
+        polyline.polyline[polyline.start_point_index, i] +
+        polyline.start_point_offset *
+            (polyline.polyline[polyline.start_point_index + 1, i] -
+             polyline.polyline[polyline.start_point_index, i]) -
+        line.start[i];
+    initial_dist = std::max(initial_dist, std::abs(coord));
+  }
+  if (initial_dist > epsilon) {
+    return UNREACHABLE;
+  }
+
+  return _alt_godau_main<solve_chebyshev>(polyline, line, epsilon);
+}
 
 size_t alt_godau_minkowski_implicit(Polyline const &polyline,
                                     Point const &line_start,
