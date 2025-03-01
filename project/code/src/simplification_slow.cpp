@@ -77,7 +77,7 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
     j++;
   }
 
-  for (unsigned int k = 1; k < point_count - 1; k++) {
+  for (unsigned int k = 1; true; k++) {
     for (unsigned int i = 0; i < point_count; i++) {
       for (unsigned int j = 0; j < point_count - 1; j++) {
         std::cout << "Iteration k,i,j = " << k << ", " << i << ", " << j
@@ -172,12 +172,6 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
       return result;
     }
   }
-
-  Simplification result = std::make_unique<std::vector<size_t>>(point_count);
-  for (unsigned int i = 0; i < point_count; i++) {
-    (*result)[i] = i;
-  }
-  return result;
 }
 
 } // namespace Simplification

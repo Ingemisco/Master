@@ -40,7 +40,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
     // std::cout << res.first << ", " << res.last << std::endl;
 
     std::cout << std::endl << "Testing algo " << std::endl;
-    auto v = Simplification::simplification_naive_euclidean(*polyline, 2);
+    auto v = Simplification::simplification_naive_euclidean(*polyline, 0.5);
 
     std::cout << "Simplification uses: ";
     for (size_t i : *v) {
