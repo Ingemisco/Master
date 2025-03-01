@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 
 namespace DataStructures {
 
@@ -26,17 +27,25 @@ static inline float _alt_godau_main(PolylineRange polyline, LineSegment line,
   float first_reachable = 0;
 
   // first points already matched so start with 1 instead of 0
+  // do not need to go to end of polyline so last point exluded
   for (unsigned int i = polyline.start_point_index + 1;
-       i <= polyline.end_point_index; i++) {
+       i < polyline.end_point_index; i++) {
     auto data =
         _solver(line.start, line.end, polyline.polyline.get_point(i), epsilon);
+    std::cout << data.first << ", " << data.last << std::endl;
     if (data.first == UNREACHABLE || data.last < first_reachable) {
       return UNREACHABLE;
     }
 
     first_reachable = std::max(first_reachable, data.first);
   }
-  return first_reachable;
+
+  // find on last line segment first reachable point
+  auto data = _solver(polyline.polyline.get_point(polyline.end_point_index - 1),
+                      polyline.polyline.get_point(polyline.end_point_index),
+                      line.end, epsilon);
+
+  return data.first;
 }
 
 float alt_godau_manhattan(PolylineRange polyline, LineSegment line,

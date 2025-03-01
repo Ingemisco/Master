@@ -1,5 +1,6 @@
 #include "datastructures.h"
 #include "distance.h"
+#include "simplification.h"
 #include <boost/program_options.hpp>
 #include <boost/program_options/detail/parsers.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -33,10 +34,27 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
         std::filesystem::path(poly_line_file_name));
     std::cout << *polyline << std::endl;
 
-    auto res = DataStructures::solve_manhattan(polyline->get_point(0),
-                                               polyline->get_point(1),
-                                               polyline->get_point(2), 5);
-    std::cout << res.first << ", " << res.last << std::endl;
+    // auto res = DataStructures::solve_manhattan(polyline->get_point(0),
+    //                                            polyline->get_point(1),
+    //                                            polyline->get_point(2), 5);
+    // std::cout << res.first << ", " << res.last << std::endl;
+
+    std::cout << std::endl << "Testing algo " << std::endl;
+    auto v = Simplification::simplification_naive_euclidean(*polyline, 2);
+
+    std::cout << "Simplification uses: ";
+    for (size_t i : *v) {
+      std::cout << i << ", ";
+    }
+    std::cout << std::endl;
+
+    // float res = DataStructures::alt_godau_euclidean(
+    //     DataStructures::PolylineRange(*polyline, 2, 4, 0),
+    //     DataStructures::LineSegment(polyline->get_point(2),
+    //                                 polyline->get_point(4)),
+    //     1);
+    //
+    // std::cout << "result " << res << std::endl;
 
     // std::cout << DataStructures::alt_godau_manhattan(
     //                  DataStructures::PolylineRange(*polyline, 0, 3, 0.1),
