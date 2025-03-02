@@ -121,6 +121,7 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
               j_ = j + 1;
               i_ = i;
             }
+            std::cout << "Did something " << i_ << ", " << j_ << std::endl;
           }
         }
 
