@@ -22,10 +22,19 @@ namespace DataStructures {
 
 template <ReachabilityData _solver(Point const &, Point const &, Point const &,
                                    float)>
-static inline float _alt_godau_main(PolylineRange polyline, LineSegment line,
+static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
                                     float epsilon) {
-  float first_reachable = 0;
+  if (polyline.start_point_index + 1 == polyline.end_point_index) {
+    auto data = _solver(polyline.polyline.get_point(polyline.start_point_index),
+                        polyline.polyline.get_point(polyline.end_point_index),
+                        line.end, epsilon);
+    if (data.first == UNREACHABLE) {
+      return UNREACHABLE;
+    }
+    return std::max(data.first, polyline.start_point_offset);
+  }
 
+  float first_reachable = 0;
   // first points already matched so start with 1 instead of 0
   // do not need to go to end of polyline so last point exluded
   for (unsigned int i = polyline.start_point_index + 1;
