@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
 
 namespace DataStructures {
 
@@ -41,7 +40,6 @@ static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
        i < polyline.end_point_index; i++) {
     auto data =
         _solver(line.start, line.end, polyline.polyline.get_point(i), epsilon);
-    std::cout << data.first << ", " << data.last << std::endl;
     if (data.first == UNREACHABLE || data.last < first_reachable) {
       return UNREACHABLE;
     }

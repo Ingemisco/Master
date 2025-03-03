@@ -73,24 +73,25 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
   while (j < point_count - 1 && DataStructures::unnormalized_euclidean_distance(
                                     origin, polyline.get_point(j)) < epsilon2) {
     dp_first_reachable(table, 0, 0, j, dim1, dim2) = 0;
-    std::cout << "Set (0,0," << j << ") to 0" << std::endl;
     j++;
   }
 
   for (unsigned int k = 1; true; k++) {
     for (unsigned int i = 0; i < point_count; i++) {
       for (unsigned int j = 0; j < point_count - 1; j++) {
-        std::cout << "Iteration k,i,j = " << k << ", " << i << ", " << j
-                  << std::endl;
         auto const range = DataStructures::solve_euclidean(
             polyline.get_point(j), polyline.get_point(j + 1),
             polyline.get_point(i), epsilon);
-        if (range.first == dp_first_reachable(table, k - 1, i, j, dim1, dim2)) {
+        if (range.first == DataStructures::UNREACHABLE) {
+          dp_first_reachable(table, k, i, j, dim1, dim2) =
+              DataStructures::UNREACHABLE;
+          continue;
+        } else if (range.first ==
+                   dp_first_reachable(table, k - 1, i, j, dim1, dim2)) {
           // already found best, cannot be reference (would be referenced
           // earlier because of minimality) so the i, j it references dont need
           // to be set
           dp_first_reachable(table, k, i, j, dim1, dim2) = range.first;
-          std::cout << "already found" << std::endl;
           continue;
         }
         // compute table[k,i,j]
@@ -121,30 +122,16 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
               j_ = j + 1;
               i_ = i;
             }
-            std::cout << "Did something " << i_ << ", " << j_ << std::endl;
           }
         }
 
         if (first_reachable != 2) {
           dp_point_ref_i(table, k, i, j, dim1, dim2) = ref_i;
           dp_point_ref_j(table, k, i, j, dim1, dim2) = ref_j;
-          std::cout << "For i, j = " << i << ", " << j << " have set i', j' to "
-                    << ref_i << ", " << ref_j << std::endl;
           dp_first_reachable(table, k, i, j, dim1, dim2) = first_reachable;
         } else {
-          std::cout << "k, i, j " << k << ", " << i << ", " << j << std::endl;
           dp_first_reachable(table, k, i, j, dim1, dim2) =
               DataStructures::UNREACHABLE;
-        }
-      }
-    }
-
-    for (unsigned int x = 0; x < point_count; x++) {
-      for (unsigned int y = 0; y < point_count - 1; y++) {
-        float const val = dp_first_reachable(table, k, x, y, dim1, dim2);
-        if (val >= 0 && val <= 1) {
-          std::cout << "For i,j = " << x << ", " << y << " found new inner val "
-                    << val << std::endl;
         }
       }
     }
@@ -155,16 +142,10 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
       auto &p = *result;
       size_t i_ = point_count - 1;
       size_t j_ = point_count - 2;
-      std::cout << "test" << std::endl;
       while (i_ > 0) {
         p[k] = i_;
-        std::cout << i_ << std::endl;
         size_t const i_new = dp_point_ref_i(table, k, i_, j_, dim1, dim2);
         size_t const j_new = dp_point_ref_j(table, k, i_, j_, dim1, dim2);
-        std::cout << "Appends " << i_ << " Uses " << i_ << ", " << j_
-                  << " with inbetween "
-                  << dp_first_reachable(table, k, i_, j_, dim1, dim2)
-                  << std::endl;
         k--;
         i_ = i_new;
         j_ = j_new;
