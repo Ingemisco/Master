@@ -117,9 +117,13 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   int point_count = map["point_count"].as<int>();
   int dimension = map["dimension"].as<int>();
 
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
   auto polyline = DataGeneration::make_polyline(
       point_count, dimension, min_length, max_length,
-      max_angle / 180.0 * std::numbers::pi);
+
+      max_angle / 180.0 * std::numbers::pi, gen);
 
   if (map.count("integral") > 0) {
     DataGeneration::make_integral(*polyline.get());
@@ -134,9 +138,24 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
       while (std::filesystem::exists(poly_line_file_name + std::to_string(j))) {
         j++;
       }
+
+      auto polyline = DataGeneration::make_polyline(
+          point_count, dimension, min_length, max_length,
+
+          max_angle / 180.0 * std::numbers::pi, gen);
       DataGeneration::write_to_file(
           *polyline.get(),
           std::filesystem::path(poly_line_file_name + std::to_string(j)));
+      if (i < count - 1) {
+        polyline = DataGeneration::make_polyline(
+            point_count, dimension, min_length, max_length,
+
+            max_angle / 180.0 * std::numbers::pi, gen);
+
+        if (map.count("integral") > 0) {
+          DataGeneration::make_integral(*polyline.get());
+        }
+      }
     }
   }
 }

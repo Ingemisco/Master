@@ -12,13 +12,11 @@ namespace DataGeneration {
 // angle in radian in [0, pi]
 std::unique_ptr<DataStructures::Polyline>
 make_polyline(size_t point_count, size_t dimension, float min_length,
-              float max_length, float angle) {
+              float max_length, float angle, std::mt19937 &gen) {
   auto res_polyline =
       std::make_unique<DataStructures::Polyline>(point_count, dimension);
   auto &polyline = *res_polyline.get();
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
   std::uniform_real_distribution<float> full_angle_dist(0,
                                                         2 * std::numbers::pi);
   std::uniform_real_distribution<float> restr_angle_dist(-angle, angle);
