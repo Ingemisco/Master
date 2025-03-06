@@ -1,9 +1,11 @@
 // Uses the algorithm from Van Kreveld et al. to solve the polyline
 // simplification problem
 
+#include "config.h"
 #include "datastructures.h"
 #include "distance.h"
 #include "simplification.h"
+#include "visualizer.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -64,6 +66,11 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
   size_t const dim2 = point_count - 1;
   size_t const dim1 = dim2 * point_count;
 
+#if DEBUG
+  VisualizationLog::VisualizationLogger log(
+      polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN);
+#endif
+
   // initialization (k = 0)
   DataStructures::Point const origin = polyline.get_point(0);
   float const epsilon2 = epsilon * epsilon;
@@ -75,6 +82,10 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
     dp_first_reachable(table, 0, 0, j, dim1, dim2) = 0;
     j++;
   }
+
+#if DEBUG
+  log.leave_range(j);
+#endif
 
   for (unsigned int k = 1; true; k++) {
     for (unsigned int i = 0; i < point_count; i++) {
@@ -138,6 +149,26 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
 
     if (dp_first_reachable(table, k, point_count - 1, point_count - 2, dim1,
                            dim2) != DataStructures::UNREACHABLE) {
+#if DEBUG
+      // print whole table (relevant entries)
+      for (unsigned int a = 1; a <= k; a++) {
+        for (unsigned int b = 0; b < point_count; b++) {
+          for (unsigned int c = 0; c < point_count - 1; c++) {
+            float v = dp_first_reachable(table, a, b, c, dim1, dim2);
+            if (v != DataStructures::UNREACHABLE &&
+                (a == 0 ||
+                 dp_first_reachable(table, a - 1, b, c, dim1, dim2) != v)) {
+              size_t i_ = dp_point_ref_i(table, a, b, c, dim1, dim2);
+              size_t j_ = dp_point_ref_j(table, a, b, c, dim1, dim2);
+              log.add_use(
+                  VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
+            }
+          }
+        }
+      }
+      log.emit();
+#endif
+
       Simplification result = std::make_unique<std::vector<size_t>>(k + 1);
       auto &p = *result;
       size_t i_ = point_count - 1;
