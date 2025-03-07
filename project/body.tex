@@ -1,3 +1,10 @@
+% some hacky stuff for editor to properly find bibliography
+\let\oldbibliography\bibliography % Save the original \bibliography command
+\renewcommand{\bibliography}[1]{} % Redefine \bibliography to do nothing
+\bibliography{bibliography}
+\renewcommand{\bibliography}{\oldbibliography} % Redefine \bibliography to do nothing
+
+
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\R}{\mathbb{R}}
@@ -11,6 +18,11 @@
 
 \section{Related Work}
 \label{sec:related_work}
+This report is mainly based on the previous work from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}
+and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, both of which construct algorithms to solve the problem of global polyline simplification under the Fréchet distance.
+\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm is itself an variant of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm that reduces the runtime down to cubic runtime. 
+
+\cite{polyline_simplification_has_cubic_complexity_bringmannetal}
 
 \section{Preliminaries}
 \label{sec:preliminaries}
@@ -27,7 +39,7 @@ Here we derive explicit formulae to solve equations of the type
 \end{equation}
 for arbitrary fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R_{>0}\) for the variable \(t \in \R\) or determine that there is no such solution. This will have a smallest solution \(\hat{t}_0\) and largest solution \(\hat{t}_1\) in which we are interested. Those two solutions may be the same or may not exist at all.
 
-In general, this will require finding roots of polynomials and thus there is no exact solution algorithm for distances derived from the norms\(L_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
+In general, this will require finding roots of polynomials and thus there is no exact solution algorithm for distances derived from the norms \(L_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
 
 We can also make use of restrictions on \(t\) that are needed during the algorithms: 
 \begin{enumerate}
@@ -87,6 +99,48 @@ There are a few edge cases, namely those being that multiple \(t_i\) coincide as
 
 % TODO: Pseudocode
 
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{vectors \(u, v, w \in \R^d\), \(\varepsilon > 0\)}
+  \KwResult{Solution to \cref{eq:solve_manhattan}}
+  \BlankLine
+  \(global\_slope \gets 0, global\_offset \gets 0\) \;
+  \(events \gets Array(d)\)
+  \For{\(i = 1, \dots, d\)}{
+    \(slope \gets v_i - u_i, offset \gets u_i - w_i\)\;
+    \If{\(slope < 0\)}{
+      \(slope \gets -slope, offset \gets -offset\)
+    } \ElseIf{\(slope = 0\)}{
+      \(\varepsilon \gets \varepsilon - |offset|\)\;
+      \Continue
+    }
+    \(zero \gets - \frac{offset}{slope}\)\;
+    \If{\(zero \leq 0\)}{
+      \(global\_offset \gets global\_offset + offset\)\;
+      \(global\_slope \gets global\_slope + slope\)\;
+      \Continue
+    } 
+    \(global\_offset \gets global\_offset - offset\)\;
+    \(global\_slope \gets global\_slope - slope\)\;
+    \If{\(zero \geq 1\)}{
+      \Continue
+    }
+    \(events.append((zero, slope, offset))\)\;
+  }
+  Sort \(events\) by their \(zero\) component\;
+  \(start \gets 0\)\;
+  \For{\((zero, slope, offset) \in events\)}{
+    Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, zero]\) and report solution if so\;
+    \(global\_offset \gets global\_offset + 2offset\)\;
+    \(global\_slope \gets global\_slope + 2slope\)\;
+    \(start \gets zero\)
+  }
+  Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, 1]\) and report solution if so\;
+
+  \caption{manhattan\_solver(\(u, v, w, \varepsilon\))}
+  \label{algo:solve_manhattan}
+\end{algorithm}
+
 
 \subsubsection{Chebyshev Distance}
 \label{subsubsec:eq_chebyshev_distance}
@@ -103,7 +157,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
-  \KwData{vectors \(u, v, w \in \R^d\)}
+  \KwData{vectors \(u, v, w \in \R^d\), \(\varepsilon > 0\)}
   \BlankLine
   \(candidates \gets \set{(2i, u_i - w_i, v_i - u_i), (2i+1, w_i - u_i, u_i - v_i) | i = 0, \dots, d - 1}\) \;
   \(queue \gets PriorityQueue()\) \;
