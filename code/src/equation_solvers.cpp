@@ -50,19 +50,13 @@ static inline bool update_solution(float &first_sol, float &last_sol, float a,
                                    float b, float range_start, float range_end,
                                    float epsilon) {
   if (b == 0) {
-    if (a == epsilon &&
-        make_solution(first_sol, last_sol, range_start, range_end)) {
-      return true;
-    }
-    return false;
+    return a == epsilon &&
+           make_solution(first_sol, last_sol, range_start, range_end);
   }
 
   float const solution = (epsilon - a) / b;
-  if (solution >= range_start && solution <= range_end &&
-      make_solution(first_sol, last_sol, solution, solution)) {
-    return true;
-  }
-  return false;
+  return solution >= range_start && solution <= range_end &&
+         make_solution(first_sol, last_sol, solution, solution);
 }
 
 ReachabilityData solve_manhattan(Point const &point1, Point const &point2,
