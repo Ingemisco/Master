@@ -9,6 +9,11 @@
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\R}{\mathbb{R}}
 
+\newcommand{\parenth}[1]{\left(#1\right)}
+\newcommand{\angl}[1]{\left\langle#1\right\rangle}
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil#1\right\rceil}
+
 \SetKw{Continue}{continue}
 
 \renewcommand*{\O}{\mathcal{O}}
@@ -27,27 +32,317 @@ and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frech
 \section{Preliminaries}
 \label{sec:preliminaries}
 
+In this section we cover notation and definitions used throughout this report. 
+
+\subsection{Polylines}
+\label{ssec:polylines}
+The main geometric figure we are analysing is the \emph{polyline}.
+\begin{definition}
+  Let \(d\in \N_+\) and \(n \in \N\) be natural numbers and \(u_0, \dots, u_n \in \R^d\) be \(d\)-dimensional points. 
+
+  The sequence \(P = \angl{u_0, \dots, u_n}\) is a \(d\)-dimensional \emph{polyline} of length \(n\). It consists of \(n+1\) many points which are connected by \(n\) line segments. 
+
+  \begin{itemize}
+    \item We interpret \(P\) as a function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for \(i \in \set{0, \dots, n}\).
+
+      Points inbetween are linearly interpolated, meaning that for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\) we set \(P(i + t) = (1- t)u_i + t u_{i+1}\)
+    \item We denote \(P[t'\dots t]\) to be the subpolyline from \(t' \in [0, n]\) to \(t \in [t', n]\). Formally, \[P[t'\dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2) \dots, P(\ceil{t} - 1), P(t)}.\]
+  \end{itemize}
+
+\end{definition}
+
+\subsection{Distances}
+\label{ssec:distances}
+We distinguish between distance measurements between two points and distance measurements between two polylines. 
+\begin{definition}\label{def:point_distance}
+  Let \(d \in \N_+\) and \(\ell \geq 1\) be a real number.
+  \begin{enumerate}
+    \item We define the \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) as 
+      \[\delta'_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \sum_{i = 1}^d |u_i - v_i|^\ell.\]
+    \item We define the \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) as 
+      \[\delta_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \delta'_\ell(u, v)^{\frac1\ell} = \parenth{\sum_{i = 1}^d |u_i - v_i|^\ell}^{\frac1\ell}.\]
+    \item In the case of \(\ell = 2\), we call \(\delta_2'\)  the \emph{unnormalized Euclidean distance} and \(\delta_2\) the \emph{(normalized) Euclidean distance}.
+    \item In the case of \(\ell = 1\), the unnormalized and normalized versions coincide. We call \(\delta_1' = \delta_1\) the \emph{Manhattan distance}. 
+    \item We further define the \emph{Chebyshev distance} \(\delta'_\infty = \delta_\infty\) as 
+      \[\delta_\infty:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \max_{i = 1, \dots, d} |u_i - v_i|.\]
+  \end{enumerate}
+
+  If \(\ell\) is clear from the context or irrelevant, we will omit it.
+\end{definition}
+
+The Euclidean distance is the most important case and commonly used distance measure. The Manhattan distance and Chebyshev distance are simple to compute as they do not require exponentiation to rational numbers. When the points have rational coordinates, both distances will produces rational numbers.
+The other Minkowski distances are less used and less numerically stable. For this reason we introduce their unnormalized versions and will see how some of the algorithms can be adjusted to use them instead. 
+
+\begin{definition}
+  Let \(d \in \N_+\) and \(\delta\) be a (normalized) distance function. The \emph{Fréchet distance} \(\delta^F\) for two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\) respectively is 
+  \[\delta^F(P, Q) = \inf_f \max_{t \in [0, p]}\delta(P(p), Q(f(p))),\]
+  where the infimum is taken over all functions monotone \(f:[0,p] \to [0, q]\) with \(f(0) = 0\) and \(f(p) = q\).
+\end{definition}
+
 \section{Algorithm \& Implementation}
 \label{sec:algorithm_implementation}
 
 
 \subsection{Equation Solving}
 \label{subsec:equation_solving}
-Here we derive explicit formulae to solve equations of the type 
+For the following algorithms we need to solve equations involving distance functions \(\delta\). More specifically, we want to solve the following equation 
 \begin{equation}
-  \delta(u + t \cdot (v-u), w) = \varepsilon \label{eq:eq_solve_main}
+  \delta(u + t \cdot (v - u), w) = \varepsilon \label{eq:eq_solve_main}
 \end{equation}
-for arbitrary fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R_{>0}\) for the variable \(t \in \R\) or determine that there is no such solution. This will have a smallest solution \(\hat{t}_0\) and largest solution \(\hat{t}_1\) in which we are interested. Those two solutions may be the same or may not exist at all.
+for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R_{>0}\) for the variable \(t \in \R\) or determine that there is no such solution. This will have a smallest solution \(\hat{t}_0\) and largest solution \(\hat{t}_1\) in which we are interested. Those two solutions may be the same or may not exist at all.
+
+\begin{figure}
+    \centering
+    % First row of subfigures
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (u)  at (2,0.5);
+            \coordinate (u0) at (0,0);
+            \coordinate (v) at (4,1);
+            \coordinate (w) at (2,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            % Find intersection points between the line and the circle
+            \path[name path=line] (u0) -- (v);
+            \path[name path=circle] (w) circle (1);
+            \path[name intersections={of=line and circle, by={t1,t0}}];
+
+            % Label intersection points
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, below]:\(u=\hat t_0'\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(v\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above left]:\(\hat t_0\)}] at (t0) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(\hat t_1=\hat t_1'\)}] at (t1) [] {}; 
+
+            % Draw dotted extensions of the line segment
+            \draw[dotted] (u0) -- (u);
+            %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
+        \end{tikzpicture}
+      \caption{\(\hat t_0 < 0 < \hat t_1 < 1\) \\ \(\hat t_0' = 0, \hat t_1' = \hat t_1\)}
+        \label{fig:sub2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (u) at (0,0);
+            \coordinate (v) at (4,1);
+            \coordinate (w) at (2,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            % Find intersection points between the line and the circle
+            \path[name path=line] (u) -- (v);
+            \path[name path=circle] (w) circle (1);
+            \path[name intersections={of=line and circle, by={t1,t0}}];
+
+            % Label intersection points
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(v\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above left]:\(\hat t_0=\hat t_0'\)}] at (t0) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(\hat t_1=\hat t_1'\)}] at (t1) [] {}; 
+
+            % Draw dotted extensions of the line segment
+            %\draw[dotted] ($(u)!-1.5!(v)$) -- (u);
+            %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
+        \end{tikzpicture}
+        \caption{\(0 < \hat t_0 < \hat t_1 < 1\)\\ \(\hat t_0' = \hat t_0, \hat t_1' = \hat t_1\)}
+        \label{fig:sub1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (v)  at (2,0.5);
+            \coordinate (u) at (0,0);
+            \coordinate (v0) at (4,1);
+            \coordinate (w) at (2,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            % Find intersection points between the line and the circle
+            \path[name path=line] (u) -- (v0);
+            \path[name path=circle] (w) circle (1);
+            \path[name intersections={of=line and circle, by={t1,t0}}];
+
+            % Label intersection points
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, below]:\(v=\hat t_1'\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above left]:\(\hat t_0=\hat t_0'\)}] at (t0) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(\hat t_1\)}] at (t1) [] {}; 
+
+            % Draw dotted extensions of the line segment
+            \draw[dotted] (v) -- (v0);
+            %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
+        \end{tikzpicture}
+      \caption{\(0 < \hat t_0 < 1 < \hat t_1 \) \\ \(\hat t_0' = \hat t_0, \hat t_1' = 1\)}
+        \label{fig:sub3}
+    \end{subfigure}
+
+    % Second row of subfigures
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (u) at (0,0);
+            \coordinate (v0) at (4,1);
+            \coordinate (v) at (2,0.5);
+            \coordinate (w) at (3,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            % Find intersection points between the line and the circle
+            \path[name path=line] (u) -- (v0);
+            \path[name path=circle] (w) circle (1);
+            \path[name intersections={of=line and circle, by={t1,t0}}];
+
+            % Label intersection points
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(v\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, below right]:\(\hat t_0\)}] at (t0) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(\hat t_1\)}] at (t1) [] {}; 
+
+            % Draw dotted extensions of the line segment
+            \draw[dotted] (v) -- (v0);
+            %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
+        \end{tikzpicture}
+        \caption{\(\hat t_0 < \hat t_1 < 0\)\\ \(\hat t_0' = \hat t_1' = \infty\)}
+        \label{fig:sub4}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (u0) at (-1.5,-0.5);
+            \coordinate (u) at (-0.75,-0.125);
+            \coordinate (v) at (0.5,0.5);
+            \coordinate (v0) at (1.5,1);
+            \coordinate (w) at (0,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            % Find intersection points between the line and the circle
+            \path[name path=line] (u0) -- (v0);
+            \path[name path=circle] (w) circle (1);
+            \path[name intersections={of=line and circle, by={t1,t0}}];
+
+            % Label intersection points
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, below right]:\(u=\hat t_0'\)}] at (u) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, left]:\(v=\hat t_1'\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue,right]:\(w\)}] at (w) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, left]:\(\hat t_0\)}] at (t0) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, right]:\(\hat t_1\)}] at (t1) [] {}; 
+
+            % Draw dotted extensions of the line segment
+            \draw[dotted] (u0) -- (v0);
+        \end{tikzpicture}
+        \caption{\(\hat t_0 < 0 < 1 < \hat t_1\)\\ \(\hat t_0' = 0, \hat t_1' = 1\)}
+        \label{fig:sub5}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (u0) at (-2,-1);
+            \coordinate (u) at (1,0.5);
+            \coordinate (v) at (2,1);
+            \coordinate (w) at (-0.5,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            \path[name path=line] (u0) -- (v);
+            \path[name path=circle] (w) circle (1);
+            \path[name intersections={of=line and circle, by={t1,t0}}];
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(v\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, below left]:\(\hat t_0\)}] at (t0) [] {}; 
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, left]:\(\hat t_1\)}] at (t1) [] {}; 
+
+            \draw[dotted] (u) -- (u0);
+        \end{tikzpicture}
+        \caption{\(1 < \hat t_0 < \hat t_1\)\\ \(\hat t_0' =  \hat t_1' = \infty\)}
+        \label{fig:sub6}
+    \end{subfigure}
+
+    % Third row of subfigures (centered)
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (u) at (1.5,0);
+            \coordinate (v) at (2,1);
+            \coordinate (w) at (3,0);
+
+            % Draw the line segment from u to v
+            \draw[thick] (u) -- (v);
+
+            \draw[thick] (w) circle (1);
+
+            % Label intersection points
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(v\)}] at (v) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
+        \end{tikzpicture}
+        \caption{\(\hat t_0, \hat t_1\) do not exist\\ \(\hat t_0' = \hat t_1' = \infty\)}
+        \label{fig:sub7}
+    \end{subfigure}
+    \caption{The different kinds of solutions. Note that we associate \(0\) with \(u\), \(1\) with \(v\) and \(t\) with \((1-t)u + tv\)}
+    \label{fig:main}
+\end{figure}
+
+For our use cases we do not need the actual solutions \(\hat{t}_0\) and \(\hat{t}_1\) but modified solutions \(\hat{t}_0'\) and \(\hat{t}_1'\) which are defined as 
+\begin{equation}
+  \hat{t}_0' \coloneq \begin{cases}
+    0 & \textrm{ if } \hat{t}_0 < 0 \textrm{ and } \hat{t}_1 \geq 0\\
+    \hat{t}_0 & \textrm{ if } \hat{t}_0 \in [0, 1]\\
+    \infty &\textrm{ otherwise }
+  \end{cases}\\
+  \hat{t}_1' \coloneq \begin{cases}
+    1 & \textrm{ if } \hat{t}_1 > 1 \textrm{ and } \hat{t}_0 \leq 1\\
+    \hat{t}_1 & \textrm{ if } \hat{t}_1 \in [0, 1]\\
+    \infty &\textrm{ otherwise }
+  \end{cases},
+\end{equation}
+where the \emph{otherwise} case also includes the case of there being no solution to \cref{eq:eq_solve_main}. 
 
 In general, this will require finding roots of polynomials and thus there is no exact solution algorithm for distances derived from the norms \(L_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
 
-We can also make use of restrictions on \(t\) that are needed during the algorithms: 
-\begin{enumerate}
-  \item If \(\delta(u, w) < \varepsilon\) we can return as the first solution \(0\). 
-  \item If \(\delta(v, w) < \varepsilon\) we can return as the second solution \(1\).
-  \item We are only interested in values \(t\in [0, 1]\). 
-  \item If none of the above properties is applicable, we can return that there is no solution.
-\end{enumerate}
 
 This gives us the following six cases 
 \begin{enumerate}
@@ -96,8 +391,6 @@ This whole process can be implemented na\"ively using a Sweepline algorithm in t
 Let us consider the non-trivial cases we defined earlier. Case \(4\) is the only case where we find two solutions in the interval and is thus covered. In cases \(2\) and \(5\) only one solution will be found and one of the distances will be smaller \(\varepsilon\). In the other two cases no solution will be found so the behaviour of returning no answer is correct.
 
 There are a few edge cases, namely those being that multiple \(t_i\) coincide as well as that there are \(u_i = v_i\). The former case can easily be handled by treating all terms with the same value for \(t_i\) as a single term. The second case degenerates the term into a constant which can be pulled out of the sum and into the right side.
-
-% TODO: Pseudocode
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
@@ -232,11 +525,28 @@ This allows a simplification in that we do not need a self-balancing binary sear
   
 \end{algorithm}
 
-\subsection{Simple Generic Algorithm}
+\subsection{\(\O(k^*n^5)\) Algorithm}
 \label{subsec:simple_algo}
 
-\subsection{Refined Generic Algorithm}
-\label{subsec:refined_algo}
+In this subsection we will sketch \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification. 
+
+
+\subsection{Optimizations}
+\label{ssec:optimizations}
+Based on the just described algorithm we outline optimizations that reduce the \(\O(k^*n^5)\) runtime in practice.
+
+
+
+
+
+
+
+
+
+
+
+%\subsection{Cubic Runtime Algorithm}
+%\label{subsec:refined_algo}
 
 \subsection{Implementation}
 \label{subsec:implementation}
