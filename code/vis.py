@@ -188,22 +188,22 @@ def draw_tree(node, layer = 0, x = 0, opacity=1):
     pos_x = x + total_width / 2
     pos_y = layer
 
-    for _x, _y, _ in child_pos:
-        total_data.append(go.Scatter(x=[pos_x, _x],y=[pos_y, _y], mode='lines', opacity=opacity, line=dict(color="brown", width=2)))
+    for _x, _y, cname in child_pos:
+        total_data.append(go.Scatter(x=[pos_x, _x],y=[pos_y, _y], text=["l" + cname], mode='lines', opacity=opacity, line=dict(color="brown", width=2)))
 
     for s in siblings:
         width, data, c_x, c_y, name = draw_tree(s, layer, x + total_width + 1)
         total_data.extend(data)
         total_width += width + 1
 
-        total_data.append(go.Scatter(x=[pos_x, c_x], y=[pos_y, c_y], mode='lines', opacity=opacity, line=dict(color="brown", width=2)))
+        total_data.append(go.Scatter(x=[pos_x, c_x], y=[pos_y, c_y], text=["l"+name], mode='lines', opacity=opacity, line=dict(color="brown", width=2)))
         child_pos.append((c_x, c_y, name))
 
     for x, y, child_name in child_pos:
-        total_data.append(go.Scatter(x=[x],y=[y], text=[child_name], mode='markers+text', opacity=opacity, marker=dict(color="green", size=10)))
+        total_data.append(go.Scatter(x=[x],y=[y], text=[child_name], mode='markers+text', opacity=opacity, marker=dict(color="green", size=10), textposition="top center"))
 
     if layer == 0:
-        total_data.append(go.Scatter(x=[pos_x],y=[pos_y], text=[node.name], opacity=opacity, mode='markers+text', marker=dict(color="green", size=10)))
+        total_data.append(go.Scatter(x=[pos_x],y=[pos_y], text=[node.name], opacity=opacity, mode='markers+text', marker=dict(color="green", size=10), textposition="top center"))
 
     return total_width, total_data, pos_x, pos_y, node.name
 
@@ -218,6 +218,28 @@ def create_tree_fig(name=None):
     else:
         _, tree_traces, _, _, _ = draw_tree(tree_nodes[0,0,0],0,0,1)
     tree_fig = go.Figure(data=tree_traces, layout=go.Layout(showlegend=False, title="Data Flow Tree"))
+
+    tree_fig.update_xaxes(
+        showticklabels=False,
+        showgrid=False,
+        zeroline=False,
+        visible=False
+    )
+
+    tree_fig.update_yaxes(
+        title="k = Amount of line segments",
+        title_font=dict(size=18, color='red'),
+        tickfont=dict(size=14, color='blue'),
+        showgrid=True,
+        gridwidth=1,
+        gridcolor='lightgray',
+        zeroline=True,
+        zerolinewidth=2,
+        zerolinecolor='black',
+        dtick=1,
+        tickmode="linear"
+    )
+
     return tree_fig
 
 
@@ -359,10 +381,17 @@ def update_polyline(click_data, n_clicks, polyline_click, filename, content):
     ti = i 
     tj = j
     while tk > 0:
+        [temp] = [a for a in tree_fig.data if a.text is not None and a.text[0][0] == 'l' and list(map(int, a.text[0][1:].split(","))) == [tk, ti, tj]]
+        temp.opacity = 1
         tk, ti, tj, _ = data[tk, ti, tj]
         simplification_points.append(ti)
+
+        [temp] = [a for a in tree_fig.data if a.text is not None and a.text[0][0] != 'l' and list(map(int, a.text[0].split(","))) == [tk, ti, tj]]
+        temp.opacity = 1
+
     x = [polyline[a][0] for a in simplification_points]
     y = [polyline[a][1] for a in simplification_points]
+    # tree_fig.data[].opacity = 1
 
     fig.add_trace(go.Scatter(x=x, y=y, mode='lines+markers', name="Simplification of P[0...i]", hoverinfo="skip"))
 
