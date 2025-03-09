@@ -1,5 +1,6 @@
 #include "visualizer.h"
 #include "datastructures.h"
+#include <cstdlib>
 #include <fstream>
 namespace VisualizationLog {
 
@@ -22,6 +23,14 @@ void VisualizationLogger::add_use(VisualizationData d) {
 }
 
 void VisualizationLogger::emit() {
+  if (!std::filesystem::exists("visualization")) {
+    std::filesystem::create_directory("visualization");
+  }
+  if (!std::filesystem::is_directory("visualization")) {
+    throw std::runtime_error(
+        "File called 'visualization' exists. Cannot create "
+        "a directory of same name.");
+  }
   // Get the current time
   auto now = std::chrono::system_clock::now();
   auto now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -29,8 +38,8 @@ void VisualizationLogger::emit() {
 
   // Format the timestamp
   std::ostringstream oss;
-  oss << std::put_time(&now_tm, "%Y-%m-%d-%H-%M-%S");
-  auto filename = "vislog-" + oss.str() + ".log";
+  oss << std::put_time(&now_tm, "%Y-%m-%d-%H-%M-%S-") << rand();
+  auto filename = "visualization/" + oss.str() + ".log";
 
   std::ofstream out(filename);
 
@@ -59,6 +68,7 @@ void VisualizationLogger::emit() {
     out << d.k << " " << d.i << " " << d.j << " " << d.i_ << " " << d.j_ << " "
         << d.t << "\n";
   }
+  out.close();
 }
 
 VisualizationData::VisualizationData(size_t k, size_t i, size_t j, size_t i_,
