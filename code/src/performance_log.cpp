@@ -10,9 +10,8 @@
 
 namespace Log {
 PerformanceLogger::PerformanceLogger(Algorithm algorithm, std::string header)
-    : header(header), alogrithm(algorithm), min_time(DBL_MAX), max_time(0),
-      min_dim((unsigned)-1), max_dim(0), min_points((unsigned)-1),
-      max_points(0) {}
+    : header(header), alogrithm(algorithm), total_time(0), min_time(DBL_MAX),
+      max_time(0) {}
 
 void PerformanceLogger::add_data(DataStructures::Polyline &polyline,
                                  std::chrono::duration<double> elapsed_time) {

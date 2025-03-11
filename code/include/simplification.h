@@ -13,6 +13,10 @@ typedef std::unique_ptr<std::vector<size_t>> Simplification;
 
 Simplification simplification_naive_euclidean(DataStructures::Polyline &,
                                               float);
+Simplification simplification_naive_manhattan(DataStructures::Polyline &,
+                                              float);
+Simplification simplification_naive_chebyshev(DataStructures::Polyline &,
+                                              float);
 
 } // namespace Simplification
 

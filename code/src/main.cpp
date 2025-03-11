@@ -13,9 +13,40 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <utility>
 
 namespace po = boost::program_options;
+
+template <Simplification::Simplification _simplification_algorithm(
+              DataStructures::Polyline &, float),
+          Log::Algorithm _algorithm>
+static inline void _flag_action_simplify(std::string &poly_line_file_name,
+                                         float epsilon) {
+  Log::PerformanceLogger log(_algorithm, poly_line_file_name);
+  if (std::filesystem::is_directory(poly_line_file_name)) {
+    for (auto const &entry :
+         std::filesystem::directory_iterator(poly_line_file_name)) {
+      auto polyline =
+          DataStructures::Polyline::from_file(std::filesystem::path(entry));
+
+      auto start = std::chrono::high_resolution_clock::now();
+      auto simplification_vertices =
+          _simplification_algorithm(*polyline, epsilon);
+      auto end = std::chrono::high_resolution_clock::now();
+      log.add_data(*polyline, end - start);
+    }
+
+  } else {
+    auto polyline = DataStructures::Polyline::from_file(
+        std::filesystem::path(poly_line_file_name));
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto simplification_vertices =
+        _simplification_algorithm(*polyline, epsilon);
+    auto end = std::chrono::high_resolution_clock::now();
+    log.add_data(*polyline, end - start);
+  }
+  log.emit();
+}
 
 static inline void handle_command_line_arguments(int argc, char *argv[]) {
   po::positional_options_description positional_options;
@@ -45,6 +76,14 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
+  options("sm",
+          "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Manhattan distance.");
+
+  options("sc",
+          "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Chebyshev distance.");
+
   po::variables_map map;
   po::store(po::command_line_parser(argc, argv)
                 .options(description)
@@ -60,35 +99,26 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   po::notify(map);
 
   if (map.count("se")) {
-    Log::PerformanceLogger log(Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN,
-                               poly_line_file_name);
-    if (std::filesystem::is_directory(poly_line_file_name)) {
-      for (auto const &entry :
-           std::filesystem::directory_iterator(poly_line_file_name)) {
-        std::cout << "Test File " << entry << " in directory." << std::endl;
-        auto polyline =
-            DataStructures::Polyline::from_file(std::filesystem::path(entry));
-
-        auto start = std::chrono::high_resolution_clock::now();
-        auto simplification_vertices =
-            Simplification::simplification_naive_euclidean(*polyline, epsilon);
-        auto end = std::chrono::high_resolution_clock::now();
-        log.add_data(*polyline, end - start);
-      }
-
-    } else {
-      std::cout << "Test File " << poly_line_file_name << std::endl;
-      auto polyline = DataStructures::Polyline::from_file(
-          std::filesystem::path(poly_line_file_name));
-
-      auto start = std::chrono::high_resolution_clock::now();
-      auto simplification_vertices =
-          Simplification::simplification_naive_euclidean(*polyline, epsilon);
-      auto end = std::chrono::high_resolution_clock::now();
-      log.add_data(*polyline, end - start);
-    }
-    log.emit();
+    _flag_action_simplify<Simplification::simplification_naive_euclidean,
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>(
+        poly_line_file_name, epsilon);
+  } else if (map.count("sm")) {
+    _flag_action_simplify<Simplification::simplification_naive_manhattan,
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>(
+        poly_line_file_name, epsilon);
+  } else if (map.count("sc")) {
+    _flag_action_simplify<Simplification::simplification_naive_chebyshev,
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>(
+        poly_line_file_name, epsilon);
   }
+
+  // TESTING
+  auto polyline = DataStructures::Polyline::from_file(
+      std::filesystem::path(poly_line_file_name));
+  auto &p = *polyline;
+  auto res = DataStructures::solve_chebyshev(p.get_point(0), p.get_point(2),
+                                             p.get_point(1), epsilon);
+  std::cout << res.first << "; " << res.last << std::endl;
 }
 
 int main(int argc, char *argv[]) {

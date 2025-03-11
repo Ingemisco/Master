@@ -12,10 +12,14 @@ typedef struct {
   float last;
 } ReachabilityData;
 
+typedef float Distance(Point const &, Point const &);
+
 // first two points form a line segment and must not be the same, third point is
 // the point from which we solve the equation
 typedef ReachabilityData Solver(Point const &, Point const &, Point const &,
                                 float);
+
+typedef float AltGodau(PolylineRange, LineSegment, float);
 
 // used to designate that no point on a line segment is reachable.
 // in ReachabilityData first and last will be set to this in this case

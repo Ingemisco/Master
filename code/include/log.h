@@ -29,11 +29,11 @@ private:
   std::chrono::duration<double> total_time;
   std::chrono::duration<double> min_time;
   std::chrono::duration<double> max_time;
-  size_t data_count;
-  size_t min_dim;
-  size_t max_dim;
-  size_t min_points;
-  size_t max_points;
+  size_t data_count = 0;
+  size_t min_dim = (unsigned)-1;
+  size_t max_dim = 0;
+  size_t min_points = (unsigned)-1;
+  size_t max_points = 0;
 
 public:
   PerformanceLogger(Algorithm, std::string);

@@ -16,6 +16,8 @@ polyline = [ (0, 0),
 
 simplification = [0, 6]
 epsilon = 2 
+distance_measure = 'E'
+
 
 data = {
   (0, 0, 0): (0, 0, 0, 0),
@@ -43,7 +45,7 @@ data = {
 }
 
 def read_file(file):
-    global data, simplification, epsilon, polyline
+    global data, simplification, epsilon, polyline, distance_measure
     lines = file.strip().split('\n')
     first_line = lines[0].strip().split(' ')
     if len(first_line) != 4:
@@ -58,6 +60,7 @@ def read_file(file):
                 raise ValueError("Distance must be either E, M, C, or an integer > 2")
         except ValueError:
             raise ValueError("Distance must be either E, M, C, or an integer > 2")
+    distance_measure = D
 
     # Parse epsilon (float > 0)
     try:
@@ -146,23 +149,45 @@ distance_shown = [False] * len(polyline)
 distance_shape_layouts = []
 
 def reset_distances():
-    global distance_shape_layouts, distance_shown, distance_shape_index
+    global distance_shape_layouts, distance_shown, distance_shape_index, distance_measure
     distance_shape_index = [-1] * len(polyline)
     distance_shown = [False] * len(polyline)
     distance_shape_layouts = []
     for v in polyline: 
-        distance_shape_layouts.append({
-            'type': "circle",
-            'xref': "x",
-            'yref': "y",
-            'x0': v[0] - epsilon,
-            'y0': v[1] - epsilon,
-            'x1': v[0] + epsilon,
-            'y1': v[1] + epsilon,
-            'fillcolor': "lightgreen", 
-            'opacity':0, 
-            'line':dict(color="blue")
-        })
+        if distance_measure == 'E':
+            distance_shape_layouts.append({
+                'type': "circle",
+                'xref': "x",
+                'yref': "y",
+                'x0': v[0] - epsilon,
+                'y0': v[1] - epsilon,
+                'x1': v[0] + epsilon,
+                'y1': v[1] + epsilon,
+                'fillcolor': "lightgreen", 
+                'opacity':0, 
+                'line':dict(color="blue")
+            })
+        elif distance_measure == 'C':
+            distance_shape_layouts.append({
+                'type': "path",
+                'path': f'M {v[0]-epsilon}, {v[1]-epsilon} L {v[0]+epsilon}, {v[1]-epsilon} L {v[0]+epsilon}, {v[1]+epsilon} L {v[0]-epsilon}, {v[1]+epsilon} Z',
+                'xref': "x",
+                'yref': "y",
+                'fillcolor': "lightgreen", 
+                'opacity':0, 
+                'line':dict(color="blue")
+            })
+        elif distance_measure == 'M':
+            distance_shape_layouts.append({
+                'type': "path",
+                'path': f'M {v[0]-epsilon}, {v[1]} L {v[0]}, {v[1]-epsilon} L {v[0]+epsilon}, {v[1]} L {v[0]}, {v[1]+epsilon} Z',
+                'xref': "x",
+                'yref': "y",
+                'fillcolor': "lightgreen", 
+                'opacity':0, 
+                'line':dict(color="blue")
+            })
+
 
 
 reset_distances()

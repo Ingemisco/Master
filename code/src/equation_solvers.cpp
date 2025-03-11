@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <utility>
@@ -124,9 +125,9 @@ ReachabilityData solve_manhattan(Point const &point1, Point const &point2,
       delete[] candidates;
       return {first_sol, last_sol};
     }
-
     global_offset += 2 * candidates[i].offset;
     global_slope += 2 * candidates[i].slope;
+    interval_start = -candidates[i].offset / candidates[i].slope;
   }
 
   update_solution(first_sol, last_sol, global_offset, global_slope,
@@ -174,6 +175,7 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
   for (unsigned int i = 0; i < point1.dimension; i++) {
     float const offset = point1[i] - point3[i];
     float const slope = point2[i] - point1[i];
+
     if (!(offset <= 0 && slope + offset <= 0)) {
       candidates[index++] = {offset, slope};
     }
@@ -198,6 +200,7 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
   list[0].prev = 0; // head always has as prev itself
   size_t current = 0;
   for (unsigned int i = 1; i < index; i++) {
+
     float const a_ = list[current].offset;
     float const b_ = list[current].slope;
     float const a = candidates[i].offset;
@@ -218,6 +221,7 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
   delete[] candidates;
 
   float last_intersection = 0;
+  size_t head = 0;
   while (!queue.empty()) {
     auto data = queue.top();
     queue.pop();
@@ -235,6 +239,8 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
         delete[] list;
         return {first_sol, last_sol};
       }
+      head = j;
+      last_intersection = intersection;
       continue;
     }
 
@@ -250,9 +256,10 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
       float const intersection = (a_ - a) / (b - b_);
       queue.emplace(intersection, before, j);
     }
+    last_intersection = intersection;
   }
 
-  update_solution(first_sol, last_sol, list[0].offset, list[0].slope,
+  update_solution(first_sol, last_sol, list[head].offset, list[head].slope,
                   last_intersection, 1, epsilon);
 
   delete[] list;

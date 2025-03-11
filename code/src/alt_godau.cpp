@@ -27,7 +27,7 @@ static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
     auto data = _solver(polyline.polyline.get_point(polyline.start_point_index),
                         polyline.polyline.get_point(polyline.end_point_index),
                         line.end, epsilon);
-    if (data.first == UNREACHABLE) {
+    if (data.first == UNREACHABLE || polyline.start_point_offset > data.last) {
       return UNREACHABLE;
     }
     return std::max(data.first, polyline.start_point_offset);

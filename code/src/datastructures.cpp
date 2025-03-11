@@ -99,7 +99,7 @@ float Polyline::operator[](size_t point, size_t coordinate) const {
 
 template <typename T>
 static inline Point _get_point(T *data, size_t index, size_t dimension,
-                               size_t point_count) {
+                               [[maybe_unused]] size_t point_count) {
 #if DEBUG
   if (index >= point_count) {
     throw std::runtime_error(
