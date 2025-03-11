@@ -27,12 +27,12 @@ This report is mainly based on the previous work from \citeauthor{polyline_simpl
 and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, both of which construct algorithms to solve the problem of global polyline simplification under the Fréchet distance.
 \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm is itself an variant of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm that reduces the runtime down to cubic runtime. 
 
-\cite{polyline_simplification_has_cubic_complexity_bringmannetal}
-
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-In this section we cover notation and definitions used throughout this report. 
+In this section we cover notation, conventions, and definitions used throughout this report.  
+
+We denote the natural numbers \(\N\) and they contain \(0\) and the positive natural numbers \(\N_+ = \N \setminus\set{0}\).
 
 \subsection{Polylines}
 \label{ssec:polylines}
@@ -340,6 +340,7 @@ For our use cases we do not need the actual solutions \(\hat{t}_0\) and \(\hat{t
   \end{cases},
 \end{equation}
 where the \emph{otherwise} case also includes the case of there being no solution to \cref{eq:eq_solve_main}. 
+For a line segment \(\overline{uv}\) and a point \(w\) we denote \(\hat t_0'(\overline{uv}, w)\) and \(\hat t_0'(\overline{uv}, w)\) to be the respective modified solutions for the given line segment and point. We do not include \(\varepsilon\) in that notation as it is fixed throughout all algorithms and thus needs to disambiguation.
 
 In general, this will require finding roots of polynomials and thus there is no exact solution algorithm for distances derived from the norms \(L_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
 
@@ -528,12 +529,37 @@ This allows a simplification in that we do not need a self-balancing binary sear
 \subsection{\(\O(k^*n^5)\) Algorithm}
 \label{subsec:simple_algo}
 
-In this subsection we will sketch \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification. 
+In this subsection we will sketch \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification as well as a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if two polylines have Fréchet distance of at most \(\varepsilon\). 
+
+\subsubsection{Fréchet Distance Decision Algorithm}
+\label{ssec:alt_godau}
+The simplification algorithm we will describe heavily uses a subroutine to solve the following problem: Given \(\varepsilon > 0\), a polyline \(P \) of length \(p\), a polyline segment \(P[j' + t' \dots j+1]\) and a line segment \(\overline{P(i')P(i)}\) for \(i' < i \leq p, j' \leq j < p\in \N\) and \(t \in [0, 1]\). Decide if there is a \(t' \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], \overline{P(i')P(i)}) \leq \varepsilon\) and if so determine the smallest such \(t\).  
+
+This can be solved by a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if the Fréchet distance of two polylines is at most \(\varepsilon\). We present the algorithm in the specific form needed for this problem. 
+
+In both cases we require that \(\delta(P(j' + t'), P(i')) \leq \varepsilon\) as the starting points of both polylines must match by definition. If this is not the case we can return that there is no such \(t\). We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). As the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there are no such interval we can also return that there is no solution.
+
+We distinguish the two cases \(j' = j\) and \(j' < j\). 
+\begin{enumerate}
+  \item[\(j' = j\): ] In this case both \(t'\) and \(t\) lie on the same line segment \(\overline{P(j)P(j+1)}\) (which is the only line segment of the polyline segment). The only constraints on \(t\) are that \(t \in [t', 1]\) and \(t \in [ t_0, t_1]\) which is possible if and only if \(t' \leq t_1\). If this is the case the solution is \(\max(t', t_0)\).
+
+  \item[\(j' < j\): ] In this case we iterate over all points of the polyline segment \(P(k) = P(j'+1), \dots, P(j)\) and compute the solutions \(\hat t_0(\overline{P(i')P(i)}, P(k)), \hat t_0(\overline{P(i')P(i)}, P(k))\). We maintain the first reachable point \(t'\) (initially \(0\)) on the line segment \(\overline{P(i')P(i)}\) for these points and test if \(t' \leq \hat t_0(\overline{P(i')P(i)}, P(k))\). If that is the case we can update it \(t' \gets \max(t', \hat t_0(\overline{P(i')P(i)}, P(k)))\). If this is not possible at any step we can return that there is no solution. Otherwise, we have fully traversed the line segment and most of the polyline segment. At this point the solution is merely \(t_0\).
+\end{enumerate}
+
+\subsubsection{Polyline Simplification Algorithm}
+\label{ssec:simple_algo_main}
+
 
 
 \subsection{Optimizations}
 \label{ssec:optimizations}
-Based on the just described algorithm we outline optimizations that reduce the \(\O(k^*n^5)\) runtime in practice.
+Based on the just described algorithm we outline optimizations that greatly reduce the \(\O(k^*n^5)\) runtime in practice or improve upon the algorithm in terms of space and numerical stability. The most effective optimizations circumvent the theoretical runtime by skipping iterations. 
+
+We first note that for the entry \((k, i, j)\) in the dynamic program we do not always need to iterate over all possible \(i' < i\) and \(j' \leq j\). As we are interested in the minimal value \(t\) on the line segment \(\overline{v_{j}v_{j+1}}\) that can be reached, we can stop further search if we have reached a lower bound for that value. Such a lower bound is \(t_0'(\overline{v_{j}v_{j+1}}, i)\), i.e. the modified solution to the \cref{eq:eq_solve_main}, which is tight as for a sufficiently large \(k\) this value must be reached eventually. This allows an early break out of the search through the \(i' < i, j'\leq j\) and a speed up of upto quadratic runtime. 
+
+Another optimization based on a similar insight is the following: If the entry at \((k-1, i, j) = t_0'(\overline{v_{j}v_{j+1}}, i)\), i.e., we have found a simplification for the same \(i\) and \(j\) that has already reached the optimal value, we know this cannot be improved in the current layer \(k\) or any further one. This means, the entry at \((k, i, j)\) can never be used by some entry \((k + 1, i'', j'')\) because of minimality as any such entry that uses \((k, i, j)\) could have already used \((k-1, i, j)\) for \((k, i'', j'')\). This allows us to completely ignore the computation of the value. This allows a continuous speed up of the algorithm while it runs as once this happens for an entry, it will happen for all further ones with a higher value of \(k\) so with each layer more entry computations can be skipped. 
+
+A last simple optimization of a similar type which is particularly useful for well-behaved polylines is to not even start the iterations over the \(i', j'\) if there is no solution \(t_0'(\overline{v_{j}v_{j+1}}, i)\). This happens often if there are not too many line segments close to each other.
 
 
 
