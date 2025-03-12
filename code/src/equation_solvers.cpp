@@ -5,7 +5,6 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
-#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <utility>
@@ -266,19 +265,25 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
   return {first_sol, last_sol};
 }
 
+// computes the product <v - u | u - w>
+static inline float scalar_product(Point const &u, Point const &v,
+                                   Point const &w) {
+  float dot_product = 0;
+  for (unsigned int i = 0; i < u.dimension; i++) {
+    dot_product += (v[i] - u[i]) * (u[i] - w[i]);
+  }
+  return dot_product;
+}
+
 ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
                                  Point const &point3, float epsilon) {
 #if DEBUG
   _solver_sanity_check(point1, point2, point3);
 #endif
-  float dot_product = 0;
-  for (unsigned int i = 0; i < point1.dimension; i++) {
-    dot_product += (point2[i] - point1[i]) * (point1[i] - point3[i]);
-  }
 
   float const a2 =
       DataStructures::unnormalized_euclidean_distance(point1, point2);
-  float const a1 = 2 * dot_product;
+  float const a1 = 2 * scalar_product(point1, point2, point3);
   float const a0 =
       DataStructures::unnormalized_euclidean_distance(point1, point3) -
       epsilon * epsilon;
@@ -296,4 +301,64 @@ ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
   }
   return {t0 < 0 ? 0 : t0, t1 > 1 ? 1 : t1};
 }
+
+// compares point1 and point2 wrt their first solution in the interval [0, 1]
+// for the given line segment and returns 0 if none of them have a solution, 1
+// if the first point has the first solution and 2 if the second one has.
+// epsilon squared has to be given, not epsilon!
+size_t solve_implicit_euclidean(LineSegment line, Point const &point1,
+                                Point const &point2, float epsilon2) {
+#if DEBUG
+  assert_compatible_points(line.start, point1);
+  assert_compatible_points(line.start, point2);
+#endif
+  float const point1_dist = unnormalized_euclidean_distance(point1, line.start);
+  if (point1_dist <= epsilon2) {
+    return 1;
+  }
+  float const point2_dist = unnormalized_euclidean_distance(point2, line.start);
+  if (point2_dist <= epsilon2) {
+    return 2;
+  }
+
+  float const a0_1 = point1_dist - epsilon2;
+  float const a1_1 = 2 * scalar_product(line.start, line.end, point1);
+
+  float const a0_2 = point2_dist - epsilon2;
+  float const a1_2 = 2 * scalar_product(line.start, line.end, point2);
+
+  float const a2 = unnormalized_euclidean_distance(line.start, line.end);
+
+  float const discriminant_1 = a1_1 * a1_1 - 4 * a0_1 * a2;
+  float const discriminant_2 = a1_2 * a1_2 - 4 * a0_2 * a2;
+
+  // test both solutions if in interval [0, 1]
+  float const temp_val_1 = a1_1 + 2 * a2;
+  float const temp_val_2 = a1_2 + 2 * a2;
+  if (discriminant_1 < 0 || a1_1 > 0 || discriminant_1 > a1_1 * a1_1 ||
+      (temp_val_1 < 0 && temp_val_1 * temp_val_1 > discriminant_1)) {
+    if (discriminant_2 < 0 || a1_2 > 0 || discriminant_2 > a1_2 * a1_2 ||
+        (temp_val_2 < 0 && temp_val_2 * temp_val_2 > discriminant_2)) {
+      return 0;
+    }
+    return 2;
+  } else if (discriminant_2 < 0 || a1_2 > 0 || discriminant_2 > a1_2 * a1_2 ||
+             (temp_val_2 < 0 && temp_val_2 * temp_val_2 > discriminant_2)) {
+    return 1;
+  }
+
+  bool const swap_solutions = discriminant_2 < discriminant_1;
+  float const x = a1_1 - a1_2;
+  if ((x < 0) ^ swap_solutions) {
+    return 2 - swap_solutions;
+  }
+
+  float const y = discriminant_1 + discriminant_2 - x * x;
+  if (y <= 0) {
+    return 1 + swap_solutions;
+  }
+
+  return (y * y <= 4 * discriminant_1 * discriminant_2) + swap_solutions;
+}
+
 } // namespace DataStructures

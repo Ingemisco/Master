@@ -116,9 +116,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   auto polyline = DataStructures::Polyline::from_file(
       std::filesystem::path(poly_line_file_name));
   auto &p = *polyline;
-  auto res = DataStructures::solve_chebyshev(p.get_point(0), p.get_point(2),
-                                             p.get_point(1), epsilon);
-  std::cout << res.first << "; " << res.last << std::endl;
+  auto res = DataStructures::solve_implicit_euclidean(
+      DataStructures::LineSegment(p.get_point(0), p.get_point(1)),
+      p.get_point(2), p.get_point(3), epsilon);
+  std::cout << p << std::endl;
+  std::cout << res << std::endl;
 }
 
 int main(int argc, char *argv[]) {
