@@ -4,7 +4,6 @@
 #include "datastructures.h"
 #include <chrono>
 #include <string>
-#include <vector>
 
 namespace Log {
 

@@ -39,8 +39,10 @@ float manhattan_distance(Point const &, Point const &);
 
 float alt_godau_manhattan(PolylineRange, LineSegment, float);
 float alt_godau_euclidean(PolylineRange, LineSegment, float);
-size_t alt_godau_euclidean_implicit(Polyline const &, Point const &,
-                                    Point const &, float);
+
+size_t alt_godau_euclidean_implicit(Polyline const &, size_t _, size_t, size_t,
+                                    size_t, size_t, float);
+
 float alt_godau_chebyshev(PolylineRange, LineSegment, float);
 size_t alt_godau_minkowski_implicit(Polyline const &, Point const &,
                                     Point const &, float, unsigned int);
@@ -52,8 +54,12 @@ ReachabilityData solve_chebyshev(Point const &, Point const &, Point const &,
 ReachabilityData solve_euclidean(Point const &, Point const &, Point const &,
                                  float);
 
-size_t solve_implicit_euclidean(LineSegment, Point const &, Point const &,
-                                float);
+bool solve_implicit_euclidean(LineSegment, Point const &, Point const &, float);
+
+size_t solve_implicit_euclidean_in(LineSegment, Point const &, Point const &,
+                                   float);
+
+bool is_line_reachable_euclidean(LineSegment, Point const &, float);
 
 } // namespace DataStructures
 #endif // INCLUDE_INCLUDE_DISTANCE_H_

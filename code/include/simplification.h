@@ -18,6 +18,9 @@ Simplification simplification_naive_manhattan(DataStructures::Polyline &,
 Simplification simplification_naive_chebyshev(DataStructures::Polyline &,
                                               float);
 
+Simplification
+simplification_naive_euclidean_implicit(DataStructures::Polyline &, float);
+
 } // namespace Simplification
 
 #endif // INCLUDE_INCLUDE_SIMPLIFICATION_H_

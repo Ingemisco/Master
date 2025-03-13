@@ -5,7 +5,7 @@
 #include <vector>
 namespace VisualizationLog {
 
-enum class Distance { EUCLIDEAN, MANHATTAN, CHEBYSHEV };
+enum class Distance { EUCLIDEAN, MANHATTAN, CHEBYSHEV, EUCLIDEAN_IMPLICIT };
 
 struct VisualizationData final {
   size_t const k;

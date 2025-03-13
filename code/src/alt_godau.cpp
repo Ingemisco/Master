@@ -107,9 +107,42 @@ float alt_godau_euclidean(PolylineRange polyline, LineSegment line,
   return _alt_godau_main<solve_euclidean>(polyline, line, epsilon);
 }
 
-size_t alt_godau_euclidean_implicit(Polyline const &polyline,
-                                    Point const &line_start,
-                                    Point const &line_end, float epsilon);
+// input epsilon squared
+size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
+                                    size_t j, size_t i_, size_t i,
+                                    size_t restriction, float epsilon2) {
+  if (1 != solve_implicit_euclidean_in(
+               LineSegment(polyline.get_point(j_), polyline.get_point(j_ + 1)),
+               polyline.get_point(restriction), polyline.get_point(i_),
+               epsilon2)) {
+    return (size_t)-1;
+  } else if (j_ == j) {
+    auto const res = solve_implicit_euclidean_in(
+        LineSegment(polyline.get_point(j), polyline.get_point(j + 1)),
+        polyline.get_point(restriction), polyline.get_point(i), epsilon2);
+    size_t const results[3] = {(size_t)-1, restriction, i};
+    return results[res];
+  }
+
+  size_t new_restriction = i_;
+  for (unsigned int x = j_ + 1; x <= j; x++) {
+    auto res = solve_implicit_euclidean_in(
+        LineSegment(polyline.get_point(i_), polyline.get_point(i)),
+        polyline.get_point(new_restriction), polyline.get_point(x), epsilon2);
+    if (res == 0) {
+      return (size_t)-1;
+    }
+    size_t const results[3] = {0, restriction, i};
+    new_restriction = results[res];
+  }
+
+  if (is_line_reachable_euclidean(
+          LineSegment(polyline.get_point(j), polyline.get_point(j + 1)),
+          polyline.get_point(i), epsilon2)) {
+    return i;
+  }
+  return (size_t)-1;
+}
 
 float alt_godau_chebyshev(PolylineRange polyline, LineSegment line,
                           float epsilon) {

@@ -76,6 +76,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
+  options("sei",
+          "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Euclidean distance. Does not "
+          "explicitly compute zeros but only implicitly compare them.");
+
   options("sm",
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Manhattan distance.");
@@ -102,6 +107,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
     _flag_action_simplify<Simplification::simplification_naive_euclidean,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>(
         poly_line_file_name, epsilon);
+  } else if (map.count("sei")) {
+    _flag_action_simplify<
+        Simplification::simplification_naive_euclidean_implicit,
+        Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>(
+        poly_line_file_name, epsilon);
   } else if (map.count("sm")) {
     _flag_action_simplify<Simplification::simplification_naive_manhattan,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>(
@@ -113,14 +123,13 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   }
 
   // TESTING
-  auto polyline = DataStructures::Polyline::from_file(
-      std::filesystem::path(poly_line_file_name));
-  auto &p = *polyline;
-  auto res = DataStructures::solve_implicit_euclidean(
-      DataStructures::LineSegment(p.get_point(0), p.get_point(1)),
-      p.get_point(2), p.get_point(3), epsilon);
-  std::cout << p << std::endl;
-  std::cout << res << std::endl;
+  // auto polyline = DataStructures::Polyline::from_file(
+  //     std::filesystem::path(poly_line_file_name));
+  // auto &p = *polyline;
+  // auto res = DataStructures::alt_godau_euclidean_implicit(p, 2, 2, 0, 1, 4,
+  //                                                         epsilon * epsilon);
+  // std::cout << p << std::endl;
+  // std::cout << res << std::endl;
 }
 
 int main(int argc, char *argv[]) {

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <utility>
@@ -302,24 +303,16 @@ ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
   return {t0 < 0 ? 0 : t0, t1 > 1 ? 1 : t1};
 }
 
-// compares point1 and point2 wrt their first solution in the interval [0, 1]
-// for the given line segment and returns 0 if none of them have a solution, 1
-// if the first point has the first solution and 2 if the second one has.
-// epsilon squared has to be given, not epsilon!
-size_t solve_implicit_euclidean(LineSegment line, Point const &point1,
-                                Point const &point2, float epsilon2) {
+// decides if point 1 (true) or point 2 (false) comes before on the line
+// segment. Assumes both have solutions
+bool solve_implicit_euclidean(LineSegment line, Point const &point1,
+                              Point const &point2, float epsilon2) {
 #if DEBUG
   assert_compatible_points(line.start, point1);
   assert_compatible_points(line.start, point2);
 #endif
   float const point1_dist = unnormalized_euclidean_distance(point1, line.start);
-  if (point1_dist <= epsilon2) {
-    return 1;
-  }
   float const point2_dist = unnormalized_euclidean_distance(point2, line.start);
-  if (point2_dist <= epsilon2) {
-    return 2;
-  }
 
   float const a0_1 = point1_dist - epsilon2;
   float const a1_1 = 2 * scalar_product(line.start, line.end, point1);
@@ -332,33 +325,82 @@ size_t solve_implicit_euclidean(LineSegment line, Point const &point1,
   float const discriminant_1 = a1_1 * a1_1 - 4 * a0_1 * a2;
   float const discriminant_2 = a1_2 * a1_2 - 4 * a0_2 * a2;
 
-  // test both solutions if in interval [0, 1]
-  float const temp_val_1 = a1_1 + 2 * a2;
-  float const temp_val_2 = a1_2 + 2 * a2;
-  if (discriminant_1 < 0 || a1_1 > 0 || discriminant_1 > a1_1 * a1_1 ||
-      (temp_val_1 < 0 && temp_val_1 * temp_val_1 > discriminant_1)) {
-    if (discriminant_2 < 0 || a1_2 > 0 || discriminant_2 > a1_2 * a1_2 ||
-        (temp_val_2 < 0 && temp_val_2 * temp_val_2 > discriminant_2)) {
-      return 0;
-    }
-    return 2;
-  } else if (discriminant_2 < 0 || a1_2 > 0 || discriminant_2 > a1_2 * a1_2 ||
-             (temp_val_2 < 0 && temp_val_2 * temp_val_2 > discriminant_2)) {
+  float const x = a1_2 - a1_1;
+  float const y = discriminant_1 + discriminant_2 - x * x;
+  float const y2 = y * y;
+  float const discr_prod = 4 * discriminant_1 * discriminant_2;
+
+  return (x <= 0 && discriminant_1 >= discriminant_2) ||
+         (x >= 0 && discriminant_1 >= discriminant_2 &&
+          (y >= 0 && discr_prod <= y2)) ||
+         (x <= 0 && discriminant_1 <= discriminant_2 &&
+          (y <= 0 || discr_prod > y2));
+}
+
+static inline bool _is_in_01(float a1, float a2, float discriminant) {
+  float const z = 2 * a2 + a1;
+  return a1 <= 0 && discriminant <= a1 * a1 &&
+         (z >= 0 || z * z <= discriminant);
+}
+
+// similar to the other implicit euclidean function. Returns 0 (unreachable), 1
+// or
+// 2. for the solutions [t01, t11], [t02, t12] on the line segment returns the
+// index of the bigger of t01, t02 with same additional checks as above but also
+// checks that t01 <= t12 and returns 0 if this is not the case
+size_t solve_implicit_euclidean_in(LineSegment line, Point const &restriction,
+                                   Point const &point, float epsilon2) {
+#if DEBUG
+  assert_compatible_points(line.start, restriction);
+  assert_compatible_points(line.start, point);
+#endif
+  float const restriction_dist =
+      unnormalized_euclidean_distance(restriction, line.start);
+
+  float const point_dist = unnormalized_euclidean_distance(point, line.start);
+  float const a0_1 = restriction_dist - epsilon2;
+  float const a1_1 = 2 * scalar_product(line.start, line.end, restriction);
+
+  float const a0_2 = point_dist - epsilon2;
+  float const a1_2 = 2 * scalar_product(line.start, line.end, point);
+
+  float const a2 = unnormalized_euclidean_distance(line.start, line.end);
+
+  float const discriminant_1 = a1_1 * a1_1 - 4 * a0_1 * a2;
+  float const discriminant_2 = a1_2 * a1_2 - 4 * a0_2 * a2;
+
+  float const x = a1_1 - a1_2;
+  float const y = discriminant_1 + discriminant_2 - x * x;
+  float const y2 = y * y;
+  float const discr_prod = 4 * discriminant_1 * discriminant_2;
+
+  if (discriminant_2 < 0 ||
+      (point_dist > epsilon2 && !_is_in_01(a1_2, a2, discriminant_2)) ||
+      (x < 0 && y < 0 && discr_prod < y2)) {
+    return 0;
+  } else if (point_dist <= epsilon2 ||
+             !((x >= 0 && discriminant_2 >= discriminant_1 &&
+                (y <= 0 || y2 <= discr_prod)) ||
+               (x < 0 && discriminant_2 < discriminant_1 &&
+                (y >= 0 && y2 >= discr_prod)))) {
     return 1;
   }
+  return 2;
+}
 
-  bool const swap_solutions = discriminant_2 < discriminant_1;
-  float const x = a1_1 - a1_2;
-  if ((x < 0) ^ swap_solutions) {
-    return 2 - swap_solutions;
+bool is_line_reachable_euclidean(LineSegment line, Point const &point,
+                                 float epsilon2) {
+  float const dist_uw = unnormalized_euclidean_distance(point, line.start);
+  float const dist_vw = unnormalized_euclidean_distance(point, line.end);
+  if (dist_uw <= epsilon2 || dist_vw <= epsilon2) {
+    return true;
   }
+  float const dist_uv = unnormalized_euclidean_distance(line.start, line.end);
+  float const prod = scalar_product(line.start, line.end, point);
 
-  float const y = discriminant_1 + discriminant_2 - x * x;
-  if (y <= 0) {
-    return 1 + swap_solutions;
-  }
-
-  return (y * y <= 4 * discriminant_1 * discriminant_2) + swap_solutions;
+  return 0 >= prod &&
+         -prod <= unnormalized_euclidean_distance(line.start, line.end) &&
+         dist_uw * dist_uv - prod * prod <= epsilon2 * dist_uv;
 }
 
 } // namespace DataStructures

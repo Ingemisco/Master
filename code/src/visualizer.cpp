@@ -53,6 +53,9 @@ void VisualizationLogger::emit() {
   case Distance::CHEBYSHEV:
     out << "C ";
     break;
+  case Distance::EUCLIDEAN_IMPLICIT:
+    out << "IE ";
+    break;
   }
 
   out << this->epsilon << " " << this->polyline.point_count << " "
