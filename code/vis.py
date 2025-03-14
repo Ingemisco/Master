@@ -51,15 +51,15 @@ def read_file(file):
     if len(first_line) != 4:
         raise ValueError("First line must contain exactly 4 values: Distance, epsilon, n, d")
 
-    # Parse Distance (either E, M, C, or an integer > 2)
+    # Parse Distance (either E, M, C, IE, or an integer > 2)
     D = first_line[0]
-    if D not in ['E', 'M', 'C']:
+    if D not in ['E', 'M', 'C', 'IE']:
         try:
             D = int(D)
             if D <= 2:
-                raise ValueError("Distance must be either E, M, C, or an integer > 2")
+                raise ValueError("Distance must be either E, M, C, IE, or an integer > 2")
         except ValueError:
-            raise ValueError("Distance must be either E, M, C, or an integer > 2")
+            raise ValueError("Distance must be either E, M, C, IE, or an integer > 2")
     distance_measure = D
 
     # Parse epsilon (float > 0)
@@ -81,8 +81,6 @@ def read_file(file):
 
     if d != 2:
         raise ValueError("Dimensions other than 2 are not supported")
-    if D != 'E':
-        print("Distance measures other than Euclidean are not (yet) fully supported. Shown shapes are not correct")
 
     # Parse the next n lines (each with d floats)
     polyline = []
@@ -103,12 +101,17 @@ def read_file(file):
     for line in lines[1 + n: ]:
         line = line.strip().split(' ')
         if len(line) != 6:
-            raise ValueError("Each additional line must contain 5 integers and 1 float")
+            raise ValueError("Each additional line must contain 5 integers and 1 float or integer in the implicit case")
         try:
             integers = list(map(int, line[:5]))
-            t = float(line[5])
-            if t < 0 or t > 1:
-                raise ValueError("t must be between 0 and 1")
+            if D == 'IE':
+                t = int(line[5])
+                if t < 0:
+                    raise ValueError("the point reference must be non negative")
+            else:
+                t = float(line[5])
+                if t < 0 or t > 1:
+                    raise ValueError("t must be between 0 and 1")
             data[integers[0], integers[1], integers[2]] = (max(integers[0] - 1, 0), integers[3], integers[4], t)
             k = max(k, integers[0])
         except ValueError:
@@ -154,7 +157,7 @@ def reset_distances():
     distance_shown = [False] * len(polyline)
     distance_shape_layouts = []
     for v in polyline: 
-        if distance_measure == 'E':
+        if distance_measure == 'E' or distance_measure == 'IE':
             distance_shape_layouts.append({
                 'type': "circle",
                 'xref': "x",
@@ -242,7 +245,7 @@ def create_tree_fig(name=None):
         [node] = [t for t in tree_traces if t["text"] == name]
     else:
         _, tree_traces, _, _, _ = draw_tree(tree_nodes[0,0,0],0,0,1)
-    tree_fig = go.Figure(data=tree_traces, layout=go.Layout(showlegend=False, title="Data Flow Tree"))
+    tree_fig = go.Figure(data=tree_traces, layout=go.Layout(showlegend=False, title="Simplification Tree"))
 
     tree_fig.update_xaxes(
         showticklabels=False,
@@ -314,7 +317,7 @@ currfile = None
     Input('upload-file', 'contents'),
 )
 def update_polyline(click_data, n_clicks, polyline_click, filename, content):
-    global epsilon, polyfig, distance_shown, distance_shape_layouts, distance_shape_index, tree_fig, data, polyline, lookup_point_name_dict 
+    global epsilon, polyfig, distance_shown, distance_shape_layouts, distance_shape_index, tree_fig, data, polyline, lookup_point_name_dict, distance_measure
 
     if ctx.triggered_id == 'upload-file':
         _, content_string = content.split(',')
@@ -381,25 +384,30 @@ def update_polyline(click_data, n_clicks, polyline_click, filename, content):
 
     # subpolyline form t' to t 
     sub_poly_points = []
-    if t_ == 1:
-        sub_poly_points.append(polyline[j_ + 1])
-    else:
-        sub_poly_points.append(compute_inner_point(j_, t_))
-        if j_ + 1 < j:
+    if distance_measure != 'IE':
+        if t_ == 1:
             sub_poly_points.append(polyline[j_ + 1])
+        else:
+            sub_poly_points.append(compute_inner_point(j_, t_))
+            if j_ + 1 < j:
+                sub_poly_points.append(polyline[j_ + 1])
 
     for x in range(j_ + 2, j):
         sub_poly_points.append(polyline[x])
 
-    if t == 0:
-        sub_poly_points.append(polyline[j])
-    else:
-        sub_poly_points.append(polyline[j])
-        sub_poly_points.append(compute_inner_point(j, t))
+    if distance_measure != 'IE':
+        if t == 0:
+            sub_poly_points.append(polyline[j])
+        else:
+            sub_poly_points.append(polyline[j])
+            sub_poly_points.append(compute_inner_point(j, t))
 
     x = [a[0] for a in sub_poly_points]
     y = [a[1] for a in sub_poly_points]
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines+markers', name="Subpolyline P[t'...t]", hoverinfo="skip"))
+    if distance_measure != 'IE':
+        fig.add_trace(go.Scatter(x=x, y=y, mode='lines+markers', name="Subpolyline P[t'...t]", hoverinfo="skip"))
+    else:
+        fig.add_trace(go.Scatter(x=x, y=y, mode='lines+markers', name="Subpolyline P[j'+1...j]", hoverinfo="skip"))
 
     simplification_points = [i]
     tk = k
@@ -424,10 +432,13 @@ def update_polyline(click_data, n_clicks, polyline_click, filename, content):
 
     point_dict = {}
     new_points = [("i", i), ("i'", i_), ("j", j), ("j'", j_), ("j+1", j+1), ("j'+1", j_+1)]
-    if t == 0 or t == 1:
+    if t == 0 or t == 1 and distance_measure != 'IE':
         new_points.append(("t", j + t))
-    if t_ == 0 or t_ == 1:
+    if t_ == 0 or t_ == 1 and distance_measure != 'IE':
         new_points.append(("t'", j_ + t_))
+    if distance_measure == 'IE':
+        new_points.append(("r'", t_))
+        new_points.append(("r", t))
     for x, y in new_points:
         if y in point_dict:
             point_dict[y] = point_dict[y] + ", " + x
