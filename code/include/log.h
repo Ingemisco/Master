@@ -2,10 +2,14 @@
 #define INCLUDE_INCLUDE_LOG_H_
 
 #include "datastructures.h"
+#include "simplification.h"
 #include <chrono>
 #include <string>
+#include <vector>
 
 namespace Log {
+
+extern std::string measurement_directory;
 
 enum class Algorithm {
   SIMPLIFICATION_SIMPLE_MANHATTAN,
@@ -21,23 +25,23 @@ enum class Algorithm {
   SIMPLIFICATION_ADVANCED_IMPLICIT_MINKOWSKI,
 };
 
+typedef std::chrono::duration<double> Time;
+
 class PerformanceLogger final {
 private:
   std::string const header;
-  Algorithm const alogrithm;
-  std::chrono::duration<double> total_time;
-  std::chrono::duration<double> min_time;
-  std::chrono::duration<double> max_time;
-  size_t data_count = 0;
-  size_t min_dim = (size_t)-1;
-  size_t max_dim = 0;
-  size_t min_points = (size_t)-1;
-  size_t max_points = 0;
+  Algorithm const algorithm;
+  std::vector<Time> times;
+  std::vector<size_t> simplification_sizes;
+  std::vector<std::string> case_names;
+  size_t dimension = 0;
+  size_t point_count = 0;
 
 public:
   PerformanceLogger(Algorithm, std::string);
 
-  void add_data(DataStructures::Polyline &, std::chrono::duration<double>);
+  void add_data(DataStructures::Polyline &, Simplification::Simplification &,
+                std::chrono::duration<double>, std::string);
   void emit();
 };
 

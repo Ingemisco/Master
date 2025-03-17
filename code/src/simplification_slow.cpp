@@ -7,7 +7,6 @@
 #include "simplification.h"
 #include "visualizer.h"
 #include <algorithm>
-#include <iostream>
 #include <memory>
 #include <vector>
 

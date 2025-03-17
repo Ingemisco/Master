@@ -6,25 +6,26 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <numeric>
+#include <random>
 #include <stdexcept>
 
 namespace Log {
+std::string measurement_directory = "";
+
 PerformanceLogger::PerformanceLogger(Algorithm algorithm, std::string header)
-    : header(header), alogrithm(algorithm), total_time(0), min_time(DBL_MAX),
-      max_time(0) {}
+    : header(header), algorithm(algorithm) {}
 
 void PerformanceLogger::add_data(DataStructures::Polyline &polyline,
-                                 std::chrono::duration<double> elapsed_time) {
+                                 Simplification::Simplification &simplification,
+                                 std::chrono::duration<double> elapsed_time,
+                                 std::string name) {
 
-  this->total_time += elapsed_time;
-  this->data_count++;
-
-  this->max_dim = std::max(this->max_dim, polyline.dimension);
-  this->min_dim = std::min(this->min_dim, polyline.dimension);
-  this->max_points = std::max(this->max_points, polyline.point_count);
-  this->min_points = std::min(this->min_points, polyline.point_count);
-  this->min_time = std::min(this->min_time, elapsed_time);
-  this->max_time = std::max(this->max_time, elapsed_time);
+  this->times.push_back(elapsed_time);
+  this->simplification_sizes.push_back(simplification->size());
+  this->dimension = std::max(this->dimension, polyline.dimension);
+  this->point_count = std::max(this->point_count, polyline.point_count);
+  this->case_names.push_back(name);
 }
 
 static std::string algorithm_name(Algorithm algorithm) {
@@ -54,7 +55,7 @@ static std::string algorithm_name(Algorithm algorithm) {
 }
 
 void PerformanceLogger::emit() {
-  if (this->data_count == 0) {
+  if (this->times.size() == 0) {
     throw std::runtime_error("No data has been entered.");
   }
   if (!std::filesystem::exists("measurements")) {
@@ -65,6 +66,20 @@ void PerformanceLogger::emit() {
                              "a directory of same name.");
   }
 
+  std::string dir = "measurements";
+  if (measurement_directory != "") {
+    dir +=
+        "/" + std::filesystem::path(measurement_directory).filename().string();
+    if (!std::filesystem::exists(dir)) {
+      std::filesystem::create_directory(dir);
+    }
+    if (!std::filesystem::is_directory(dir)) {
+      throw std::runtime_error("File called '" + dir +
+                               "' exists. Cannot create "
+                               "a directory of same name.");
+    }
+  }
+
   // Get the current time
   auto now = std::chrono::system_clock::now();
   auto now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -72,22 +87,41 @@ void PerformanceLogger::emit() {
 
   // Format the timestamp
   std::ostringstream oss;
-  oss << std::put_time(&now_tm, "%Y-%m-%d-%H-%M-%S-") << rand();
-  auto filename = "measurements/log-" + oss.str() + ".json";
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, 10000000);
+  oss << std::put_time(&now_tm, "%Y-%m-%d-%H-%M-%S-") << dis(gen);
+  auto filename = dir + "/log-" + oss.str() + ".json";
 
   std::ofstream out(filename);
+  auto minmax = std::ranges::minmax_element(this->times);
+  auto avg =
+      std::accumulate(this->times.begin(), this->times.end(), Time(0.0)) /
+      this->times.size();
 
   out << "{\n";
   out << "  \"title\": \"" << this->header << "\",\n";
-  out << "  \"algorithm\": \"" << algorithm_name(this->alogrithm) << "\",\n";
-  out << "  \"min\": " << this->min_time.count() << ",\n";
-  out << "  \"max\": " << this->max_time.count() << ",\n";
-  out << "  \"avg\": " << (this->total_time / this->data_count).count()
-      << ",\n";
-  out << "  \"min_point_count\": " << this->min_points << ",\n";
-  out << "  \"max_point_count\": " << this->max_points << ",\n";
-  out << "  \"min_dimension_count\": " << this->min_dim << ",\n";
-  out << "  \"max_dimension_count\": " << this->max_dim << "\n";
+  out << "  \"algorithm\": \"" << algorithm_name(this->algorithm) << "\",\n";
+  out << "  \"min\": " << minmax.min->count() << ",\n";
+  out << "  \"max\": " << minmax.max->count() << ",\n";
+  out << "  \"avg\": " << avg.count() << ",\n";
+  out << "  \"dimension\": " << this->dimension << ",\n";
+  out << "  \"point_count\": " << this->point_count << ",\n";
+
+  out << "  \"data\": [\n";
+  for (unsigned int i = 0; i < this->case_names.size(); i++) {
+    out << "    { \"file\": \"" << this->case_names[i]
+        << "\", \"time\": " << this->times[i].count()
+        << ", \"simplification_size\": " << this->simplification_sizes[i]
+        << " }";
+    if (i < this->case_names.size() - 1) {
+      out << ",";
+    }
+
+    out << "\n";
+  }
+  out << "  ]\n";
+
   out << "}";
   out.close();
 }

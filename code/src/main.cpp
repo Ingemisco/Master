@@ -1,5 +1,4 @@
 #include "datastructures.h"
-#include "distance.h"
 #include "log.h"
 #include "simplification.h"
 #include <boost/program_options.hpp>
@@ -23,6 +22,7 @@ static inline void _flag_action_simplify(std::string &poly_line_file_name,
                                          float epsilon) {
   Log::PerformanceLogger log(_algorithm, poly_line_file_name);
   if (std::filesystem::is_directory(poly_line_file_name)) {
+    Log::measurement_directory = poly_line_file_name;
     for (auto const &entry :
          std::filesystem::directory_iterator(poly_line_file_name)) {
       auto polyline =
@@ -32,18 +32,20 @@ static inline void _flag_action_simplify(std::string &poly_line_file_name,
       auto simplification_vertices =
           _simplification_algorithm(*polyline, epsilon);
       auto end = std::chrono::high_resolution_clock::now();
-      log.add_data(*polyline, end - start);
+      log.add_data(*polyline, simplification_vertices, end - start,
+                   entry.path().filename().string());
     }
 
   } else {
-    auto polyline = DataStructures::Polyline::from_file(
-        std::filesystem::path(poly_line_file_name));
+    auto polypath = std::filesystem::path(poly_line_file_name);
+    auto polyline = DataStructures::Polyline::from_file(polypath);
 
     auto start = std::chrono::high_resolution_clock::now();
     auto simplification_vertices =
         _simplification_algorithm(*polyline, epsilon);
     auto end = std::chrono::high_resolution_clock::now();
-    log.add_data(*polyline, end - start);
+    log.add_data(*polyline, simplification_vertices, end - start,
+                 polypath.filename().string());
   }
   log.emit();
 }

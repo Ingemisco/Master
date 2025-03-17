@@ -20,7 +20,7 @@ def read_json_files(directory):
     data_points = []
     
     for filename in sorted(os.listdir(directory)):
-        if filename.endswith(".json"):
+        if filename.endswith(".json") and filename != "specification.json":
             with open(os.path.join(directory, filename), 'r') as f:
                 data = json.load(f)
                 data_points.append(data)
@@ -39,16 +39,16 @@ def plot_data(directory):
     max_times = [entry["max"] for entry in data_points]
     avg_times = [entry["avg"] for entry in data_points]
     
-    x_labels =  [entry["min_point_count"] for entry in data_points] 
+    x_labels =  [entry["point_count"] for entry in data_points] 
 
     _n = len(x_labels)
-    coefficient, exponent = regression(x_labels[_n // 2:], avg_times[_n // 2:])
+    coefficient, exponent = regression(x_labels[_n // 8:], avg_times[_n // 8:])
     regression_curve = [coefficient * (x ** exponent) for x in x_labels]
     
     # Extract metadata (same for all files)
     algorithm = data_points[0]["algorithm"]
-    point_count = data_points[0]["min_point_count"]  # Same as max_point_count
-    dimension_count = data_points[0]["min_dimension_count"]  # Same as max_dimension_count
+    point_count = data_points[0]["point_count"]  # Same as max_point_count
+    dimension_count = data_points[0]["dimension"]  # Same as max_dimension_count
     
     # Plot data
     plt.figure(figsize=(10, 5))
