@@ -287,8 +287,7 @@ struct DPImplicitTable final {
             new size_t[point_count * point_count * (point_count - 1)]) {
     // set first layer to be unreachable, needs to be updated accordingly. All
     // other layers will be tested individually
-    std::fill_n(restriction, point_count * (point_count - 1),
-                DataStructures::UNREACHABLE);
+    std::fill_n(restriction, point_count * (point_count - 1), (size_t)-1);
   }
 
   ~DPImplicitTable() {
@@ -323,7 +322,6 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
   float const epsilon2 = epsilon * epsilon;
 
   // initialization
-
   auto const origin = polyline.get_point(0);
   dp_restriction(table, 0, 0, 0, dim1, dim2) = 0;
   unsigned int j = 1;
@@ -363,9 +361,11 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
             if (val == (size_t)-1) {
               continue;
             }
+
             auto const computed_restriction =
                 DataStructures::alt_godau_euclidean_implicit(
                     polyline, j_, j, i_, i, val, epsilon2);
+
             if (computed_restriction == (size_t)-1) {
               continue;
             } else if (new_restriction == (size_t)-1) {
