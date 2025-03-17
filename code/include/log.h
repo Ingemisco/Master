@@ -29,9 +29,9 @@ private:
   std::chrono::duration<double> min_time;
   std::chrono::duration<double> max_time;
   size_t data_count = 0;
-  size_t min_dim = (unsigned)-1;
+  size_t min_dim = (size_t)-1;
   size_t max_dim = 0;
-  size_t min_points = (unsigned)-1;
+  size_t min_points = (size_t)-1;
   size_t max_points = 0;
 
 public:
