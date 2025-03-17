@@ -1,0 +1,206 @@
+\section{Implicit Polyline Simplification}\label{sec:implicit_polyline_simplification} 
+In this section, we review the polyline simplification algorithm and all of its dependencies in order to avoid explicitly computing the solutions of distance equations. We abstract the instances which need explicit solutions to these equations in \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification and the required Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} to a small set of decision problems. 
+We show how these decision problems can be solved for the Euclidean distance without square roots or even divisions, meaning, only addition subtraction and multiplication is required. 
+
+\subsection{Decision Problems}
+We introduce three decision problems, each based on a relation. 
+\begin{definition}[Implicit Decision Relations]\label{def:implicit_relations}
+  Let \(e = \overline{e_1e_2}\) be a line segment, and \(u, v\) with \(e_1, e_2, u\) and \(v\) having the same dimension. 
+  \begin{itemize}
+    \item We say \(u\) \emph{reaches} \(e\) (in symbols \(u \leftrightarrow e\)) if there is a point \(x\) on \(e\) with \(\delta(u,x)\leq \varepsilon\). This is equivalent to the existence of \(\hat t_0'(e, u)\).
+    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{proceeds to} \(v\) \emph{in} \(e\) (in symbols \(u \overset{e}\rightarrow v\)) if, and only if 
+      \begin{itemize}
+        \item \(v \leftrightarrow e\), 
+        \item \(\hat t_0'(e, u) \leq \hat t_0'(e, v)\)
+      \end{itemize}
+
+    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{waits for} \(v\) \emph{on} \(e\) (in symbols \(u \overset{e}\leftarrow v\)) if, and only if
+      \begin{itemize}
+        \item \(v \leftrightarrow e\), 
+        \item \(\hat t_0'(e, v) \leq \hat t_0'(e, u) \leq \hat t_1'(e, v)\)
+      \end{itemize}
+  \end{itemize}
+  For \(u \overset e\rightarrow v\), we refer to \(v\) as the \emph{restriction point} and similarly for \(u\) in and \(u \overset e\leftarrow v\).
+\end{definition}
+
+We will see how we can implement the previous algorithms using procedures to decide these relations for a line segment points. The idea is, instead of computing the solutions to the required equations and then comparing them throughout the algorithms, we have procedures to compare them directly. This allows us to only maintain the point that causes the solution of the equation, which we call the restriction point as it restricts the earliest reachable point on a line segment. A visual example of these relations can be seen in \cref{fig:restrictions}.
+
+A trivial fact we will use to find initial restrictions is that \(u \overset e\rightarrow v\) always holds if \(v \leftrightarrow e\) and \(u\) is the starting point of \(e\). Also, if both \(u \overset e\rightarrow v\) and \(u \overset e\leftarrow v\) then the first solutions of both are the same, i.e., \(\hat t_0'(e, u) = \hat t_0'(e,v)\), thus either is a restriction. 
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (e1) at (0, 0);
+            \coordinate (e2) at (6, 3);
+            \coordinate (u)  at (2, 0);
+            \coordinate (v)  at (4, 3);
+
+            \draw[thick] (e1) -- (e2);
+
+            \draw[thick] (u) circle (1);
+            \draw[thick] (v) circle (1);
+
+            \path[name path=line] (e1) -- (e2);
+            \path[name path=circleu] (u) circle (1);
+            \path[name path=circlev] (v) circle (1);
+            \path[name intersections={of=line and circleu, by={tu1,tu0}}];
+            \path[name intersections={of=line and circlev, by={tv0,tv1}}];
+
+            \draw[thick, color=red] (tu0) -> (tv0);
+
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(e_1\)}] at (e1) [] {}; 
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(e_2\)}] at (e2) [] {}; 
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(v\)}] at (v) [] {}; 
+
+        \end{tikzpicture}
+      \caption{\(u \overset e\rightarrow v\). We go from \(\hat t_0'(e, u)\) to \(\hat t_0'(e, v)\) and \(v\) becomes the new restriction point.}
+      \label{fig:restr1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (e1) at (0, 0);
+            \coordinate (e2) at (6, 3);
+            \coordinate (v)  at (2, 0);
+            \coordinate (u)  at (4, 3);
+
+            \draw[thick] (e1) -- (e2);
+
+            \draw[thick] (u) circle (1);
+            \draw[thick] (v) circle (1);
+
+            \path[name path=line] (e1) -- (e2);
+            \path[name path=circleu] (u) circle (1);
+            \path[name path=circlev] (v) circle (1);
+            \path[name intersections={of=line and circleu, by={tu0,tu1}}];
+            \path[name intersections={of=line and circlev, by={tv1,tv0}}];
+
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(e_1\)}] at (e1) [] {}; 
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(e_2\)}] at (e2) [] {}; 
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(v\)}] at (v) [] {}; 
+
+        \end{tikzpicture}
+      \caption{Neither \(u \overset e\rightarrow v\) nor \(u \overset e\leftarrow v\).}
+      \label{fig:restr2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (e1) at (0, 0);
+            \coordinate (e2) at (6, 3);
+            \coordinate (u)  at (3,  2);
+            \coordinate (v)  at (2.5, 1);
+
+            \draw[thick] (e1) -- (e2);
+
+            \draw[thick] (u) circle (1);
+            \draw[thick] (v) circle (1);
+
+            \path[name path=line] (e1) -- (e2);
+            \path[name path=circleu] (u) circle (1);
+            \path[name path=circlev] (v) circle (1);
+            \path[name intersections={of=line and circleu, by={tu1,tu0}}];
+            \path[name intersections={of=line and circlev, by={tv1,tv0}}];
+
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(e_1\)}] at (e1) [] {}; 
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(e_2\)}] at (e2) [] {}; 
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(u\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(v\)}] at (v) [] {}; 
+
+            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(\hat t_0'(e, u)\)}] at (tu0) [] {}; 
+
+        \end{tikzpicture}
+      \caption{\(u \overset e\leftarrow v\). We cannot go backward but \(v\) is reachable so we can wait for it and \(u\) remains the restriction point. }
+      \label{fig:restr3}
+    \end{subfigure}
+
+    \caption{Illustration of the relations and how to interpret them. }
+    \label{fig:restrictions}
+\end{figure}
+
+\subsection{Fréchet Distance Decision}
+We review the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and adapt it to use the relations from \cref{def:implicit_relations} instead of solving equations. This can be done both for the general problem of deciding for two polylines if their Fréchet distance is at most \(\varepsilon\) as well as for the modified version we are interested in which returns the earliest reachable point on the last line segment\footnote{Obviously, this requires modifications to the statement of the algorithm as we cannot explicitly compute the solution. These modifications will be mentioned later.}. 
+
+For the general Fréchet distance decision problem fix two given polylines \(P\) of length \(p\) and \(Q\) of length \(q\) with a fixed \(\varepsilon > 0\) and \(p \geq q\) (otherwise swap the two polylines). We decide if \(\delta^F(P, Q) \leq \varepsilon\) by using the dynamic programming approach from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}. 
+
+We start by explaining only the version needed where \(q = 1\), meaning the second polyline is a single line segment. As we cannot return an explicit solution to the equation we return the restriction point \(r\) on the last line segment that causes the solution instead. Furthermore, the input also takes an initial restriction point \(r'\) for the line segment \(\overline{P(0)P(1)}\) so that we do not have to compute the initial point of the polyline segment. 
+
+The start of the algorithm is similar, we first need to test if the initial points match and if so we can distinguish the two cases where \(p = 1\) or \(p > 1\). To test if the initial points match is equivalent to testing \(r \overset e\leftarrow Q(0)\) for \(e = \overline{P(0)P(1)}\) as the initial point on \(P\) is \(P(\hat t_0'(e, r))\) so the initial points of the polylines have a distance of at most \(\varepsilon\) if this point is in the interval \([\hat t_0'(e, Q(0)), \hat t_1'(e, Q(0))]\).
+
+\begin{itemize}
+  \item[Case \(p = 1\): ] Set \(e = \overline{Q(0)Q(1)}\). The first points of the two line segments already match so we only need to fully traverse \(Q\). We either need to proceed on \(P\) from the restriction or wait, so the result is \(r\) if \(r \overset e\leftarrow Q(1)\) and \(Q(1)\) if \(r \overset e\rightarrow Q(1)\). If neither case happens there is no solution. 
+  \item[Case \(p > 1\): ] We first traverse the line segment \(e = \overline{Q(0)Q(1)}\) and maintain the current restriction \(r'\) which is initially \(r\). We iterate through \(P(1), P(2), \dots, P(p-1)\) and for each point \(P(i)\) we test if \(r' \overset e\rightarrow P(i)\). If so we update \(r'\) to \(P(i)\). If \(r' \overset e\leftarrow P(i)\) there is no need to update \(r'\). If neither happens there is no solution. 
+
+    Finally, \(P[0\dots p-1]\) is traversed and we need to determine the restriction on the line \(e'=\overline{P(p-1)P(p)}\). As the only possible restriction on this line segment we get \(Q(1)\) as we only need to fully traverse \(e\). If \(Q(1) \leftrightarrow e'\) we can return \(Q(1)\) otherwise there is no solution.
+\end{itemize}
+
+%TODO: Full algorithm and pseudo codes
+
+\subsection{Euclidean Implementation}
+Having seen how we can use these decision problems to implement the algorithms, we make use of them in the Euclidean case. By avoiding the explicit computation of solutions of \cref{eq:eq_solve_main} we can avoid computing square roots and even avoid divisions leading us to the following results. 
+
+\begin{theorem}
+  For \(d\)-dimensional polyline \(P\) and \(Q\) of length \(p\) and \(q\) respectively, it is possible to decide if \(\delta_2^F(P, Q) \leq \varepsilon\) in runtime \(\O(d p q)\) with the only arithmetical operations necessary being addition, subtraction and multiplication. 
+\end{theorem}
+
+\begin{theorem}\label{thm:euclidean_implicit_simplification_simple}
+  For a \(d\)-dimensional polyline \(P\) of length \(n\) the problem of global polyline simplification using the Euclidean Fréchet distance can be solved in \(\O(d k^*n^5)\) with the only arithmetical operations necessary being addition, subtraction and multiplication where \(k^*\) is the size of the simplification.
+\end{theorem}
+
+As we expect that the adaptions from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} are compatible with our decision problems, the runtime of \cref{thm:euclidean_implicit_simplification_simple} can likely be adjusted to \(\O(d n^3)\). We will review, and hopefully verify, this in a following thesis. 
+
+The decision problems for the relations \(\leftrightarrow, \leftarrow\) and \(\rightarrow\) are simple to implement without division and square roots but quite technical. We start with \(\leftrightarrow\) which can be implemented as a special case of \(\rightarrow\) but can be solved even simpler. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). \(u \leftrightarrow e\) holds if, and only if, the distance to the closest point on \(e\) to \(u\) has distance at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\) then \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\) \cite{linear_algebra}. 
+
+To decide \(u \leftrightarrow e\) we only need to test if either of the two end points is reachable from \(u\), i.e., \(\delta_2'(e_i, u) \leq \varepsilon^2\) for \(i = 1\) or \(i = 2\). If both fail we must check the projection. Thus we return true if, and only if, the following inequality is true. 
+
+\begin{alignat*}{3}
+&\delta_2'(e_1 + t(e_2 - e_1), u) &&\leq \varepsilon^2 \\
+  \iff& \|e_1 - u + t(e_2 - e_1)\|^2 &&\leq \varepsilon^2 \\
+  \iff& \delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}t + \delta_2'(e_1, e_2)t^2 &&\leq \varepsilon^2 \\
+  \iff& \delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}\frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)} + \delta_2'(e_1, e_2)\parenth{\frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}} &&\leq \varepsilon^2 \\
+  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - 2\braket{e_1 - u | e_2 - e_1}^2 + \braket{e_2 - e_1 | u - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2)\\
+  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - \braket{e_1 - u | e_2 - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2)
+\end{alignat*}
+
+For the other two relations we get very similar procedures. For simplicity we only derive \(u \overset e\rightarrow v\). We define \(a_{0u} \coloneq \delta_2'(e_1, u)\), \(a_{0v} \coloneq \delta_2'(e_1, v)\), \(a_{1u} \coloneq 2\braket{e_2 - e_1 | e_1 - u}\), \(a_{1v} \coloneq 2\braket{e_2 - e_1 | e_1 - v}\), and \(a_{2} \coloneq \delta_2'(e_1, e_2)\) which are the coefficients of the quadratic equation needed to solve for \(\hat t_{0/1}(e, u)\) and \(\hat t_{0/1}(e, v)\). We further denote the discriminants of the solutions \(D_u \coloneq a_{1u}^2 - 4a_{0u}a_2\) and \(D_v \coloneq a_{1v}^2 - 4a_{0v}a_2\). We define \(x  \coloneq a_{1u} - a_{1v}\) and \(y \coloneq D_u + D_v - x^2\). With these we get 
+
+\begin{alignat*}{2}
+  u \overset e\rightarrow v \iff& v \leftrightarrow e \land \hat t_0'(e, u) \leq \hat t_0'(e, u) \\
+  \iff& v \leftrightarrow e \land \frac{-a_{1u} - \sqrt{D_u}}{2a_2} \leq \frac{-a_{1v} - \sqrt{D_v}}{2a_2} \\
+  \iff& v \leftrightarrow e \land -a_{1u} - \sqrt{D_u} \leq -a_{1v} - \sqrt{D_v} \\
+  \iff& v \leftrightarrow e \land -a_{1u} - \sqrt{D_u} \leq -a_{1v} - \sqrt{D_v} \\
+  \iff& v \leftrightarrow e \land \sqrt{D_v} - \sqrt{D_u} \leq a_{1u} - a_{1v}  \\
+  \iff& v \leftrightarrow e \land \sqrt{D_v} - \sqrt{D_u} \leq x  \\
+  \iff& v \leftrightarrow e \land ((x \geq 0 \land \sqrt{D_v} \leq \sqrt{D_u})\\ & \lor (x \geq 0 \land \sqrt{D_v} \geq \sqrt{D_u} \land \sqrt{D_v} - \sqrt{D_u} \leq x )\lor(x \leq 0 \land \sqrt{D_v} \leq \sqrt{D_u} \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) )  \\
+  \iff& v \leftrightarrow e \land ((x \geq 0 \land D_v \leq D_u)\\ & \lor (x \geq 0 \land D_v \geq D_u \land \sqrt{D_v} - \sqrt{D_u} \leq x )\lor(x \leq 0 \land D_v \leq D_u \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) ).
+\end{alignat*}
+
+Now we consider only the inequalities \(\sqrt{D_v} - \sqrt{D_u} \leq x\) and \(\sqrt{D_u} - \sqrt{D_v} \geq -x\) where we know that all sides of the inequalities are positive thus squaring them preserves the inequalities. We get 
+
+\begin{align*}
+  \sqrt{D_v} - \sqrt{D_u} \leq x &\iff D_v + D_u - 2\sqrt{D_uD_v} \leq x^2 \\
+   &\iff y \leq 2\sqrt{D_uD_v} \\
+   &\iff (y \leq 0) \lor (y^2 \leq 4D_uD_v)
+\end{align*}
+
+and similarly for the other inequality. With that this problem can be decided without square roots or divisions albeit in a rather technical manner.
+
+% section Implicit Polyline Simplification (end)
+
+
+
+
+
+
