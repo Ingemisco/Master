@@ -1,6 +1,6 @@
 \section{Implicit Polyline Simplification}\label{sec:implicit_polyline_simplification} 
 In this section, we review the polyline simplification algorithm and all of its dependencies in order to avoid explicitly computing the solutions of distance equations. We abstract the instances which need explicit solutions to these equations in \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification and the required Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} to a small set of decision problems. 
-We show how these decision problems can be solved for the Euclidean distance without square roots or even divisions, meaning, only addition subtraction and multiplication is required. 
+We show how these decision problems can be solved for the Euclidean distance without square roots or even divisions, meaning, only addition, subtraction, and multiplication is required. Correctness for the implicit algorithms follows directly from the correctness of the explicit version as only the comparison is abstracted while the actual logic is unaffected. 
 
 \subsection{Decision Problems}
 We introduce three decision problems, each based on a relation. 
@@ -22,6 +22,8 @@ We introduce three decision problems, each based on a relation.
   \end{itemize}
   For \(u \overset e\rightarrow v\), we refer to \(v\) as the \emph{restriction point} and similarly for \(u\) in and \(u \overset e\leftarrow v\).
 \end{definition}
+
+As a note, for \(e = \overline{e_1e_2}\) and a point \(u\) it holds \(u \leftrightarrow e\) if, and only if, \(e_1 \overset{e}\rightarrow u\). Thus it is not necessary to provide an implementation for \(\leftrightarrow\) directly. We separate the relations because \(\rightarrow\) is more complex but often the simple \(\leftrightarrow\) relation suffices.
 
 We will see how we can implement the previous algorithms using procedures to decide these relations for a line segment points. The idea is, instead of computing the solutions to the required equations and then comparing them throughout the algorithms, we have procedures to compare them directly. This allows us to only maintain the point that causes the solution of the equation, which we call the restriction point as it restricts the earliest reachable point on a line segment. A visual example of these relations can be seen in \cref{fig:restrictions}.
 
@@ -141,10 +143,126 @@ The start of the algorithm is similar, we first need to test if the initial poin
 
 \begin{itemize}
   \item[Case \(p = 1\): ] Set \(e = \overline{Q(0)Q(1)}\). The first points of the two line segments already match so we only need to fully traverse \(Q\). We either need to proceed on \(P\) from the restriction or wait, so the result is \(r\) if \(r \overset e\leftarrow Q(1)\) and \(Q(1)\) if \(r \overset e\rightarrow Q(1)\). If neither case happens there is no solution. 
+    See \cref{fig:alat_godau_implicit_eq} for visual examples of this.
   \item[Case \(p > 1\): ] We first traverse the line segment \(e = \overline{Q(0)Q(1)}\) and maintain the current restriction \(r'\) which is initially \(r\). We iterate through \(P(1), P(2), \dots, P(p-1)\) and for each point \(P(i)\) we test if \(r' \overset e\rightarrow P(i)\). If so we update \(r'\) to \(P(i)\). If \(r' \overset e\leftarrow P(i)\) there is no need to update \(r'\). If neither happens there is no solution. 
 
     Finally, \(P[0\dots p-1]\) is traversed and we need to determine the restriction on the line \(e'=\overline{P(p-1)P(p)}\). As the only possible restriction on this line segment we get \(Q(1)\) as we only need to fully traverse \(e\). If \(Q(1) \leftrightarrow e'\) we can return \(Q(1)\) otherwise there is no solution.
 \end{itemize}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (e1) at (0, 0);
+            \coordinate (e2) at (6, 3);
+            \coordinate (r)  at (2, 0);
+            \coordinate (q0)  at (1, 1);
+            \coordinate (q1)  at (4, 3);
+
+            \draw[thick] (e1) -- (e2);
+            \draw[thick] (q0) -- (q1);
+
+            \draw[thick] (r) circle (1);
+            \draw[thick] (q0) circle (1);
+            \draw[thick] (q1) circle (1);
+
+            \path[name path=line] (e1) -- (e2);
+            \path[name path=circleu] (r) circle (1);
+            \path[name path=circler] (r) circle (1);
+            \path[name path=circleq1] (q1) circle (1);
+            \path[name intersections={of=line and circler, by={tu1,tu0}}];
+            \path[name intersections={of=line and circleq1, by={tv0,tv1}}];
+
+            \draw[thick, color=red] (tu0) -> (tv0);
+
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(0)\)}] at (e1) [] {}; 
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(1)\)}] at (e2) [] {}; 
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (r) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(0)\)}] at (q0) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(1)\)}] at (q1) [] {}; 
+
+        \end{tikzpicture}
+      \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\rightarrow Q(1)\) for \(e = \overline{P(0)P(1)}\). We proceed from the restriction \(r\) to the new restriction \(Q(1).\)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (e1) at (0, 0);
+            \coordinate (e2) at (6, 3);
+            \coordinate (r)  at (2, 0);
+            \coordinate (q0)  at (2.5, 2);
+            \coordinate (q1)  at (4, 3);
+
+            \draw[thick] (e1) -- (e2);
+            \draw[thick] (q0) -- (q1);
+
+            \draw[thick] (r) circle (1);
+            \draw[thick] (q0) circle (1);
+            \draw[thick] (q1) circle (1);
+
+            \path[name path=line] (e1) -- (e2);
+            \path[name path=circleu] (r) circle (1);
+            \path[name path=circler] (r) circle (1);
+            \path[name path=circleq1] (q1) circle (1);
+            \path[name intersections={of=line and circler, by={tu1,tu0}}];
+            \path[name intersections={of=line and circleq1, by={tv0,tv1}}];
+
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(0)\)}] at (e1) [] {}; 
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(1)\)}] at (e2) [] {}; 
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (r) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(0)\)}] at (q0) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(1)\)}] at (q1) [] {}; 
+
+        \end{tikzpicture}
+      \caption{\(r \overset e\rightarrow Q(1)\) but not \(r \overset e\leftarrow Q(0)\) for \(e = \overline{P(0)P(1)}\). Invalid way to proceed on the line.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}
+            % Define points
+            \coordinate (e1) at (0, 0);
+            \coordinate (e2) at (6, 3);
+            \coordinate (u)  at (1.5,  0);
+            \coordinate (q1)  at (1.5,  1.5);
+            \coordinate (v)  at (2.5, 1);
+
+            \draw[thick] (e1) -- (e2);
+            \draw[thick] (u) -- (q1);
+
+            \draw[thick] (u) circle (1);
+            \draw[thick] (q1) circle (1);
+            \draw[thick] (v) circle (1);
+
+            \path[name path=line] (e1) -- (e2);
+            \path[name path=circleu] (u) circle (1);
+            \path[name path=circleu] (q1) circle (1);
+            \path[name path=circlev] (v) circle (1);
+            \path[name intersections={of=line and circleu, by={tu1,tu0}}];
+            \path[name intersections={of=line and circlev, by={tv1,tv0}}];
+
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(0)\)}] at (e1) [] {}; 
+            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(1)\)}] at (e2) [] {}; 
+
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(Q(0)\)}] at (u) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(Q(1)\)}] at (q1) [] {}; 
+            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (v) [] {}; 
+
+
+        \end{tikzpicture}
+        \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\leftarrow Q(1)\) so we can proceed on \(\overline{Q(0)Q(1)}\) while remaining on the same restriction point \(r\) on \(e = \overline{P(0)P(1)}\)}
+    \end{subfigure}
+
+    \caption{Modified implicit Fréchet distance, case \(p = 1\).}
+    \label{fig:alat_godau_implicit_eq}
+\end{figure}
+
 
 %TODO: Full algorithm and pseudo codes
 
@@ -196,6 +314,21 @@ Now we consider only the inequalities \(\sqrt{D_v} - \sqrt{D_u} \leq x\) and \(\
 \end{align*}
 
 and similarly for the other inequality. With that this problem can be decided without square roots or divisions albeit in a rather technical manner.
+
+\subsection{General Minkowski Distances}
+Having seen how implicit computations simplifies simplification in the Euclidean case, we want to try to extend this technique to other Minkowski distances. As of writing this we do not know whether it is possible to implement all three decision problems without the use of approximations but implicit computations allows a simpler and possibly more numerically stable way to approximate. 
+
+First, we consider the relation \(\leftrightarrow\). Again, we can easily check if \(\delta_\ell'(e_1, u) \leq \nu_\ell(\varepsilon)\) and \(\delta_\ell'(e_2, u) \leq \nu_\ell(\varepsilon)\) when testing \(u \leftrightarrow e\). If neither occurs we need to test \(\hat t_0'(e, u) \in [0,1]\). This can be solved using Sturm's theorem \cite{algorithms_in_real_algebraic_geometry}. 
+\begin{theorem}[Sturm's Theorem]
+  Let \(p\) be a polynomial and \(p'\) be its derivative. The number of roots of \(p\) in the interval \((a,b)\) is 
+  \[Var(p_0(a), p_1(a), \dots, p_k(a)) - Var(p_0(b), p_1(b), \dots, p_k(b)),\]
+  where \(p_0 \coloneq p\), \(p_1 \coloneq p'\) and \(p_i \coloneq -Rem(p_{i-2}, p_{i-1})\) for \(i \in \set{2, \dots, k}\) until \(p_{k+1} = 0\). 
+  Here \(Rem\) denote the remainder of the polynomial division and \(Var\) is the number of sign changes of a sequence, i.e., \(Var(a_0,\dots, a_k) = |\set{i \in \set{1, \dots, k} \mid a_ia_{i-1} < 0}|\).
+\end{theorem}
+
+In fact, as the interval is \((0, 1)\) this simplifies the computations as we only need to lookup the constant term and the sum of the coefficients for each polynomial. 
+Multiplicities of roots does not affect the results as we are only interested in the existence of a root in the interval. 
+The only necessary operations needed to implement this are addition, subtraction, multiplication, and division and as the degree of the polynomials is fixed for a given distance function we can estimate the required space for a suffieciently precise representation of the coefficients that occur during the polynomial division. 
 
 % section Implicit Polyline Simplification (end)
 

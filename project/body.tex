@@ -15,6 +15,7 @@
 \newcommand{\ceil}[1]{\left\lceil#1\right\rceil}
 
 \SetKw{Continue}{continue}
+\SetKw{Break}{break}
 
 \renewcommand*{\O}{\mathcal{O}}
 
@@ -25,7 +26,11 @@
 \label{sec:related_work}
 This report is mainly based on the previous work from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}
 and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, both of which construct algorithms to solve the problem of global polyline simplification under the Fréchet distance.
-\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm is itself an variant of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm that reduces the runtime down to cubic runtime. 
+\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm is itself an variant of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm that reduces the runtime down to cubic runtime.  
+We implement \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm and explain thoroughly necessary implementation details for every step of the algorithm. We also mention possible optimizations to reach more practical algorithms.
+In a coming thesis we will also implement \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm and compare the two. 
+
+Most, if not all, previously known algorithms in the general topic of polyline simplification and the Fréchet distance require explicit computation of the roots of polynomials which results in the need for square roots in the Euclidean case and impractical algorithms for general Minkowski distances. We introduce implicit decision problems and show how to reformulate many algorithms using them. We explicitly derive the implicit version of the Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and the polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}.
 
 \section{Preliminaries}
 \label{sec:preliminaries}
@@ -56,7 +61,7 @@ The main geometric figure we are analysing is the \emph{polyline}.
 We distinguish between distance measurements between two points and distance measurements between two polylines. 
 \begin{definition}[Distances]\label{def:point_distance}
   Let \(d \in \N_+\) and \(\ell \geq 1\) be a real number.
-  \begin{enumerate}
+  \begin{itemize}
     \item We define the \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) as 
       \[\delta'_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \sum_{i = 1}^d |u_i - v_i|^\ell.\]
     \item We define the \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) as 
@@ -66,7 +71,7 @@ We distinguish between distance measurements between two points and distance mea
     \item We further define the \emph{Chebyshev distance} \(\delta'_\infty = \delta_\infty\) as 
       \[\delta_\infty:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \max_{i = 1, \dots, d} |u_i - v_i|.\]
     \item We define the function \(\nu_\ell:\R_{\geq 0} \to \R_{\geq 0}\) by \(\nu_\ell(x) = x^\ell\) for \(\ell \neq \infty\) and \(\nu_\infty(x) = x\).
-  \end{enumerate}
+  \end{itemize}
 
   If \(\ell\) is clear from the context or irrelevant, we will omit it.
 \end{definition}
@@ -74,7 +79,18 @@ We distinguish between distance measurements between two points and distance mea
 The Euclidean distance is the most important case and commonly used distance measure. The Manhattan distance and Chebyshev distance are simple to compute as they do not require exponentiation to rational numbers. When the points have rational coordinates, both distances will produces rational numbers.
 The other Minkowski distances are less used and less numerically stable. For this reason we introduce their unnormalized versions and will see how some of the algorithms can be adjusted to use them instead. 
 
-All distance functions we have introduced are examples of metrics on \(\R^d\) \cite{metric_spaces}.
+We finally define a distance function on polylines which will be used throughout this report. 
+
+\begin{definition}[Fréchet Distance]
+  Let \(d \in \N_+\) and \(\delta\) be a (normalized) distance function. The \emph{Fréchet distance} \(\delta^F\) for two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\) respectively is 
+  \[\delta^F(P, Q) = \inf_f \max_{t \in [0, p]}\delta(P(p), Q(f(p))),\]
+  where the infimum is taken over all monotone functions \(f:[0,p] \to [0, q]\) with \(f(0) = 0\) and \(f(p) = q\).
+\end{definition}
+
+\subsection{Properties of Distances}
+Here, we want to briefly cover some properties of the just defined distance functions, both for points and polylines.
+
+All distance functions we have introduced are examples of metrics on \(\R^d\) (see, e.g., \cite{metric_spaces} for respective proofs).
 
 \begin{definition}[Metric Spaces]\label{def:metric}
   Let \(X\) be a set and \(\delta:X\times X \to \R\). Then \(\delta\) is a \emph{metric} on \(X\) if, and only if, for each \(a, b, c \in X\), 
@@ -87,20 +103,47 @@ All distance functions we have introduced are examples of metrics on \(\R^d\) \c
   A set \(X\) together with a metric \(\delta\) is called a \emph{metric space}.
 \end{definition}
 
-We also note an obvious, but useful fact.  
+We also note an obvious, but useful fact which allows avoiding roots when comparing distances. 
 \begin{observation}\label{obs:unnormalize}
   Let \(\ell \in [1, \infty]\), \(\varepsilon > 0\), and \(u, v \in \R^d\). Then 
     \[\delta_\ell(u, v) \leq \varepsilon \iff \delta_\ell'(u, v) \leq \nu_\ell(\varepsilon).\]
 \end{observation}
 
-We finally define a distance function on polylines which will be used throughout this report. 
 
-\begin{definition}[Fréchet Distance]
-  Let \(d \in \N_+\) and \(\delta\) be a (normalized) distance function. The \emph{Fréchet distance} \(\delta^F\) for two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\) respectively is 
-  \[\delta^F(P, Q) = \inf_f \max_{t \in [0, p]}\delta(P(p), Q(f(p))),\]
-  where the infimum is taken over all monotone functions \(f:[0,p] \to [0, q]\) with \(f(0) = 0\) and \(f(p) = q\).
-\end{definition}
+\begin{lemma}\label{lem:distance_properties}
+  Let \(\delta\) be any Minkowski distance (including the Chebyshev distance).
+  \begin{enumerate}
+    \item \(\delta(u, v) = \delta(u - w, v - w)\) for all \(u, v, w\in \R^d\).
+    \item \(\delta(a u, a v) = |a| \delta(u, v)\) for all \(u, v\in \R^d\)  and \(a \in \R\).
+    \item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\) then also \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\) for all \(u, v, w\in \R^d\), \(\varepsilon > 0\) and all \(t \in [0, 1]\).
+    \item \(\delta^F(\overline{ab}, \overline{cd}) \leq \varepsilon\) if, and only if, \(\delta(a, c) \leq \varepsilon\) and \(\delta(b, d) \leq \varepsilon\) for \(a,b,c,d \in \R^d\).
+  \end{enumerate}
+\end{lemma}
 
+The third property implies that \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is a convex set for fixed \(v \in \R^d\) and \(\varepsilon >0 \).
+The fourth property gives us a characterization of the Fréchet distance when comparing single line segments. 
+
+\begin{proof}
+  \begin{enumerate}
+    \item Follows directly from the definitions 
+    \item Follows directly from the definitions 
+    \item \begin{flalign*}
+        \delta((1-t)u + tv, w) &\overset{(1)}= \delta((1-t)u + tv- w, 0)\\
+         &= \delta((1-t)(u-w)+t(v-w), 0) \\
+         &= \delta((1-t)(u-w),t(w-v)) \\
+         &\leq \delta((1-t)(u-w),0) + \delta(0,t(w-v)) && \textrm{Triangle Inequality}\\
+         &\overset{(2)}= (1-t)\delta(u,w) + t\delta(v,w) \leq (1-t)\varepsilon + t\varepsilon = \varepsilon\\
+    \end{flalign*}
+  \item \(\Rightarrow\) follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f\) with \(f(0) = 0\) and \(f(1) = 1\)).
+    Let For \(\Leftarrow\) we construct a respective function \(f\), in fact, the identity \(f(t) = t\) suffices as 
+    \begin{align*}
+      \delta((1-t)a + tb, (1-f(t))c + f(t)d) &= \delta((1-t)a + tb, (1-t)c + td) \\
+       &= \delta((1-t)(a-c), t(d-b)) \\
+       &\leq \delta((1-t)(a-c), 0) + \delta(0, t(d-b)) \\
+       &= (1-t)\delta(a, c) + t\delta(b, d) \leq \varepsilon \\
+    \end{align*}
+  \end{enumerate}
+\end{proof}
 
 % section Algorithm and Implementation
 \input{section_algorithm_implementation.tex}
@@ -110,7 +153,7 @@ We finally define a distance function on polylines which will be used throughout
 
 \section{Experimental Evaluation}
 \label{sec:evaluation}
-% test if sqrt less version is better for euclidean or not, probably not 
+% test if sqrt less version is better for euclidean or not, probably not - actually yes 
 %
 %
 \subsection{Experimental Setup}
@@ -131,4 +174,13 @@ We finally define a distance function on polylines which will be used throughout
 
 \section{Conclusions and Future Work}
 \label{sec:discussion_conclusion}
+
+% Questions: 
+% - Can implicit Manhattan and Chebyshev be implemented in linear time? without division? 
+% - Can general implicit Minkowski be solved without approximations? Maybe using some techniques from real algebraic geometry
+% - Can the runtime of Van Kreveld et al algorithm be analyzed such that it has a better runtime with the optimizations? Maybe for a subset of polylines only 
+% - Can space consumption reach quadratic? Maybe by using tree trimming 
+% - 
+
+
 

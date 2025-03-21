@@ -8,7 +8,25 @@ For the following algorithms we need to solve equations involving distance funct
 \begin{equation}
   \delta(u + t \cdot (v - u), w) = \varepsilon \label{eq:eq_solve_main}
 \end{equation}
-for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R_{>0}\) for the variable \(t \in \R\) or determine that there is no such solution. This will have a smallest solution \(\hat{t}_0\) and largest solution \(\hat{t}_1\) in which we are interested. Those two solutions may be the same or may not exist at all.
+for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R_{>0}\) for the variable \(t \in \R\) or determine that there is no such solution. This corresponds to the points the lie on the line segment \(e = \overline{uv}\) that have distance \(\varepsilon\) from \(w\) as each point on \(e\) is of the form \(u + t(v-u)\). 
+
+By the third property of \cref{lem:distance_properties} we know that \(\set{x \in \R^d \mid \delta(x, w) \leq \varepsilon}\) is a convex set of points thus the set \(\set{t \in \R \mid \delta(u + t(v-u), w) \leq \varepsilon}\) is also convex and thus an interval \([a, b]\). Thus we only need to find the first and last solution to this equation even if there are more (which may only happen for the Chebyshev and Manhattan distance). We label the smallest solution \(\hat{t}_0\) and largest solution \(\hat{t}_1\). Those two solutions may be the same, i.e, the interval collapses to a single point, or may not exist at all, meaning the interval is empty.
+
+For our use cases we do not need the actual solutions \(\hat{t}_0\) and \(\hat{t}_1\) but modified solutions \(\hat{t}_0'\) and \(\hat{t}_1'\) which are defined as 
+\begin{equation}
+  \hat{t}_0' \coloneq \begin{cases}
+    0 & \textrm{ if } \hat{t}_0 < 0 \textrm{ and } \hat{t}_1 \geq 0\\
+    \hat{t}_0 & \textrm{ if } \hat{t}_0 \in [0, 1]\\
+    \infty &\textrm{ otherwise }
+  \end{cases}\\
+  \hat{t}_1' \coloneq \begin{cases}
+    1 & \textrm{ if } \hat{t}_1 > 1 \textrm{ and } \hat{t}_0 \leq 1\\
+    \hat{t}_1 & \textrm{ if } \hat{t}_1 \in [0, 1]\\
+    \infty &\textrm{ otherwise }
+  \end{cases},
+\end{equation}
+where the \emph{otherwise} case also includes the case of there being no solution to \cref{eq:eq_solve_main}. This corresponds to the smallest and largest point in the modified interval \([\hat t_0, \hat t_1] \cap [0, 1]\). How this can affect the solutions can be seen in \cref{fig:solution_kinds}.
+For a line segment \(\overline{uv}\) and a point \(w\) we denote \(\hat t_0'(\overline{uv}, w)\) and \(\hat t_1'(\overline{uv}, w)\) to be the respective modified solutions for the given line segment and point. We do not include \(\varepsilon\) in that notation as it is fixed throughout all algorithms and thus needs to disambiguation.
 
 \begin{figure}
     \centering
@@ -45,7 +63,6 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
         \end{tikzpicture}
       \caption{\(\hat t_0 < 0 < \hat t_1 < 1\) \\ \(\hat t_0' = 0, \hat t_1' = \hat t_1\)}
-        \label{fig:sub2}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.3\textwidth}
@@ -79,7 +96,6 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
         \end{tikzpicture}
         \caption{\(0 < \hat t_0 < \hat t_1 < 1\)\\ \(\hat t_0' = \hat t_0, \hat t_1' = \hat t_1\)}
-        \label{fig:sub1}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.3\textwidth}
@@ -114,7 +130,6 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
         \end{tikzpicture}
       \caption{\(0 < \hat t_0 < 1 < \hat t_1 \) \\ \(\hat t_0' = \hat t_0, \hat t_1' = 1\)}
-        \label{fig:sub3}
     \end{subfigure}
 
     % Second row of subfigures
@@ -150,7 +165,6 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             %\draw[dotted] (v) -- ($(v)!-1.5!(u)$);
         \end{tikzpicture}
         \caption{\(\hat t_0 < \hat t_1 < 0\)\\ \(\hat t_0' = \hat t_1' = \infty\)}
-        \label{fig:sub4}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.3\textwidth}
@@ -185,7 +199,6 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             \draw[dotted] (u0) -- (v0);
         \end{tikzpicture}
         \caption{\(\hat t_0 < 0 < 1 < \hat t_1\)\\ \(\hat t_0' = 0, \hat t_1' = 1\)}
-        \label{fig:sub5}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.3\textwidth}
@@ -216,7 +229,6 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             \draw[dotted] (u) -- (u0);
         \end{tikzpicture}
         \caption{\(1 < \hat t_0 < \hat t_1\)\\ \(\hat t_0' =  \hat t_1' = \infty\)}
-        \label{fig:sub6}
     \end{subfigure}
 
     % Third row of subfigures (centered)
@@ -239,43 +251,12 @@ for arbitrary, fixed vectors \(u, v, w \in \R^d\) and fixed \(\varepsilon \in \R
             \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue]-90:\(w\)}] at (w) [] {}; 
         \end{tikzpicture}
         \caption{\(\hat t_0, \hat t_1\) do not exist\\ \(\hat t_0' = \hat t_1' = \infty\)}
-        \label{fig:sub7}
     \end{subfigure}
     \caption{The different kinds of solutions. Note that we associate \(0\) with \(u\), \(1\) with \(v\) and \(t\) with \((1-t)u + tv\)}
-    \label{fig:main}
+    \label{fig:solution_kinds}
 \end{figure}
 
-For our use cases we do not need the actual solutions \(\hat{t}_0\) and \(\hat{t}_1\) but modified solutions \(\hat{t}_0'\) and \(\hat{t}_1'\) which are defined as 
-\begin{equation}
-  \hat{t}_0' \coloneq \begin{cases}
-    0 & \textrm{ if } \hat{t}_0 < 0 \textrm{ and } \hat{t}_1 \geq 0\\
-    \hat{t}_0 & \textrm{ if } \hat{t}_0 \in [0, 1]\\
-    \infty &\textrm{ otherwise }
-  \end{cases}\\
-  \hat{t}_1' \coloneq \begin{cases}
-    1 & \textrm{ if } \hat{t}_1 > 1 \textrm{ and } \hat{t}_0 \leq 1\\
-    \hat{t}_1 & \textrm{ if } \hat{t}_1 \in [0, 1]\\
-    \infty &\textrm{ otherwise }
-  \end{cases},
-\end{equation}
-where the \emph{otherwise} case also includes the case of there being no solution to \cref{eq:eq_solve_main}. 
-For a line segment \(\overline{uv}\) and a point \(w\) we denote \(\hat t_0'(\overline{uv}, w)\) and \(\hat t_1'(\overline{uv}, w)\) to be the respective modified solutions for the given line segment and point. We do not include \(\varepsilon\) in that notation as it is fixed throughout all algorithms and thus needs to disambiguation.
-
-In general, determining these solutions requires finding roots of polynomials and thus there is no exact solution algorithm for distances derived from the norms \(L_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
-
-
-This gives us the following six cases 
-\begin{enumerate}
-  \item \(\hat t_1 < 0\) in which case we want to report that there is no solution.
-  \item \(0 = \hat t_0 < \hat t_1 < 1\) in which the solution pair is \((0, \hat t_1)\).
-  \item \(0 = \hat t_0 < \hat t_1 = 1\) in which the solution pair is \((0, 1)\).
-  \item \(0 < \hat t_0 < \hat t_1 < 1\) in which the solution pair is \((\hat t_0, \hat t_1)\).
-  \item \(0 < \hat t_0 < \hat t_1 = 1\) in which the solution pair is \((\hat t_0, 1)\).
-  \item \(\hat t_0 > 0\) in which case we want to report that there is no solution.
-\end{enumerate}
-
-Case \(3\) is trivial for all distances and does not require solving an equation. Cases \(2, 4\) and \(5\) happen if there are solutions in the interval and optionally one of the distances \(\delta(u,w) < \varepsilon\) or \(\delta(v,w) < \varepsilon\).
-
+In general, determining these solutions requires finding roots of polynomials and thus there is no exact solution algorithm for Minkowski distances \(\delta_e\) for \(e > 4\) as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, the Manhattan Distance and the Chebyshev Distance. 
 
 \subsubsection{Euclidean Distance}
 \label{subsubsec:eq_euclidean_distance}
@@ -294,7 +275,7 @@ which is a quadratic equation in \(t\) and can be solved explicitly as
   t_{0,1} = \frac{-\alpha_1 \pm \sqrt{\alpha_1^2 - 4\alpha_0\alpha_2}}{2\alpha_2}.\label{eq:sol_explicit_euclidean}
 \end{equation}
 
-If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is smaller than \(0\) there is no solution. Otherwise we can compute the two solutions and have the lower and smallest and largest solution. These values might need to be clamped to be between \(0\) and \(1\). 
+If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is smaller than \(0\) there is no solution. Otherwise we can compute the two solutions and have the lower and smallest and largest solution. 
 
 
 \subsubsection{Manhattan Distance}
@@ -308,9 +289,7 @@ We note that \(|u_i - w_i + t (v_i - u_i )|\) can only assume the two values \(u
 
 This whole process can be implemented na\"ively using a Sweepline algorithm in time \(\O(d^2)\) by constructing the values \(t_i\), sorting them and for each interval we compute the whole sum in linear time and solve the equation. As there are \(d\) many such values to consider we get quadratic runtime. We can improve this by using the fact that by iterating from smallest to largest during each testing step only a single term changes its sign, thus we can maintain the current linear equation and update it accordingly in constant time. The bulk of the computation now lies in sorting which gives us a runtime og \(\O(d \log d)\). 
 
-Let us consider the non-trivial cases we defined earlier. Case \(4\) is the only case where we find two solutions in the interval and is thus covered. In cases \(2\) and \(5\) only one solution will be found and one of the distances will be smaller \(\varepsilon\). In the other two cases no solution will be found so the behaviour of returning no answer is correct.
-
-There are a few edge cases, namely those being that multiple \(t_i\) coincide as well as that there are \(u_i = v_i\). The former case can easily be handled by treating all terms with the same value for \(t_i\) as a single term. The second case degenerates the term into a constant which can be pulled out of the sum and into the right side.
+There are a few edge cases, namely those being that multiple \(t_i\) coincide as well as that there are \(u_i = v_i\). The former case actually does not require special treatment as it will result in checking for a solution in an interval that contains only one value and at this value all with the same \(t_i\) will be zero. The second case degenerates the term into a constant which can be pulled out of the sum and into the right side.
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
@@ -361,12 +340,133 @@ In the case of the Chebyshev distance \cref{eq:eq_solve_main} becomes
 \begin{equation}
   \max_{i = 1,\dots, d} |u_i - w_i + t(v_i - u_i)| = \varepsilon\label{eq:solve_chebyshev}
 \end{equation}
-which a na\"ive solution can be found easily as the maximum will only assume as value one of the terms and each term has two possible values depending on the absolute value. Thus there are \(2d\) possible solutions which can be checked each in linear time if they indeed are the maximum resulting in a simple quadratic runtime algorithm. 
+for which a na\"ive solution can be found easily as the maximum will only assume as value one of the terms and each term has two possible values depending on the absolute value. Thus there are \(2d\) possible solutions which can be checked each in linear time if they indeed are the maximum resulting in a simple quadratic runtime algorithm. 
 
 Just as in the case of the Manhattan distance, we only need to consider the solutions in the interval \([0,1]\) which eliminates possible solutions and in small dimensions this is probably the best choice. 
 
-We can also reduce the runtime to \(d \log d\) by efficiently updating the current maximum. As each term is a line, we can find the initial maximum line at the start and update it when it crosses another line thus a modified version of the Bentley-Ottmann algorithm for line segment intersection can be used where where the handling of intersections is modified to remove the line segment that falls below the other and only computing new intersections upwards. This guarantees that even if there are quadratically many intersecions only \(\O(d \log d)\) runtime is needed as irrelevant intersections are omitted. 
-This allows a simplification in that we do not need a self-balancing binary search tree to store the line segments. A doubly linked list suffices as we remove for each intersection a line segment and the relative ordering remains the same. This list can be stored in an array where each array entry has an index to the previous and next line segment and its data, i.e., the offset and slope. A more detailed version of this idea can be seen in \cref{algo:solve_chebyshev}. For a full implementation, the case distinction in \cref{subsec:equation_solving} needs to be implemented, the handling of the marked solutions.
+We can also reduce the runtime to \(d \log d\) by efficiently updating the current maximum. As each term is a line, we can find the initial maximum line at the start and update it when it crosses another line thus a modified version of the Bentley-Ottmann algorithm for line segment intersection (e.g. as explained in \cite{computational_geometry}) can be used where where the handling of intersections is modified to remove the line segment that falls below the other and only computing new intersections upwards. This guarantees that even if there are quadratically many intersecions only \(\O(d \log d)\) runtime is needed as irrelevant intersections are omitted. 
+This allows a simplification in that we do not need a self-balancing binary search tree to store the line segments. A doubly linked list suffices as we remove for each intersection a line segment and the relative ordering remains the same. This list can be stored in an array where each array entry has an index to the previous and next line segment and its data, i.e., the offset and slope. A more detailed version of this idea can be seen in \cref{algo:solve_chebyshev} an example of the resulting line intersection problem can be seen in \cref{fig:chebyshev_algo}. For a full implementation, the case distinction in \cref{subsec:equation_solving} needs to be implemented, the handling of the marked solutions.
+
+\begin{figure}
+  \centering 
+  \begin{subfigure}[h]{0.3\textwidth}
+    \begin{tikzpicture}
+      % Draw the y-axes at x = 0 and x = 1
+      \draw[thick] (0, -2) -- (0, 2) node[above] {};
+      \draw[thick] (1, -2) -- (1, 2) node[above] {};
+
+      % Add labels for the y-axis ticks
+      \foreach \y in {-2, -1, 0, 1, 2} {
+          \node[left] at (0, \y) {$\y$};
+          \node[right] at (1, \y) {$\y$};
+      }
+
+      \draw[thick] (0,2) -- (1,0) node {};
+      \draw[thick] (0,-2) -- (1,0) node {};
+      \draw[thick] (0,1) -- (1,1) node {};
+      \draw[thick] (0,-1) -- (1,-1) node {};
+      \draw[thick] (0,-1) -- (1,2) node {};
+      \draw[thick] (0,1) -- (1,-2) node {};
+    \end{tikzpicture}
+    \caption{All candidate lines}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.3\textwidth}
+    \begin{tikzpicture}
+      % Draw the y-axes at x = 0 and x = 1
+      \draw[thick] (0, -2) -- (0, 2) node[above] {};
+      \draw[thick] (1, -2) -- (1, 2) node[above] {};
+
+      % Add labels for the y-axis ticks
+      \foreach \y in {-2, -1, 0, 1, 2} {
+          \node[left] at (0, \y) {$\y$};
+          \node[right] at (1, \y) {$\y$};
+      }
+
+      \draw[thick] (0,2) -- (1,0) node {};
+      \draw[thick] (0,1) -- (1,1) node {};
+      \draw[thick] (0,-1) -- (1,2) node {};
+      \draw[thick] (0,1) -- (1,-2) node {};
+    \end{tikzpicture}
+    \caption{Lines that are not fully negative}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.3\textwidth}
+    \begin{tikzpicture}
+      % Draw the y-axes at x = 0 and x = 1
+      \draw[thick] (0, -2) -- (0, 2) node[above] {};
+      \draw[thick] (1, -2) -- (1, 2) node[above] {};
+
+      % Add labels for the y-axis ticks
+      \foreach \y in {-2, -1, 0, 1, 2} {
+          \node[left] at (0, \y) {$\y$};
+          \node[right] at (1, \y) {$\y$};
+      }
+
+      \draw[thick] (0,2) -- (1,0) node {};
+      \draw[thick] (0,1) -- (1,1) node {};
+      \draw[thick] (0,-1) -- (1,2) node {};
+    \end{tikzpicture}
+    \caption{Lines that are not fully below another line}
+  \end{subfigure}\\
+  \begin{subfigure}[h]{0.3\textwidth}
+    \begin{tikzpicture}
+      % Draw the y-axes at x = 0 and x = 1
+      \draw[thick] (0, -2) -- (0, 2) node[above] {};
+      \draw[thick] (1, -2) -- (1, 2) node[above] {};
+
+      % Add labels for the y-axis ticks
+      \foreach \y in {-2, -1, 0, 1, 2} {
+          \node[left] at (0, \y) {$\y$};
+          \node[right] at (1, \y) {$\y$};
+      }
+
+      \draw[thick] (0,2) -- (1,0) node {};
+      \draw[thick] (0,1) -- (1,1) node {};
+      \draw[thick] (0,-1) -- (1,2) node {};
+
+      \node[circle,fill,color=red,inner sep=1pt] at (0.25, 1.5) {};
+    \end{tikzpicture}
+    \caption{Find next intersection. Here between topmost line so check for solution.}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.3\textwidth}
+    \begin{tikzpicture}
+      % Draw the y-axes at x = 0 and x = 1
+      \draw[thick] (0, -2) -- (0, 2) node[above] {};
+      \draw[thick] (1, -2) -- (1, 2) node[above] {};
+
+      % Add labels for the y-axis ticks
+      \foreach \y in {-2, -1, 0, 1, 2} {
+          \node[left] at (0, \y) {$\y$};
+          \node[right] at (1, \y) {$\y$};
+      }
+
+      \draw[thick] (0,1) -- (1,1) node {};
+      \draw[thick] (0,-1) -- (1,2) node {};
+
+    \end{tikzpicture}
+    \caption{Find next intersection. No solution found}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.3\textwidth}
+    \begin{tikzpicture}
+      % Draw the y-axes at x = 0 and x = 1
+      \draw[thick] (0, -2) -- (0, 2) node[above] {};
+      \draw[thick] (1, -2) -- (1, 2) node[above] {};
+
+      % Add labels for the y-axis ticks
+      \foreach \y in {-2, -1, 0, 1, 2} {
+          \node[left] at (0, \y) {$\y$};
+          \node[right] at (1, \y) {$\y$};
+      }
+
+      \draw[thick] (0,-1) -- (1,2) node {};
+      \node[circle,fill,color=red,inner sep=1pt] at (0.833, 1.5) {};
+    \end{tikzpicture}
+    \caption{Check final line for an intersection}
+  \end{subfigure}
+
+
+  \caption{Line representation of the equation \(\delta_\infty((0,0,0) + t(-2,0,3), (-2,-1,1)) = 1.5\)}
+  \label{fig:chebyshev_algo}
+\end{figure}
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
@@ -462,13 +562,308 @@ We distinguish the two cases \(j' = j\) and \(j' < j\).
 \begin{enumerate}
   \item[\(j' = j\): ] In this case both \(t'\) and \(t\) lie on the same line segment \(\overline{P(j)P(j+1)}\) (which is the only line segment of the polyline segment). The only constraints on \(t\) are that \(t \in [t', 1]\) and \(t \in [ t_0, t_1]\) which is possible if and only if \(t' \leq t_1\). If this is the case the solution is \(\max(t', t_0)\).
 
-  \item[\(j' < j\): ] In this case we iterate over all points of the polyline segment \(P(k) = P(j'+1), \dots, P(j)\) and compute the solutions \(\hat t_0(\overline{P(i')P(i)}, P(k)), \hat t_0(\overline{P(i')P(i)}, P(k))\). We maintain the first reachable point \(t'\) (initially \(0\)) on the line segment \(\overline{P(i')P(i)}\) for these points and test if \(t' \leq \hat t_0(\overline{P(i')P(i)}, P(k))\). If that is the case we can update it \(t' \gets \max(t', \hat t_0(\overline{P(i')P(i)}, P(k)))\). If this is not possible at any step we can return that there is no solution. Otherwise, we have fully traversed the line segment and most of the polyline segment. At this point the solution is merely \(t_0\).
+  \item[\(j' < j\): ] In this case we iterate over all points of the polyline segment \(P(k) = P(j'+1), \dots, P(j)\) and compute the solutions \(\hat t_0'(\overline{P(i')P(i)}, P(k)), \hat t_0'(\overline{P(i')P(i)}, P(k))\). We maintain the first reachable point \(t'\) (initially \(0\)) on the line segment \(\overline{P(i')P(i)}\) for these points and test if \(t' \leq \hat t_0'(\overline{P(i')P(i)}, P(k))\). If that is the case we can update it \(t' \gets \max(t', \hat t_0'(\overline{P(i')P(i)}, P(k)))\). If this is not possible at any step we can return that there is no solution. Otherwise, we have fully traversed the line segment and most of the polyline segment. At this point the solution is merely \(t_0\).
 \end{enumerate}
 
 \subsubsection{Polyline Simplification Algorithm}
 \label{ssec:simple_algo_main}
 
+Here we outline the global polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which we have implemented and tested for the Euclidean distance, the Manhattan distance, and the Chebyshev distance. 
 
+Similar to the decision problem we use a dynamic program in which we store the earliest reachable points although in a more complicated manner. We construct a three dimensional table \(DP\) with entries in \([0, 1] \cup \set{\infty}\) for each triple \((k, i, j)\) with \(k, i \in \set{0, \dots, n}\) and \(j \in \set{0, \dots, n - 1}\) where \(n\) is the length of the given polyline \(P\). 
+
+Each entry \(DP[k, i, j]\) stores the smallest \(t \in [0, 1]\) s.t. there is a simplification \(Q\) of \(P[0 \dots i]\) with exactly \(k\) line segments with \(\delta^F(Q, P[0\dots j + t]) \leq \varepsilon\). If no such \(t\) exists we store \(\infty\) in that entry. 
+The solution is the smallest \(k^*\) s.t. \(DP[k^*, n, n - 1]\) exists, i.e., there is a simplification \(Q\) of the whole polyline with \(k^*\) many line segments that has \(\delta^F(Q, P[0\dots n - 1 + t]) \leq \varepsilon\) for some \(t \in [0, 1]\) so we can complete the simplification by simply going from \(n-1+t\) to \(n\) on the last line segment of \(P\) while staying on the last point of the simplification. 
+
+For \(k = 0\) it is trivial to compute the entries. If \(i > 0\) we can store \(\infty\) as it is impossible to create a simplification of size \(0\) that goes to any point other than the first point. To find \(DP[0, 0, j]\) we only need to compute the distances from \(P(0)\) to the points \(P(j)\) (see \cref{fig:simpl_init}). Until the first \(j\) with \(\delta(P(0), P(j)) > \varepsilon\) we can store \(0\). From the first such \(j\) we store \(\infty\). This is because the simplification only consists of a single point \(P(0)\) thus the condition \(\delta^F(Q, P[0\dots j + t]) \leq \varepsilon\) simplifies to \(\delta^F(P[0 \dots 0], P[0 \dots j + t])\) and as we cannot move on the single point \(P(0)\) the earliest reachable point on each line segment must be \(t = 0\). 
+
+The correctness of this initialization can be shown rather easily. 
+\begin{lemma}
+  Let \(P = \angl{P(0)}\) a polyline consisting of a single point and \(Q\) be a polyline of size \(n\). Then \(\delta^F(P, Q) \leq \varepsilon\) if, and only if, \(\delta(P(0), Q(i)) \leq \varepsilon\) for all \(i \in \set{0, \dots, n}\). 
+\end{lemma}
+\begin{proof}
+  For \(\Rightarrow\) we must have some function \(f\) with \(\delta(Q(t), P(f(t))) \leq \varepsilon\) for all \(t\in [0,n]\) where \(f(0 ) = 0\) and \(f(n) = 0\) and \(f\) is  monotone, meaning that \(\delta(P(0), Q(t)) \leq \varepsilon\) and thus especially for \(t\in \set{0, \dots, n}\).
+  
+  For \(\Leftarrow\) we show that every point on \(Q\) has distance at most \(\varepsilon\) from \(P(0)\) thus we can choose any suitable function \(f\). This follows directly from property 3 from \cref{lem:distance_properties} applied to all individual line segment on \(Q\).
+\end{proof}
+
+\begin{figure}[b]
+    \centering
+    \begin{tikzpicture}[scale=0.5]
+        % Define points
+        \coordinate (p0) at (0, 0);
+
+        \coordinate (p1) at (2, 2);
+        \coordinate (p2) at (3, 0);
+
+        \coordinate (p3) at (5, -1);
+        \coordinate (p4) at (1, 0);
+
+        \draw[thick] (p0) -- (p1);
+        \draw[thick] (p1) -- (p2);
+        \draw[thick] (p2) -- (p3);
+        \draw[thick] (p3) -- (p4);
+
+        \draw[thick] (p0) circle (4);
+
+        \node[circle,fill,color=red,inner sep=1pt,label={[text=red, left]:\(P(0)\)}] at (p0) [] {}; 
+        \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(P(1)\)}] at (p1) [] {}; 
+        \node[circle,fill,color=red,inner sep=1pt,label={[text=red, left]:\(P(2)\)}] at (p2) [] {}; 
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, right]:\(P(3)\)}] at (p3) [] {}; 
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(4)\)}] at (p4) [] {}; 
+
+    \end{tikzpicture}
+  \caption{Initialization of the simplification algorithm for \(k = 0, i = 0\). Only the points in the circle until \(P(2)\) are reachable.}
+  \label{fig:simpl_init}
+\end{figure}
+
+
+As for the other entries, the authors show that the entry \(DP[k, i, j]\) can be computed by the minimization over all \(i' < i\) and \(j' \leq j\). We lookup the value \(t \coloneq DP[k-1, i', j']\) and test if there is a \(t' \in [0, 1]\) s.t. \(\delta^F(P[j' + t' \dots j + t], \overline{P(i')P(i)}) \leq \varepsilon\) and return the smallest such \(t\) if possible. This can be done with the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} with the mentioned modifications. Among all those candidates \(t\) we choose the minimal one. If no such \(t\) exists we can store \(\infty\).
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{Polyline \(P\) of length \(n\), \(\varepsilon > 0\)}
+  \KwResult{Smallest \(\varepsilon\)-simplification of \(P\)}
+  \BlankLine
+  \(DP \gets Array((n + 1, n + 1, n))\) initialized with \(\infty\) \;
+  \For{\(j = 0, \dots, n\)}{
+    \If{\(\delta(P(0), P(j)) > \varepsilon\)}{
+      \Break
+    }
+    \(DP[0, 0, j] \gets 0\)
+  }
+  \For{\(k=1,\dots\) until \(DP[k, n, n-1] \neq \infty\)}{
+    \For{\(i=0,\dots, n\)}{
+      \For{\(j=0,\dots, n-1\)}{
+        \For{\(i' < i\)}{
+          \For{\(j' \leq j\)}{
+            Let \(t' \gets DP[k-1, i', j']\)\;
+            Let \(t \gets AltGodau(P[j' + t' \dots j + 1], \overline{P(i')P(i)}, \varepsilon)\)\;
+            \(DP[k, i, j] \gets min(DP[k, i, j], t)\)
+          }
+        }
+      }
+    }
+  }
+  \caption{PolylineSimplification(\(P, \varepsilon\))}
+  \label{algo:simplify_simple}
+\end{algorithm}
+
+There are \(\O(k^* n^2)\) many iterations to fill in the table and each entry requires \(\O(n^2)\) many computations to find the minimum. Each call to the \(AltGodau\) subroutine requires linear runtime thus in total we have \(\O(k^*n^5)\) run time.
+
+\subsection{Examples}
+Before going into possible optimizations, we want to go through an example for the algorithm as well as the \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} subroutine. This gives us more intuition for the algorithms as well as ideas for further optimizations. Because of cubic amount of entries it is unreasonable to show all computations thus we only show the computations that lead to the simplification and the subroutine for them. 
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[scale=0.5]
+    \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+      \coordinate (p\i) at (\x, \y);
+      \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      \draw[thick, opacity=0.2] (p\i) circle (4);
+    }
+    \foreach \i in {0,...,5}{
+      \pgfmathsetmacro{\next}{\i+1}
+      \draw[thick] (p\i) -- (p\next);
+    }
+  \end{tikzpicture}
+  \caption{Example polyline with circles with radius \(\varepsilon\) drawn around all points. We note the following relations which may be hard to notice: \(\delta(P(2), P(4)) = \delta(P(2), P(5)) = \varepsilon\), \(\delta(P(2), P(3)) > \varepsilon\), \(\delta(P(2), P(6)) > \varepsilon\).}
+  \label{fig:poly-ex-main}
+\end{figure}
+
+For the polyline and \(\varepsilon\) in \cref{fig:poly-ex-main} we initialize the table layer for \(k = 0\) by only setting the value \(DP[0,0,0]\) to \(0\) as \(\delta(P(0), P(1)) > \varepsilon\). Even though \(\delta(P(0), P(4)) \leq \varepsilon\) the value \(DP[0,0,4]\) is \(\infty\) as there are points between that already fail.
+
+For the layer \(k = 1\) we can only procede from the entry \(DP[0,0,0] = 0\) as it is the only one we found on the previous layer. All triples \(k, i, j\) for which a valid entry in \([0, 1]\) can be found for the layer \(k = 1\) are listed in \cref{tab:exlayer1}. The respective \(i', j'\) and \(t'\) are not listed as there is only one possible entry.
+\begin{table}[h]
+\centering
+\begin{tabular}{|ccc|}
+\hline
+$(1,1,0)$ & $(1,1,1)$ & $(1,1,2)$ \\
+$(1,2,0)$ & $(1,2,1)$ & $(1,2,2)$ \\
+$(1,2,3)$ & $(1,2,4)$ & $(1,2,5)$ \\
+$(1,3,2)$ & $(1,3,3)$ & $(1,4,0)$ \\
+$(1,4,1)$ & $(1,4,2)$ & $(1,5,0)$ \\
+$(1,5,1)$ & $(1,5,2)$ & \\
+\hline
+\end{tabular}
+\caption{Valid entries for layer \(k = 1\). All procede from \((0,0,0)\).}
+\label{tab:exlayer1}
+\end{table}
+
+Let us explicitly go through the AltGodau subroutine for the entry \((1, 2, 3)\). i.e., A simplification consisting of one line segment for the polyline \(P[0\dots 2]\) that has distance of at most \(\varepsilon\) to \(P[j' + t'\dots j + t] = P[0 \dots 3 + t]\) where \(t\) is gotten from the subroutine. We consider the line segment \(\overline{P(i')P(i)} = \overline{P(0)P(2)}\) and the polyline segment \(P[j' + t' \dots j + 1] = P[0 \dots 4]\) and perform the algorithm. 
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+
+      \path[name path=line] (p0) -- (p2);
+      \path[name path=circle] (p1) circle (4);
+      \path[name intersections={of=line and circle, by={t0,t1}}];
+
+      \draw[thick, opacity=0.2] (p1) circle (4);
+      \draw[color=red, dotted, thick] (p0) -- (p2);
+      \draw[color=blue, thick] (p0) -- (p1);
+      \draw[color=blue, thick] (p0) -- (t0);
+    \end{tikzpicture}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+
+      \path[name path=line] (p0) -- (p2);
+      \path[name path=circle1] (p1) circle (4);
+      \path[name intersections={of=line and circle1, by={t00,t10}}];
+      \path[name path=circle2] (p2) circle (4);
+      \path[name intersections={of=line and circle2, by={t01,t11}}];
+
+      \draw[thick, opacity=0.2] (p2) circle (4);
+      \draw[color=red, dotted, thick] (p0) -- (p2);
+      \draw[color=blue, thick] (p1) -- (p2);
+      \draw[color=blue, thick] (t00) -- (t01);
+    \end{tikzpicture}
+  \end{subfigure}\\
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+      \path[name path=line] (p0) -- (p2);
+      \path[name path=circle1] (p2) circle (4);
+      \path[name intersections={of=line and circle1, by={t00,t10}}];
+      \path[name path=circle2] (p3) circle (4);
+      \coordinate (t01) at (6,0);
+
+      \draw[thick, opacity=0.2] (p3) circle (4);
+      \draw[color=red, dotted, thick] (p0) -- (p2);
+      \draw[color=blue, thick] (p2) -- (p3);
+      \draw[color=blue, thick] (t00) -- (t01);
+    \end{tikzpicture}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+      % same point
+      \coordinate (t00) at (6,0);
+      \path[name path=line] (p3) -- (p4);
+      \path[name path=circle] (p2) circle (4);
+      \path[name intersections={of=line and circle, by={t0,t1}}];
+
+      \draw[thick, opacity=0.2] (p2) circle (4);
+      \draw[color=red, dotted, thick] (p0) -- (p2);
+      \draw[color=red, thick] (p3) -- (t0);
+      \draw[color=blue, thick] (t00) -- (p2);
+    \end{tikzpicture}
+  \end{subfigure}
+  \caption{Finding the first reachable point on \(\overline{P(3)P(4)}\). Resulting in \(t = 0.04\) marginally below point \(P(3)\). Note again that \(\delta(P(2), P(3)) > \varepsilon\). The point \(P(4)\) is not part of the simplification, it only lies on the line segment \(\overline{P(0)P(2)}\) by chance.}
+  \label{fig:poly-ex-123-ag}
+\end{figure}
+
+From \(DP[1,2,3] = 0.04\) we can procede to the end of the polyline to get a simplification of size \(2\) as seen in \cref{fig:poly-ex-265-ag}. A simplification of size \(1\) is not possible as that would be the line segment \(\overline{P(0)P(6)}\) but there is no point on that line segment that has distance \(\leq \varepsilon\) from \(P(3)\). 
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+
+      \path[name path=line] (p3) -- (p4);
+      \path[name path=circle] (p2) circle (4);
+      \path[name intersections={of=line and circle, by={t0,t1}}];
+
+      \draw[thick, opacity=0.2] (p4) circle (4);
+      \draw[color=red, dotted, thick] (p2) -- (p6);
+      \node[circle,fill,color=blue,inner sep=1pt] at (p2) [] {}; 
+      \draw[color=blue, thick] (t0) -- (p4);
+    \end{tikzpicture}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+
+      \node[circle,fill,color=blue,inner sep=1pt] at (p2) [] {}; 
+      \draw[thick, opacity=0.2] (p5) circle (4);
+      \draw[color=red, dotted, thick] (p2) -- (p6);
+      \draw[color=blue, thick] (p4) -- (p5);
+    \end{tikzpicture}
+  \end{subfigure}\\
+  \begin{subfigure}[b]{0.4\textwidth}
+    \begin{tikzpicture}[scale=0.4]
+      \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+        \coordinate (p\i) at (\x, \y);
+        \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+      }
+      \foreach \i in {0,...,5}{
+        \pgfmathsetmacro{\next}{\i+1}
+        \draw[thick] (p\i) -- (p\next);
+      }
+      \path[name path=line] (p5) -- (p6);
+      \path[name path=circle] (p6) circle (4);
+      \path[name intersections={of=line and circle, by={t0,t1}}];
+
+      \draw[thick, opacity=0.2] (p6) circle (4);
+      \draw[color=blue, thick] (p2) -- (p6);
+      \draw[color=blue, thick] (p5) -- (t0);
+    \end{tikzpicture}
+  \end{subfigure}
+  \caption{Finding the first reachable point on \(\overline{P(5)P(6)}\). With that we have found a simplification for the whole polyline.}
+  \label{fig:poly-ex-265-ag}
+\end{figure}
+
+
+For completeness sake the entries on the layer \(k = 2\) are listed in \cref{tab:exlayer2}. The entry \((k - 1, i', j')\) they reference from the previous layer is added after the tuple. This predecessor tuple is not necessarily unique, in fact, every single one of these has at least two different possibilities for \(i', j'\).
+\begin{table}[h]
+\centering
+\begin{tabular}{|ccc|}
+\hline
+$(2,4,3):(2, 1)$ & $(2,4,4):(2, 1)$ & $(2,5,4):(2,4)$ \\
+$(2,5,5):(2,4)$ & $(2,6,5):(2,4)$ & \\
+\hline
+\end{tabular}
+\caption{Valid entries for layer \(k = 1\). All procede from \((0,0,0)\).}
+\label{tab:exlayer2}
+\end{table}
 
 \subsection{Optimizations}
 \label{ssec:optimizations}
@@ -477,6 +872,8 @@ Based on the just described algorithm we outline optimizations that greatly redu
 We first note that for the entry \((k, i, j)\) in the dynamic program we do not always need to iterate over all possible \(i' < i\) and \(j' \leq j\). As we are interested in the minimal value \(t\) on the line segment \(\overline{v_{j}v_{j+1}}\) that can be reached, we can stop further search if we have reached a lower bound for that value. Such a lower bound is \(\hat t_0'(\overline{v_{j}v_{j+1}}, i)\), i.e. the modified solution to the \cref{eq:eq_solve_main}, which is tight as for a sufficiently large \(k\) this value must be reached eventually. This allows an early break out of the search through the \(i' < i, j'\leq j\) and a speed up of upto quadratic runtime. 
 
 Another optimization based on a similar insight is the following: If the entry at \((k-1, i, j) = \hat t_0'(\overline{v_{j}v_{j+1}}, i)\), i.e., we have found a simplification for the same \(i\) and \(j\) that has already reached the optimal value, we know this cannot be improved in the current layer \(k\) or any further one. This means, the entry at \((k, i, j)\) can never be used by some entry \((k + 1, i'', j'')\) because of minimality as any such entry that uses \((k, i, j)\) could have already used \((k-1, i, j)\) for \((k, i'', j'')\). This allows us to completely ignore the computation of the value. This allows a continuous speed up of the algorithm while it runs as once this happens for an entry, it will happen for all further ones with a higher value of \(k\) so with each layer more entry computations can be skipped. 
+
+Another way to skip computations is to ignore all \(i\) with \(i < k\) as well as all \(i'\) with \(i' < k - 1\) in the computations as there can never be a simplification of \(P[0\dots i]\) that uses more than \(i\) line segments thus it must always hold that \(i \geq k\). 
 
 A last simple optimization of a similar type which is particularly useful for well-behaved polylines is to not even start the iterations over the \(i', j'\) if there is no solution \(\hat t_0'(\overline{v_{j}v_{j+1}}, i)\). This happens often if there are not too many line segments close to each other.
 
