@@ -582,9 +582,9 @@ The correctness of this initialization can be shown rather easily.
   Let \(P = \angl{P(0)}\) a polyline consisting of a single point and \(Q\) be a polyline of size \(n\). Then \(\delta^F(P, Q) \leq \varepsilon\) if, and only if, \(\delta(P(0), Q(i)) \leq \varepsilon\) for all \(i \in \set{0, \dots, n}\). 
 \end{lemma}
 \begin{proof}
-  For \(\Rightarrow\) we must have some function \(f\) with \(\delta(Q(t), P(f(t))) \leq \varepsilon\) for all \(t\in [0,n]\) where \(f(0 ) = 0\) and \(f(n) = 0\) and \(f\) is  monotone, meaning that \(\delta(P(0), Q(t)) \leq \varepsilon\) and thus especially for \(t\in \set{0, \dots, n}\).
+  For \(\Rightarrow\) we must have some functions \(f,q\) with \(\delta(P(f(t)), Q(g(t))) \leq \varepsilon\) for all \(t\in [0,1]\) where \(f(0) = g(0) = 0\) and \(f(1) = 0\), \(g(1) = n\) and \(f\) and \(g\) are  monotone, meaning that \(\delta(P(0), Q(g(t))) \leq \varepsilon\). As \(g\) is continuous and \(g(0) = 0 \leq g(1) = n\) there must be some \(t \in [0,1]\) with \(g(t) = x\) for any \(x\in \set{0, \dots, n}\).
   
-  For \(\Leftarrow\) we show that every point on \(Q\) has distance at most \(\varepsilon\) from \(P(0)\) thus we can choose any suitable function \(f\). This follows directly from property 3 from \cref{lem:distance_properties} applied to all individual line segment on \(Q\).
+  For \(\Leftarrow\) we show that every point on \(Q\) has distance at most \(\varepsilon\) from \(P(0)\) thus we can choose any suitable function \(g\) (for \(f:[0,0] \to [0,0]\) there is only one possibility). This follows directly from property 3 from \cref{lem:distance_properties} applied to all individual line segment on \(Q\).
 \end{proof}
 
 \begin{figure}[b]
@@ -893,10 +893,6 @@ A last simple optimization of a similar type which is particularly useful for we
 \subsection{Implementation}
 \label{subsec:implementation}
 % details 
-% decision problem: is which intersection point comes first instead of explicit computation 
-%   does not need sqrt for euclidean distance, no roots for general norms, allows binary search to estimate intervals 
-%   only using the distance function instead of root solving algorithm 
-%
 % only use min(p, q) space instead of p * q space for decision variant (especially for our case constant extra space)
 %
 

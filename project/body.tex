@@ -55,6 +55,8 @@ The main geometric figure we are analysing is the \emph{polyline}.
   \end{itemize}
 
 \end{definition}
+Throughout this report we denote the dimension as \(d\). Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case we mostly call them \(e\). The length of a polyline is generally \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline.
+
 
 \subsection{Distances}
 \label{ssec:distances}
@@ -83,9 +85,19 @@ We finally define a distance function on polylines which will be used throughout
 
 \begin{definition}[Fréchet Distance]
   Let \(d \in \N_+\) and \(\delta\) be a (normalized) distance function. The \emph{Fréchet distance} \(\delta^F\) for two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\) respectively is 
-  \[\delta^F(P, Q) = \inf_f \max_{t \in [0, p]}\delta(P(p), Q(f(p))),\]
-  where the infimum is taken over all monotone functions \(f:[0,p] \to [0, q]\) with \(f(0) = 0\) and \(f(p) = q\).
+  \[\delta^F(P, Q) = \inf_{f,g} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
+  where the infimum is taken over all continuous monotone functions \(f:[0,1] \to [0, p]\) and \(g:[0,1] \to [0,q]\) with \(f(0) = 0\), \(f(1) = p\), \(g(0) = 0\), and \(g(1) = q\).
 \end{definition}
+
+With this we can finally define our objective throughout this report. 
+
+\begin{definition}[Polyline Simplification]
+  Let \(P\) be a polyline of length \(n\) and \(\varepsilon > 0\) be a fixed real number. Let \(\delta\) be a known distance function. 
+
+  The objective of polyline simplification is to find a minimal subsequence \(S\) of the defining points of \(P\) that contains both the start \(P(0)\) and end \(P(n)\) and \(\delta^F(P, Q) \leq \varepsilon\).
+\end{definition}
+
+This is also known as polyline simplification using the \emph{global Fréchet distance} as the distance measurement for the polylines is the Fréchet distance which is applied to the whole resulting polyline and simplification. In contrast, there is also the local version which is more strict as for each line segment \(e = \overline{S(i)S(i+1)}\) where \(S(i) = P(j')\) and \(S(i+1) = P(j)\) must satisfy that \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\). Further, there are also both the local and global \emph{Hausdorff distance} as measurements. Here, we only consider the global Fréchet distance.
 
 \subsection{Properties of Distances}
 Here, we want to briefly cover some properties of the just defined distance functions, both for points and polylines.
@@ -134,10 +146,10 @@ The fourth property gives us a characterization of the Fréchet distance when co
          &\leq \delta((1-t)(u-w),0) + \delta(0,t(w-v)) && \textrm{Triangle Inequality}\\
          &\overset{(2)}= (1-t)\delta(u,w) + t\delta(v,w) \leq (1-t)\varepsilon + t\varepsilon = \varepsilon\\
     \end{flalign*}
-  \item \(\Rightarrow\) follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f\) with \(f(0) = 0\) and \(f(1) = 1\)).
-    Let For \(\Leftarrow\) we construct a respective function \(f\), in fact, the identity \(f(t) = t\) suffices as 
+  \item \(\Rightarrow\) follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)).
+    Let For \(\Leftarrow\) we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
     \begin{align*}
-      \delta((1-t)a + tb, (1-f(t))c + f(t)d) &= \delta((1-t)a + tb, (1-t)c + td) \\
+      \delta((1-f(t))a + f(t)b, (1-g(t))c + g(t)d) &= \delta((1-t)a + tb, (1-t)c + td) \\
        &= \delta((1-t)(a-c), t(d-b)) \\
        &\leq \delta((1-t)(a-c), 0) + \delta(0, t(d-b)) \\
        &= (1-t)\delta(a, c) + t\delta(b, d) \leq \varepsilon \\
@@ -164,10 +176,18 @@ The fourth property gives us a characterization of the Fréchet distance when co
 
 \subsubsection{Software and Data}
 \label{subsubsec:software}
-% All algorithms were implemented in C++ 23 with the Boost library. We used the O3 flag for optimizations and used the GCC compiler.
+The algorithms were implemented in C++ and compiled using GCC with all optimizations. 
+
+The polylines which were used as test cases were automatically generated using multiple parameters. These include the minimum and maximum length of all line segment as well as the maximum angle that two consecutive line segments could deviate by, i.e., for a maximum angle of \(0°\) the whole polyline would be a straight line while a maximum angle of \(180°\) allows any direction. The reasoning behind this is that a small angle forces the polyline to be more smooth while a large angle allows erratic polylines. We test both smooth and erratic ones, the parameters are given for each test case. 
+
+For the data generation we fix the first point of the polyline to be the origin and sample an initial angle arbitrarily uniformly distributed. Following that we iteratively sample a line segment length and an angle which is added to the current total angle and using these value the next point is generated. The angle is sampled uniformly in the range \([-\alpha, \alpha]\) where \(\alpha\) is the maximum angle. For the line segment length we use inverse transform sampling as a uniform distribution skews the lower line segment lengths closer together because angle differences are not reflected the same way for small and large line segment lengths. Thus we use \(\sqrt[d]{m^d + (M^d - m^d) U}\) where \(d\) is the dimension, \(m\) is the minimum line length, \(M\) is the maximum line length, and \(U\) is a uniform distribution on \([0,1]\).
+
+Theoretically, our data generator works in arbitrary dimension but we mainly test two-dimensional ones as a particularly useful case that can be visualized well. 
 
 \subsubsection{Hardware}
 \label{subsubsec:hardware}
+The code was tested on a laptop with an AMD Ryzen 5 7520U (8) @ 4.38 GHz CPU on a single core with the Arch Linux operating system.
+
 
 \subsection{Results}
 \label{subsec:results}
