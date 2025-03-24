@@ -148,12 +148,12 @@ The fourth property gives us a characterization of the Fréchet distance when co
     \end{flalign*}
   \item \(\Rightarrow\) follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)).
     Let For \(\Leftarrow\) we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
-    \begin{align*}
+    \begin{flalign*}
       \delta((1-f(t))a + f(t)b, (1-g(t))c + g(t)d) &= \delta((1-t)a + tb, (1-t)c + td) \\
-       &= \delta((1-t)(a-c), t(d-b)) \\
-       &\leq \delta((1-t)(a-c), 0) + \delta(0, t(d-b)) \\
-       &= (1-t)\delta(a, c) + t\delta(b, d) \leq \varepsilon \\
-    \end{align*}
+                                                   &\overset{(1)}= \delta((1-t)(a-c), t(d-b)) \\
+                                                   &\leq \delta((1-t)(a-c), 0) + \delta(0, t(d-b)) && \textrm{Triangle Inequality}\\
+                                                   &\overset{(2)}= (1-t)\delta(a, c) + t\delta(b, d) \leq \varepsilon \\
+    \end{flalign*}
   \end{enumerate}
 \end{proof}
 
@@ -178,7 +178,7 @@ The fourth property gives us a characterization of the Fréchet distance when co
 \label{subsubsec:software}
 The algorithms were implemented in C++ and compiled using GCC with all optimizations. 
 
-The polylines which were used as test cases were automatically generated using multiple parameters. These include the minimum and maximum length of all line segment as well as the maximum angle that two consecutive line segments could deviate by, i.e., for a maximum angle of \(0°\) the whole polyline would be a straight line while a maximum angle of \(180°\) allows any direction. The reasoning behind this is that a small angle forces the polyline to be more smooth while a large angle allows erratic polylines. We test both smooth and erratic ones, the parameters are given for each test case. 
+The polylines which were used as test cases were automatically generated using multiple parameters. These include the minimum and maximum length of all line segment as well as the maximum angle that two consecutive line segments could deviate by, i.e., for a maximum angle of \(0\)° the whole polyline would be a straight line while a maximum angle of \(180\)° allows any direction. The reasoning behind this is that a small angle forces the polyline to be more smooth while a large angle allows erratic polylines. We test both smooth and erratic ones, the parameters are given for each test case. 
 
 For the data generation we fix the first point of the polyline to be the origin and sample an initial angle arbitrarily uniformly distributed. Following that we iteratively sample a line segment length and an angle which is added to the current total angle and using these value the next point is generated. The angle is sampled uniformly in the range \([-\alpha, \alpha]\) where \(\alpha\) is the maximum angle. For the line segment length we use inverse transform sampling as a uniform distribution skews the lower line segment lengths closer together because angle differences are not reflected the same way for small and large line segment lengths. Thus we use \(\sqrt[d]{m^d + (M^d - m^d) U}\) where \(d\) is the dimension, \(m\) is the minimum line length, \(M\) is the maximum line length, and \(U\) is a uniform distribution on \([0,1]\).
 
