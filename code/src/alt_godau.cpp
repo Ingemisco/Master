@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 
 namespace DataStructures {
 
@@ -107,14 +108,66 @@ float alt_godau_euclidean(PolylineRange polyline, LineSegment line,
   return _alt_godau_main<solve_euclidean>(polyline, line, epsilon);
 }
 
+// computes the product <v - u | u - w>
+static inline float scalar_product(Point const &u, Point const &v,
+                                   Point const &w) {
+  float dot_product = 0;
+  for (unsigned int i = 0; i < u.dimension; i++) {
+    dot_product += (v[i] - u[i]) * (u[i] - w[i]);
+  }
+  return dot_product;
+}
+
+static inline bool _alt_godau_euclidean_implicit_init(Point j_0, Point j_1,
+                                                      Point r, Point i_,
+                                                      float epsilon2) {
+  float const r0dist = unnormalized_euclidean_distance(j_0, r);
+  float const i_0dist = unnormalized_euclidean_distance(j_0, i_);
+  if (r0dist <= epsilon2) {
+    return i_0dist <= epsilon2;
+  }
+
+  float const ar0 = r0dist - epsilon2;
+  float const ar1 = 2 * scalar_product(j_0, j_1, r);
+
+  float const ai0 = i_0dist - epsilon2;
+  float const ai1 = 2 * scalar_product(j_0, j_1, i_);
+
+  float const a2 = unnormalized_euclidean_distance(j_0, j_1);
+
+  float const dr = ar1 * ar1 - 4 * ar0 * a2;
+  float const di = ai1 * ai1 - 4 * ai0 * a2;
+
+  float const x = ai1 - ar1;
+  float const y = dr + di - x * x;
+  float const y2 = y * y;
+  float const dprod = 4 * di * dr;
+
+  float const i_1dist = unnormalized_euclidean_distance(j_1, i_);
+  bool const first_condition =
+      i_0dist <= epsilon2 ||
+      (di >= 0 &&
+       ((dr <= di && x >= 0) || (dr <= di && x < 0 && y >= 0 && y2 >= dprod) ||
+        (dr > di && x >= 0 && (y <= 0 || y2 <= dprod))));
+
+  bool const second_condition =
+      i_1dist <= epsilon2 || (x <= 0 || y >= 0 || y2 <= dprod);
+
+  return first_condition && second_condition;
+}
+
 // input epsilon squared
 size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
                                     size_t j, size_t i_, size_t i,
                                     size_t restriction, float epsilon2) {
-  if (1 != solve_implicit_euclidean_in(
-               LineSegment(polyline.get_point(j_), polyline.get_point(j_ + 1)),
-               polyline.get_point(restriction), polyline.get_point(i_),
-               epsilon2)) {
+
+  if (!_alt_godau_euclidean_implicit_init(
+          polyline.get_point(j_), polyline.get_point(j_ + 1),
+          polyline.get_point(restriction), polyline.get_point(i_), epsilon2)) {
+    // if (1 != solve_implicit_euclidean_in(
+    //              LineSegment(polyline.get_point(j_), polyline.get_point(j_ +
+    //              1)), polyline.get_point(restriction),
+    //              polyline.get_point(i_), epsilon2)) {
     return (size_t)-1;
   } else if (j_ == j) {
     auto const res = solve_implicit_euclidean_in(

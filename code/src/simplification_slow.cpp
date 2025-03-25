@@ -134,11 +134,11 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
               first_reachable = reachable;
               ref_i = i_;
               ref_j = j_;
-            }
-            if (val == range.first) {
-              // skip further iterations
-              j_ = j + 1;
-              i_ = i;
+              if (reachable == range.first) {
+                // skip further iterations
+                j_ = j + 1;
+                i_ = i;
+              }
             }
           }
         }
