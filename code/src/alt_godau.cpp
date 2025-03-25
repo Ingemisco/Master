@@ -185,7 +185,7 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
     if (res == 0) {
       return (size_t)-1;
     }
-    size_t const results[3] = {0, restriction, i};
+    size_t const results[3] = {0, new_restriction, x};
     new_restriction = results[res];
   }
 

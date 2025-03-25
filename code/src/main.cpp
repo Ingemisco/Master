@@ -1,4 +1,5 @@
 #include "datastructures.h"
+#include "distance.h"
 #include "log.h"
 #include "simplification.h"
 #include <boost/program_options.hpp>
@@ -125,13 +126,18 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   }
 
   // TESTING
-  // auto polyline = DataStructures::Polyline::from_file(
-  //     std::filesystem::path(poly_line_file_name));
-  // auto &p = *polyline;
-  // auto res = DataStructures::alt_godau_euclidean_implicit(p, 2, 2, 0, 1, 4,
-  //                                                         epsilon * epsilon);
-  // std::cout << p << std::endl;
-  // std::cout << res << std::endl;
+  //  auto polyline = DataStructures::Polyline::from_file(
+  //      std::filesystem::path(poly_line_file_name));
+  //  auto &p = *polyline;
+  //  auto res = DataStructures::alt_godau_euclidean_implicit(
+  //      p, 154, 159, 155, 160, 155, epsilon * epsilon);
+  //  std::cout << res << std::endl;
+
+  //  auto expl = DataStructures::alt_godau_euclidean(
+  //      DataStructures::PolylineRange(p, 154, 159 + 1, 0.7),
+  //      DataStructures::LineSegment(p.get_point(155), p.get_point(160)),
+  //      epsilon);
+  //  std::cout << "explicit" << std::endl << expl << std::endl;
 }
 
 int main(int argc, char *argv[]) {
