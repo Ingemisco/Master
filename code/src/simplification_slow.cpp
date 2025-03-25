@@ -93,7 +93,9 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
 
 ) {
   for (unsigned int k = 1; true; k++) {
+#pragma omp parallel for
     for (unsigned int i = k; i < point_count; i++) {
+#pragma omp parallel for
       for (unsigned int j = 0; j < point_count - 1; j++) {
         auto const range =
             _solver(polyline.get_point(j), polyline.get_point(j + 1),
@@ -338,7 +340,9 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
 #endif
 
   for (unsigned int k = 1; true; k++) {
+#pragma omp parallel for
     for (size_t i = k; i < point_count; i++) {
+#pragma omp parallel for
       for (size_t j = 0; j < point_count - 1; j++) {
         if (!DataStructures::is_line_reachable_euclidean(
                 DataStructures::LineSegment(polyline.get_point(j),
