@@ -26,6 +26,8 @@ target_link_libraries(polyline PRIVATE
   Boost::program_options
 )
 
+target_link_libraries(polyline PUBLIC OpenMP::OpenMP_CXX)
+
 target_link_libraries(datagen PRIVATE
   -fsanitize=address  
   -fsanitize=undefined

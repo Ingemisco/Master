@@ -15,6 +15,9 @@ add_compile_options(
   -Wpedantic
 )
 
+
+find_package(OpenMP REQUIRED)
+
 # include directories 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
