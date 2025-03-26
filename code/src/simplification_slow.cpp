@@ -344,14 +344,14 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
     for (size_t i = k; i < point_count; i++) {
 #pragma omp parallel for
       for (size_t j = 0; j < point_count - 1; j++) {
-        if (!DataStructures::is_line_reachable_euclidean(
-                DataStructures::LineSegment(polyline.get_point(j),
-                                            polyline.get_point(j + 1)),
-                polyline.get_point(i), epsilon2)) {
-          dp_restriction(table, k, i, j, dim1, dim2) = (size_t)-1;
-          continue;
-        } else if (dp_restriction(table, k - 1, i, j, dim1, dim2) == i) {
+        if (dp_restriction(table, k - 1, i, j, dim1, dim2) == i) {
           dp_restriction(table, k, i, j, dim1, dim2) = i;
+          continue;
+        } else if (!DataStructures::is_line_reachable_euclidean(
+                       DataStructures::LineSegment(polyline.get_point(j),
+                                                   polyline.get_point(j + 1)),
+                       polyline.get_point(i), epsilon2)) {
+          dp_restriction(table, k, i, j, dim1, dim2) = (size_t)-1;
           continue;
         }
 
