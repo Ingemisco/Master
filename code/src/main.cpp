@@ -129,8 +129,10 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   //  auto polyline = DataStructures::Polyline::from_file(
   //      std::filesystem::path(poly_line_file_name));
   //  auto &p = *polyline;
-  //  auto res = DataStructures::alt_godau_euclidean_implicit(
-  //      p, 154, 159, 155, 160, 155, epsilon * epsilon);
+  //  auto res = DataStructures::alt_godau_euclidean_implicit(p, 65, 66, 66, 68,
+  //  66,
+  //                                                          epsilon *
+  //                                                          epsilon);
   //  std::cout << res << std::endl;
 
   //  auto expl = DataStructures::alt_godau_euclidean(

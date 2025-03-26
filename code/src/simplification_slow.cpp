@@ -372,11 +372,14 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
 
             if (computed_restriction == (size_t)-1) {
               continue;
-            } else if (new_restriction == (size_t)-1) {
+            } else if (computed_restriction == i) {
               new_restriction = computed_restriction;
               ref_i = i_;
               ref_j = j_;
-            } else if (!DataStructures::solve_implicit_euclidean(
+              j_ = j + 1;
+              i_ = i;
+            } else if (new_restriction == (size_t)-1 ||
+                       !DataStructures::solve_implicit_euclidean(
                            DataStructures::LineSegment(
                                polyline.get_point(j),
                                polyline.get_point(j + 1)),
@@ -386,10 +389,6 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
               new_restriction = computed_restriction;
               ref_i = i_;
               ref_j = j_;
-              if (new_restriction == i) {
-                j_ = j + 1;
-                i_ = i;
-              }
             }
           }
         }

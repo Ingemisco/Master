@@ -303,7 +303,7 @@ ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
 }
 
 // decides if point 1 (true) or point 2 (false) comes before on the line
-// segment. Assumes both have solutions
+// segment. Assumes both have solutions if both same second comes first
 bool solve_implicit_euclidean(LineSegment line, Point const &point1,
                               Point const &point2, float epsilon2) {
 #if DEBUG
@@ -329,11 +329,11 @@ bool solve_implicit_euclidean(LineSegment line, Point const &point1,
   float const y2 = y * y;
   float const discr_prod = 4 * discriminant_1 * discriminant_2;
 
-  return (x <= 0 && discriminant_1 >= discriminant_2) ||
-         (x >= 0 && discriminant_1 >= discriminant_2 &&
-          (y >= 0 && discr_prod <= y2)) ||
-         (x <= 0 && discriminant_1 <= discriminant_2 &&
-          (y <= 0 || discr_prod > y2));
+  return a0_2 > 0 && ((x <= 0 && discriminant_1 >= discriminant_2) ||
+                      (x >= 0 && discriminant_1 >= discriminant_2 &&
+                       (y >= 0 && discr_prod <= y2)) ||
+                      (x <= 0 && discriminant_1 <= discriminant_2 &&
+                       (y <= 0 || discr_prod > y2)));
 }
 
 static inline bool _is_in_01(float a1, float a2, float discriminant) {
