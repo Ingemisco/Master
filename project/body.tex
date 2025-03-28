@@ -176,7 +176,7 @@ The fourth property gives us a characterization of the Fréchet distance when co
 
 \subsubsection{Software and Data}
 \label{subsubsec:software}
-The algorithms were implemented in C++ and compiled using GCC with all optimizations. 
+The algorithms were implemented in C++ and compiled using GCC with all optimizations. For parallelization we used OpenMP using dynamic scheduling with a chunk size of \(32\) to run the loops over \(i\) and \(j\) in parallel. 
 
 The polylines which were used as test cases were automatically generated using multiple parameters. These include the minimum and maximum length of all line segment as well as the maximum angle that two consecutive line segments could deviate by, i.e., for a maximum angle of \(0\)° the whole polyline would be a straight line while a maximum angle of \(180\)° allows any direction. The reasoning behind this is that a small angle forces the polyline to be more smooth while a large angle allows erratic polylines. We test both smooth and erratic ones, the parameters are given for each test case. 
 
@@ -186,11 +186,27 @@ Theoretically, our data generator works in arbitrary dimension but we mainly tes
 
 \subsubsection{Hardware}
 \label{subsubsec:hardware}
-The code was tested on a laptop with an AMD Ryzen 5 7520U (8) @ 4.38 GHz CPU on a single core with the Arch Linux operating system.
+The code was tested on a laptop with an AMD Ryzen 5 7520U, 4.38 GHz CPU on eight cores with the Arch Linux operating system.
 
 
 \subsection{Results}
 \label{subsec:results}
+Before we show the results, we note that even minor changes in the implementation such as inlining a function, changing the order of comparisons and other details affect the practical runtime heavily, especially for the implicit approach. We suspect that this is because of the technical simplicity of the algorithm in that it is five nested loops (or six including the first reachable point subroutine). Thus changes in the innermost loops propagate heavily. We cannot mention all these low-level decisions without explaining in depth our implementation which is outside the scope of this report. We chose the versions that generally gave us the best performance for well-behaved polylines on two dimensions as that is the most interesting case for us. For others that want to implement and test these algorithms, we advise testing multiple equivalent approaches as simple design choices can affect the practical runtim by upto 20\% in either direction. 
+
+The choice of using a dynamic instead of a static scheduler for parallelization and the chunk size of \(32\) were also determined by testing. We suspect that a static scheduler fails to fully utilize the cores as it would subdivide the looped ranges before running the loop which causes less utilization for unbalanced iterations. However, we generally do expect unbalanced iterations when using optimizations as not all iterations allow the same optimizations. Furthermore, those iterations that require more work typically are close together in the sense of close \(i\) and \(j\) values. This is because the results of the optimizations are not independent even though the computation is: When allowing a sightly different \(i\) or \(j\) the result may not change drastically and thus the computational load stays comparable. This is bad for a static scheduler as most cores would be done rather fast with only few doing most of the work. 
+
+The results we show are the effect of data, i.e., well-behaved vs. non-well-behaved polylines, the effects of parallelization, some combinations of the optimizations we outlined in \cref{ssec:optimizations}, as well as a comparison of the explicit and implicit implementations. 
+
+
+
+% compare 
+% - explicit v implicit
+% - parallel v non parallel 
+% - optimized v non optimized (multiple optimizations, turn off individually)
+% - ugly v nice 
+
+% notes 
+% - minor changes can have big impact (eg inlining)
 
 \section{Conclusions and Future Work}
 \label{sec:discussion_conclusion}
