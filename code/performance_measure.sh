@@ -40,7 +40,7 @@ while [[ "$#" -gt 6 ]]; do
     fi
     ;;
   -d)
-    if [[ "$8" =~ ^[0-9]+$ ]] && [ "$8" -ge 1]; then
+    if [[ "$8" =~ ^[0-9]+$ ]] && [ "$8" -ge 1 ]; then
       dimension=$8
       shift 2
     else
@@ -49,7 +49,7 @@ while [[ "$#" -gt 6 ]]; do
     fi
     ;;
   -n)
-    if [[ "$8" =~ ^[0-9]+$ ]] && [ "$8" -ge 1]; then
+    if [[ "$8" =~ ^[0-9]+$ ]] && [ "$8" -ge 1 ]; then
       batchsize=$8
       shift 2
     else
