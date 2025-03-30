@@ -369,7 +369,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
 
 \begin{figure}
   \centering 
-  \begin{subfigure}[h]{0.3\textwidth}
+  \begin{subfigure}[ht]{0.3\textwidth}
     \begin{tikzpicture}
       % Draw the y-axes at x = 0 and x = 1
       \draw[thick] (0, -2) -- (0, 2) node[above] {};
@@ -390,7 +390,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
     \end{tikzpicture}
     \caption{All candidate lines}
   \end{subfigure}
-  \begin{subfigure}[h]{0.3\textwidth}
+  \begin{subfigure}[ht]{0.3\textwidth}
     \begin{tikzpicture}
       % Draw the y-axes at x = 0 and x = 1
       \draw[thick] (0, -2) -- (0, 2) node[above] {};
@@ -409,7 +409,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
     \end{tikzpicture}
     \caption{Lines that are not fully negative}
   \end{subfigure}
-  \begin{subfigure}[h]{0.3\textwidth}
+  \begin{subfigure}[ht]{0.3\textwidth}
     \begin{tikzpicture}
       % Draw the y-axes at x = 0 and x = 1
       \draw[thick] (0, -2) -- (0, 2) node[above] {};
@@ -427,7 +427,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
     \end{tikzpicture}
     \caption{Lines that are not fully below another line}
   \end{subfigure}\\
-  \begin{subfigure}[h]{0.3\textwidth}
+  \begin{subfigure}[ht]{0.3\textwidth}
     \begin{tikzpicture}
       % Draw the y-axes at x = 0 and x = 1
       \draw[thick] (0, -2) -- (0, 2) node[above] {};
@@ -447,7 +447,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
     \end{tikzpicture}
     \caption{Find next intersection. Here between topmost line so check for solution.}
   \end{subfigure}
-  \begin{subfigure}[h]{0.3\textwidth}
+  \begin{subfigure}[ht]{0.3\textwidth}
     \begin{tikzpicture}
       % Draw the y-axes at x = 0 and x = 1
       \draw[thick] (0, -2) -- (0, 2) node[above] {};
@@ -465,7 +465,7 @@ This allows a simplification in that we do not need a self-balancing binary sear
     \end{tikzpicture}
     \caption{Find next intersection. No solution found}
   \end{subfigure}
-  \begin{subfigure}[h]{0.3\textwidth}
+  \begin{subfigure}[ht]{0.3\textwidth}
     \begin{tikzpicture}
       % Draw the y-axes at x = 0 and x = 1
       \draw[thick] (0, -2) -- (0, 2) node[above] {};
@@ -576,7 +576,7 @@ The simplification algorithm we will describe heavily uses a subroutine to solve
 
 This can be solved by a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if the Fréchet distance of two polylines is at most \(\varepsilon\). We present the algorithm in the specific form needed for this problem. 
 
-In both cases we require that \(\delta(P(j' + t'), P(i')) \leq \varepsilon\) as the starting points of both polylines must match by definition. If this is not the case we can return that there is no such \(t\). We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). As the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there are no such interval we can also return that there is no solution.
+In both cases we require that \(\delta(P(j' + t'), P(i')) \leq \varepsilon\) as the starting points of both polylines must match by definition. If this is not the case we can return that there is no such \(t\). We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). As the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there is no such interval we can return that there is no solution.
 
 We distinguish the two cases \(j' = j\) and \(j' < j\). 
 \begin{enumerate}
@@ -694,7 +694,7 @@ Before going into possible optimizations, we want to go through an example for t
 For the polyline and \(\varepsilon\) in \cref{fig:poly-ex-main} we initialize the table layer for \(k = 0\) by only setting the value \(DP[0,0,0]\) to \(0\) as \(\delta(P(0), P(1)) > \varepsilon\). Even though \(\delta(P(0), P(4)) \leq \varepsilon\) the value \(DP[0,0,4]\) is \(\infty\) as there are points between that already fail.
 
 For the layer \(k = 1\) we can only procede from the entry \(DP[0,0,0] = 0\) as it is the only one we found on the previous layer. All triples \(k, i, j\) for which a valid entry in \([0, 1]\) can be found for the layer \(k = 1\) are listed in \cref{tab:exlayer1}. The respective \(i', j'\) and \(t'\) are not listed as there is only one possible entry.
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{|ccc|}
 \hline
@@ -871,9 +871,10 @@ From \(DP[1,2,3] = 0.04\) we can procede to the end of the polyline to get a sim
   \label{fig:poly-ex-265-ag}
 \end{figure}
 
+We can also convince ourselves that the solution must be correct as the application of the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} guarantees that the Fréchet distance is at most \(\varepsilon\) by construction and even yields the points that can be used to construct suitable functions that show this. Further, the simplification must be optimal as it has size two so the only possible smaller one would have size one. This is not possible as the only such simplification would be the line segment \(\overline{P(0)P(6)}\) but no point on that line segment is reachable from \(P(3)\) with a distance of at most \(\varepsilon\) thus it cannot be a valid simplification.
 
 For completeness sake the entries on the layer \(k = 2\) are listed in \cref{tab:exlayer2}. The entry \((k - 1, i', j')\) they reference from the previous layer is added after the tuple. This predecessor tuple is not necessarily unique, in fact, every single one of these has at least two different possibilities for \(i', j'\).
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{|ccc|}
 \hline

@@ -197,6 +197,17 @@ The choice of using a dynamic instead of a static scheduler for parallelization 
 
 The results we show are the effect of data, i.e., well-behaved vs. non-well-behaved polylines, the effects of parallelization, some combinations of the optimizations we outlined in \cref{ssec:optimizations}, as well as a comparison of the explicit and implicit implementations. 
 
+For all the following diagrams we use for each polyline size 30 polylines with the average, maximum and, minimum for each size plotted. Additionally, we show a regression line for the average with using the function \(y = \alpha x^\beta\) where the coefficients \(\alpha\) and \(\beta\) are computed using the average data for all but the first quarter of the data. We omit these initial values for the regression as we expect these values to have higher noise because of constant overhead whose effect lessens for larger polylines. 
+
+We compare the following characteristics: 
+\begin{enumerate}
+  \item Parallel (p) vs. Sequential (s)
+  \item Choice of algorithm, i.e., explicit Euclidean (se) and implicit Euclidean (sei)\footnote{This stands for \emph{Simple Euclidean} and \emph{Simple Euclidean Implicit} respectively where we denote them as \emph{simple} in contrast to the advanced cubic algorithm.}
+  \item well-behaved polylines (n) and non-well-behaved polylines (u) where well-behaved ones have a maximum degree of \(60\)° as outlined in \cref{subsubsec:software} whereas non-well-behaved ones have a maximum degree of \(180\)°, meaning they are unrestricted. 
+\end{enumerate}
+
+Each characteristic has its own abbreviation as mentioned. We label the tests as such, e.g., \emph{psen} is the parallelized explicit Euclidean algorithm for well-behaved polylines\footnote{The order of the abbreviations always remains as listed, i.e., the first letter is always p or s, then either se or sei then n or u.}.
+
 
 
 % compare 
@@ -212,8 +223,6 @@ The results we show are the effect of data, i.e., well-behaved vs. non-well-beha
 \label{sec:discussion_conclusion}
 
 % Questions: 
-% - Can implicit Manhattan and Chebyshev be implemented in linear time? without division? 
-% - Can general implicit Minkowski be solved without approximations? Maybe using some techniques from real algebraic geometry
 % - Can the runtime of Van Kreveld et al algorithm be analyzed such that it has a better runtime with the optimizations? Maybe for a subset of polylines only 
 % - Can space consumption reach quadratic? Maybe by using tree trimming 
 % - 
