@@ -51,7 +51,7 @@ def plot_data(directory):
     x_labels =  [entry["point_count"] for entry in data_points] 
 
     _n = len(x_labels)
-    coefficient, exponent = regression(x_labels[_n // 8:], avg_times[_n // 8:])
+    coefficient, exponent = regression(x_labels[_n // 4:], avg_times[_n // 4:])
     x = np.linspace(x_labels[0], x_labels[-1], 100)
     regression_curve = [coefficient * (_x ** exponent) for _x in x]
     
