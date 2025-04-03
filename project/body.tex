@@ -46,12 +46,12 @@ The main geometric figure we are analysing is the \emph{polyline}.
   Let \(d\in \N_+\) and \(n \in \N\) be natural numbers and \(u_0, \dots, u_n \in \R^d\) be \(d\)-dimensional points. 
 
   The sequence \(P = \angl{u_0, \dots, u_n}\) is a \(d\)-dimensional \emph{polyline} of length \(n\). It consists of \(n+1\) many points which are connected by \(n\) line segments. 
-
   \begin{itemize}
     \item We interpret \(P\) as a function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for \(i \in \set{0, \dots, n}\).
 
       Points inbetween are linearly interpolated, meaning that for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\) we set \(P(i + t) = (1- t)u_i + t u_{i+1} = u_i + t(u_{i+1} - u_i)\)
     \item We denote \(P[t'\dots t]\) to be the subpolyline from \(t' \in [0, n]\) to \(t \in [t', n]\). Formally, \[P[t'\dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2) \dots, P(\ceil{t} - 1), P(t)}.\]
+
   \end{itemize}
 
 \end{definition}
@@ -157,10 +157,10 @@ The fourth property gives us a characterization of the Fréchet distance when co
   \end{enumerate}
 \end{proof}
 
-% section Algorithm and Implementation
+\input{section_equations.tex}
+
 \input{section_algorithm_implementation.tex}
 
-% section Implicit Polyline Simplification
 \input{section_implicit_algorithm.tex}
 
 \section{Experimental Evaluation}
@@ -197,16 +197,25 @@ The choice of using a dynamic instead of a static scheduler for parallelization 
 
 The results we show are the effect of data, i.e., well-behaved vs. non-well-behaved polylines, the effects of parallelization, some combinations of the optimizations we outlined in \cref{ssec:optimizations}, as well as a comparison of the explicit and implicit implementations. 
 
-For all the following diagrams we use for each polyline size 30 polylines with the average, maximum and, minimum for each size plotted. Additionally, we show a regression line for the average with using the function \(y = \alpha x^\beta\) where the coefficients \(\alpha\) and \(\beta\) are computed using the average data for all but the first quarter of the data. We omit these initial values for the regression as we expect these values to have higher noise because of constant overhead whose effect lessens for larger polylines. 
+For all the following diagrams we use for each polyline size 30 polylines with the average, maximum, and minimum for each size plotted. Additionally, we show regression lines based on the average runtimes using the function \(y = \alpha x^\beta\) where the coefficients \(\alpha\) and \(\beta\).
 
 We compare the following characteristics: 
 \begin{enumerate}
   \item Parallel (p) vs. Sequential (s)
   \item Choice of algorithm, i.e., explicit Euclidean (se) and implicit Euclidean (sei)\footnote{This stands for \emph{Simple Euclidean} and \emph{Simple Euclidean Implicit} respectively where we denote them as \emph{simple} in contrast to the advanced cubic algorithm.}
   \item well-behaved polylines (n) and non-well-behaved polylines (u) where well-behaved ones have a maximum degree of \(60\)° as outlined in \cref{subsubsec:software} whereas non-well-behaved ones have a maximum degree of \(180\)°, meaning they are unrestricted. 
+  \item Finally we also test the individual optimizations mentioned in \cref{ssec:optimizations} %TODO: 
 \end{enumerate}
 
 Each characteristic has its own abbreviation as mentioned. We label the tests as such, e.g., \emph{psen} is the parallelized explicit Euclidean algorithm for well-behaved polylines\footnote{The order of the abbreviations always remains as listed, i.e., the first letter is always p or s, then either se or sei then n or u.}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5]{figures/psen.png}
+  \caption{Parallel, explicit for well-behaved polylines}
+  \label{fig:psen}
+\end{figure}
+
 
 
 

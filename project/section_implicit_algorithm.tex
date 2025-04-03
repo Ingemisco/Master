@@ -29,107 +29,22 @@ We will see how we can implement the previous algorithms using procedures to dec
 
 A trivial fact we will use to find initial restrictions is that \(u \overset e\rightarrow v\) always holds if \(v \leftrightarrow e\) and \(u\) is the starting point of \(e\). Also, if both \(u \overset e\rightarrow v\) and \(u \overset e\leftarrow v\) then the first solutions of both are the same, i.e., \(\hat t_0'(e, u) = \hat t_0'(e,v)\), thus either is a restriction. 
 
-\begin{figure}
-    \centering
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}
-            % Define points
-            \coordinate (e1) at (0, 0);
-            \coordinate (e2) at (6, 3);
-            \coordinate (u)  at (2, 0);
-            \coordinate (v)  at (4, 3);
-
-            \draw[thick] (e1) -- (e2);
-
-            \draw[thick] (u) circle (1);
-            \draw[thick] (v) circle (1);
-
-            \path[name path=line] (e1) -- (e2);
-            \path[name path=circleu] (u) circle (1);
-            \path[name path=circlev] (v) circle (1);
-            \path[name intersections={of=line and circleu, by={tu1,tu0}}];
-            \path[name intersections={of=line and circlev, by={tv0,tv1}}];
-
-            \draw[thick, color=red] (tu0) -> (tv0);
-
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(e_1\)}] at (e1) [] {}; 
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(e_2\)}] at (e2) [] {}; 
-
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(u\)}] at (u) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(v\)}] at (v) [] {}; 
-
-        \end{tikzpicture}
-      \caption{\(u \overset e\rightarrow v\). We go from \(\hat t_0'(e, u)\) to \(\hat t_0'(e, v)\) and \(v\) becomes the new restriction point.}
-      \label{fig:restr1}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}
-            % Define points
-            \coordinate (e1) at (0, 0);
-            \coordinate (e2) at (6, 3);
-            \coordinate (v)  at (2, 0);
-            \coordinate (u)  at (4, 3);
-
-            \draw[thick] (e1) -- (e2);
-
-            \draw[thick] (u) circle (1);
-            \draw[thick] (v) circle (1);
-
-            \path[name path=line] (e1) -- (e2);
-            \path[name path=circleu] (u) circle (1);
-            \path[name path=circlev] (v) circle (1);
-            \path[name intersections={of=line and circleu, by={tu0,tu1}}];
-            \path[name intersections={of=line and circlev, by={tv1,tv0}}];
-
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(e_1\)}] at (e1) [] {}; 
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(e_2\)}] at (e2) [] {}; 
-
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(u\)}] at (u) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(v\)}] at (v) [] {}; 
-
-        \end{tikzpicture}
-      \caption{Neither \(u \overset e\rightarrow v\) nor \(u \overset e\leftarrow v\).}
-      \label{fig:restr2}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}
-            % Define points
-            \coordinate (e1) at (0, 0);
-            \coordinate (e2) at (6, 3);
-            \coordinate (u)  at (3,  2);
-            \coordinate (v)  at (2.5, 1);
-
-            \draw[thick] (e1) -- (e2);
-
-            \draw[thick] (u) circle (1);
-            \draw[thick] (v) circle (1);
-
-            \path[name path=line] (e1) -- (e2);
-            \path[name path=circleu] (u) circle (1);
-            \path[name path=circlev] (v) circle (1);
-            \path[name intersections={of=line and circleu, by={tu1,tu0}}];
-            \path[name intersections={of=line and circlev, by={tv1,tv0}}];
-
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(e_1\)}] at (e1) [] {}; 
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(e_2\)}] at (e2) [] {}; 
-
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(u\)}] at (u) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(v\)}] at (v) [] {}; 
-
-            \node[circle,fill,color=red,inner sep=1pt,label={[text=red, above]:\(\hat t_0'(e, u)\)}] at (tu0) [] {}; 
-
-        \end{tikzpicture}
-      \caption{\(u \overset e\leftarrow v\). We cannot go backward but \(v\) is reachable so we can wait for it and \(u\) remains the restriction point. }
-      \label{fig:restr3}
-    \end{subfigure}
-
-    \caption{Illustration of the relations and how to interpret them. }
-    \label{fig:restrictions}
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics[width=\linewidth]{tikz-fig/restrictions-1.pdf}
+    \caption{\(u \overset e\rightarrow v\). We go from \(\hat t_0'(e, u)\) to \(\hat t_0'(e, v)\) and \(v\) becomes the new restriction point.}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics[width=\linewidth]{tikz-fig/restrictions-2.pdf}
+    \caption{Neither \(u \overset e\rightarrow v\) nor \(u \overset e\leftarrow v\).}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics[width=\linewidth]{tikz-fig/restrictions-3.pdf}
+    \caption{\(u \overset e\leftarrow v\). We cannot go backward but \(v\) is reachable so we can wait for it and \(u\) remains the restriction point. }
+  \end{subfigure}
+  \caption{Illustration of the relations and how to interpret them. }
+  \label{fig:restrictions}
 \end{figure}
 
 \subsection{Fréchet Distance Decision}
@@ -143,7 +58,7 @@ The start of the algorithm is similar, we first need to test if the initial poin
 
 \begin{itemize}
   \item[Case \(p = 1\): ] Set \(e = \overline{Q(0)Q(1)}\). The first points of the two line segments already match so we only need to fully traverse \(Q\). We either need to proceed on \(P\) from the restriction or wait, so the result is \(r\) if \(r \overset e\leftarrow Q(1)\) and \(Q(1)\) if \(r \overset e\rightarrow Q(1)\). If neither case happens there is no solution. 
-    See \cref{fig:alat_godau_implicit_eq} for visual examples of this.
+    See \cref{fig:alt_godau_implicit_eq} for visual examples of this.
   \item[Case \(p > 1\): ] We first traverse the line segment \(e = \overline{Q(0)Q(1)}\) and maintain the current restriction \(r'\) which is initially \(r\). We iterate through \(P(1), P(2), \dots, P(p-1)\) and for each point \(P(i)\) we test if \(r' \overset e\rightarrow P(i)\). If so we update \(r'\) to \(P(i)\). If \(r' \overset e\leftarrow P(i)\) there is no need to update \(r'\). If neither happens there is no solution. 
 
     Finally, \(P[0\dots p-1]\) is traversed and we need to determine the restriction on the line \(e'=\overline{P(p-1)P(p)}\). As the only possible restriction on this line segment we get \(Q(1)\) as we only need to fully traverse \(e\). If \(Q(1) \leftrightarrow e'\) we can return \(Q(1)\) otherwise there is no solution.
@@ -151,116 +66,21 @@ The start of the algorithm is similar, we first need to test if the initial poin
 
 \begin{figure}
     \centering
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}
-            % Define points
-            \coordinate (e1) at (0, 0);
-            \coordinate (e2) at (6, 3);
-            \coordinate (r)  at (2, 0);
-            \coordinate (q0)  at (1, 1);
-            \coordinate (q1)  at (4, 3);
-
-            \draw[thick] (e1) -- (e2);
-            \draw[thick] (q0) -- (q1);
-
-            \draw[thick] (r) circle (1);
-            \draw[thick] (q0) circle (1);
-            \draw[thick] (q1) circle (1);
-
-            \path[name path=line] (e1) -- (e2);
-            \path[name path=circleu] (r) circle (1);
-            \path[name path=circler] (r) circle (1);
-            \path[name path=circleq1] (q1) circle (1);
-            \path[name intersections={of=line and circler, by={tu1,tu0}}];
-            \path[name intersections={of=line and circleq1, by={tv0,tv1}}];
-
-            \draw[thick, color=red] (tu0) -> (tv0);
-
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(0)\)}] at (e1) [] {}; 
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(1)\)}] at (e2) [] {}; 
-
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (r) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(0)\)}] at (q0) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(1)\)}] at (q1) [] {}; 
-
-        \end{tikzpicture}
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics[width=\linewidth]{tikz-fig/alt-godau-implicit-eq-1.pdf}
       \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\rightarrow Q(1)\) for \(e = \overline{P(0)P(1)}\). We proceed from the restriction \(r\) to the new restriction \(Q(1).\)}
     \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}
-            % Define points
-            \coordinate (e1) at (0, 0);
-            \coordinate (e2) at (6, 3);
-            \coordinate (r)  at (2, 0);
-            \coordinate (q0)  at (2.5, 2);
-            \coordinate (q1)  at (4, 3);
-
-            \draw[thick] (e1) -- (e2);
-            \draw[thick] (q0) -- (q1);
-
-            \draw[thick] (r) circle (1);
-            \draw[thick] (q0) circle (1);
-            \draw[thick] (q1) circle (1);
-
-            \path[name path=line] (e1) -- (e2);
-            \path[name path=circleu] (r) circle (1);
-            \path[name path=circler] (r) circle (1);
-            \path[name path=circleq1] (q1) circle (1);
-            \path[name intersections={of=line and circler, by={tu1,tu0}}];
-            \path[name intersections={of=line and circleq1, by={tv0,tv1}}];
-
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(0)\)}] at (e1) [] {}; 
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(1)\)}] at (e2) [] {}; 
-
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (r) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(0)\)}] at (q0) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(1)\)}] at (q1) [] {}; 
-
-        \end{tikzpicture}
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics[width=\linewidth]{tikz-fig/alt-godau-implicit-eq-2.pdf}
       \caption{\(r \overset e\rightarrow Q(1)\) but not \(r \overset e\leftarrow Q(0)\) for \(e = \overline{P(0)P(1)}\). Invalid way to proceed on the line.}
     \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}
-            % Define points
-            \coordinate (e1) at (0, 0);
-            \coordinate (e2) at (6, 3);
-            \coordinate (u)  at (1.5,  0);
-            \coordinate (q1)  at (1.5,  1.5);
-            \coordinate (v)  at (2.5, 1);
-
-            \draw[thick] (e1) -- (e2);
-            \draw[thick] (u) -- (q1);
-
-            \draw[thick] (u) circle (1);
-            \draw[thick] (q1) circle (1);
-            \draw[thick] (v) circle (1);
-
-            \path[name path=line] (e1) -- (e2);
-            \path[name path=circleu] (u) circle (1);
-            \path[name path=circleu] (q1) circle (1);
-            \path[name path=circlev] (v) circle (1);
-            \path[name intersections={of=line and circleu, by={tu1,tu0}}];
-            \path[name intersections={of=line and circlev, by={tv1,tv0}}];
-
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(0)\)}] at (e1) [] {}; 
-            \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below]:\(P(1)\)}] at (e2) [] {}; 
-
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(Q(0)\)}] at (u) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, above]:\(Q(1)\)}] at (q1) [] {}; 
-            \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (v) [] {}; 
-
-
-        \end{tikzpicture}
-        \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\leftarrow Q(1)\) so we can proceed on \(\overline{Q(0)Q(1)}\) while remaining on the same restriction point \(r\) on \(e = \overline{P(0)P(1)}\)}
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics[width=\linewidth]{tikz-fig/alt-godau-implicit-eq-3.pdf}
+      \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\leftarrow Q(1)\) so we can proceed on \(\overline{Q(0)Q(1)}\) while remaining on the same restriction point \(r\) on \(e = \overline{P(0)P(1)}\)}
     \end{subfigure}
 
     \caption{Modified implicit Fréchet distance, case \(p = 1\).}
-    \label{fig:alat_godau_implicit_eq}
+    \label{fig:alt_godau_implicit_eq}
 \end{figure}
 
 
@@ -278,6 +98,7 @@ Having seen how we can use these decision problems to implement the algorithms, 
 \end{theorem}
 
 As we expect that the adaptions from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} are compatible with our decision problems, the runtime of \cref{thm:euclidean_implicit_simplification_simple} can likely be adjusted to \(\O(d n^3)\). We will review, and hopefully verify, this in a following thesis. 
+This theorem also extends to the Manhattan distance (even with the cubic runtime algorithm) by using explicit computations but storing the results as a numerator-denominator pair. For this, note that we only compare the fractions but do not perform any computations with these thus the magnitudes of numerator and denominator do not explode.
 
 The decision problems for the relations \(\leftrightarrow, \leftarrow\) and \(\rightarrow\) are simple to implement without division and square roots but quite technical. We start with \(\leftrightarrow\) which can be implemented as a special case of \(\rightarrow\) but can be solved even simpler. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). \(u \leftrightarrow e\) holds if, and only if, the distance to the closest point on \(e\) to \(u\) has distance at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\) then \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\) \cite{linear_algebra}. 
 
@@ -332,12 +153,12 @@ The only necessary operations needed to implement this are addition, subtraction
 
 As for the other two relations, it may be possible to use methods from real algebraic geometry to argue about the position of the roots of the polynomials. 
 
-As a final note on the Minkowski distances we want to note that the absolute values for odd \(\ell\) can be dealt with similarly as with the Manhattan distance by sorting the inner linear terms according to their zero and partitioning the real numbers into intervals for which all absolute values can be simplified. There are at most two intervals in which the root of the polynomial can lie in and those can be found by evaluating the polynomials at the interval bounds. If any interval has a positive and negative bound there must be exactly one zero in that interval by the intermediate value theorem. Otherwise all interval bounds are positive. If there are solutions they must be in the interval with the smallest bounds. This leaves \(\O(d\log d)\) preprocessing to determine a constant amount of candidate intervals and thus a constant amount of polynomials to test.
+As a final note on the Minkowski distances we want to note that the absolute values for odd \(\ell\) can be dealt with similarly as with the Manhattan distance by sorting the inner linear terms according to their zero and partitioning the real numbers into intervals for which all absolute values can be simplified. There are at most two intervals in which the root of the polynomial can lie in and those can be found by evaluating the polynomials at the interval bounds. If any interval has a positive and negative bound there must be exactly one zero in that interval by the intermediate value theorem. Otherwise all interval bounds are positive. If there are solutions they must be in the interval with the smallest bounds. This leaves \(\O(d\log d)\) preprocessing to determine a constant amount of candidate intervals and thus a constant amount of polynomials to test. Alternatively, the linear runtime approach from the Manhattan distance can also be adapted to find the appropriate interval. 
 
 \subsection{Semiexplit Decisions}
 As a final point of our discussion of implicit simplification we present a method that uses aspects from both explicit computations and implicit decisions which we call semiexplicit. 
 
-The idea is to implement the implicit decisions with an estimation of the roots. To test if \(u \overset e\rightarrow v\) we use a bisection approach. we test for both \(u\) and \(v\) if they have distance at most \(\varepsilon\) from any of the end points of \(e\). If \(\delta(u, e_1) \leq \varepsilon\) we can say that \(u \overset e\rightarrow v\). Otherwise if \(\delta(v, e_1) \leq \varepsilon\) this is false (\(but v \overset e\rightarrow u\) would be true). Otherwise suppose they both have solutions on the line segment. 
+The idea is to implement the implicit decisions with an estimation of the roots. To test if \(u \overset e\rightarrow v\) we use a bisection approach. we test for both \(u\) and \(v\) if they have distance at most \(\varepsilon\) from any of the end points of \(e\). If \(\delta(u, e_1) \leq \varepsilon\) we can say that \(u \overset e\rightarrow v\). Otherwise if \(\delta(v, e_1) \leq \varepsilon\) this is false (but \(v \overset e\rightarrow u\) would be true). Otherwise suppose they both have solutions on the line segment. 
 
 We performe the following for both \(x \in \set{u, v}\). We start with the following values \(a = 0, b = 1, t = 0.5\) and iterate  until \(d_t \coloneq \delta(e_1 + t(e_2 - e_1), x) \leq \varepsilon\). 
 First, we test if \(d_t \leq \varepsilon\) and if we are done with this step. Otherwise we test if \(d_a \leq d_t \leq d_b\) in which case we proceed with \(b \gets t\) and \(t \gets \frac{a + t}2\). If \(d_a \geq d_t \geq d_b\) we proceed with \(a \gets t\) and \(t \gets \frac{b + t}2\). Otherwise it must be \(d_a \geq d_t \leq d_a\) as \(d_a \leq d_t \geq d_a\) is impossible due to property 3 of \cref{lem:distance_properties}.
@@ -356,7 +177,7 @@ The first, easiest, but also broadest question is to which current algorithms th
 
 Another open question is whether the decision problems can be fully answered for general \(\ell\)-Minkowski distances with \(\ell \in \N\). We have already proposed a method to decide the \(\leftrightarrow\) relation using simple methods from real algebraic geometry but failed to solve the other two relations. This requires a more sophisticated approach and will likely involve more properties of the distance polynomials, e.g., that they have at most two roots, or that they are the sum of linear terms to the power \(\ell\). These results will likely be only of theoretical interest as they simplify the required computational model but do not lead to practical algorithms. 
 
-When it comes to practical implementations, it would be interesting to know if the Manhattan or Chebyshev decisions can be implemented in linear runtime instead of \(d\log d\). We are not certain whether there are linear algorithms for the explicit solutions, we have no knowledge of such algorithms nor of lower bounds that disprove them so improving the explicit solution might be a way but if this is not possible the implicit approach could still allow it. An easier, albeit tedious further improvement is to adapt the algorithms for Manhattan and Chebyshev to avoid divisions in the implicit case. Similarly to the Euclidean distance, we expect it to be possible by replacing them by multiplications in the comparisons. 
+When it comes to practical implementations, it would be interesting to know if the Chebyshev decisions can be implemented in linear runtime instead of \(d\log d\). We are not certain whether there are linear algorithms for the explicit solutions, we have no knowledge of such algorithms nor of lower bounds that disprove them so improving the explicit solution might be a way but if this is not possible the implicit approach could still allow it. An easier, albeit tedious further improvement is to adapt the algorithms for Manhattan and Chebyshev to avoid divisions in the implicit case. Similarly to the Euclidean distance, we expect it to be possible by replacing them by multiplications in the comparisons. 
 
 
 % section Implicit Polyline Simplification (end)

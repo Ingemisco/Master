@@ -1,0 +1,35 @@
+\documentclass[tikz]{standalone}
+\usetikzlibrary{intersections}
+\begin{document}
+\begin{tikzpicture}
+  \useasboundingbox (0,3.5) rectangle (6,-0.5);
+  \coordinate (e1) at (0, 0);
+  \coordinate (e2) at (6, 3);
+  \coordinate (r)  at (2, 0);
+  \coordinate (q0)  at (1, 1);
+  \coordinate (q1)  at (4, 3);
+
+  \draw[thick] (e1) -- (e2);
+  \draw[thick] (q0) -- (q1);
+
+  \draw[thick] (r) circle (1);
+  \draw[thick] (q0) circle (1);
+  \draw[thick] (q1) circle (1);
+
+  \path[name path=line] (e1) -- (e2);
+  \path[name path=circleu] (r) circle (1);
+  \path[name path=circler] (r) circle (1);
+  \path[name path=circleq1] (q1) circle (1);
+  \path[name intersections={of=line and circler, by={tu1,tu0}}];
+  \path[name intersections={of=line and circleq1, by={tv0,tv1}}];
+
+  \draw[thick, color=red] (tu0) -> (tv0);
+
+  \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above right]:\(P(0)\)}] at (e1) [] {}; 
+  \node[circle,fill,color=black,inner sep=1pt,label={[text=black, below left]:\(P(1)\)}] at (e2) [] {}; 
+
+  \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, below]:\(r\)}] at (r) [] {}; 
+  \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(0)\)}] at (q0) [] {}; 
+  \node[circle,fill,color=blue,inner sep=1pt,label={[text=blue, right]:\(Q(1)\)}] at (q1) [] {}; 
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,14 @@
+\documentclass[tikz]{standalone}
+\begin{document}
+\begin{tikzpicture}[scale=0.5]
+  \foreach \i/\x/\y in {0/0/0, 1/5/-1, 2/7/0, 3/6/4, 4/3/0, 5/7/-4, 6/11/-1}{
+    \coordinate (p\i) at (\x, \y);
+    \node[circle,fill,color=black,inner sep=1pt,label={[text=black, above]:\(P(\i)\)}] at (p\i) [] {}; 
+    \draw[thick, opacity=0.2] (p\i) circle (4);
+  }
+  \foreach \i in {0,...,5}{
+    \pgfmathsetmacro{\next}{\i+1}
+    \draw[thick] (p\i) -- (p\next);
+  }
+\end{tikzpicture}
+\end{document}
