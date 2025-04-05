@@ -1,0 +1,16 @@
+\section{Introduction}
+\label{sec:introduction}
+Polyline simplification is the process of algorithmically reducing the number of points in a polyline while preserving its general shape up to a specified error parameter. This technique is widely in applications such as geographic information systems (GIS) to simplify map contours \cite{algorithms_reduction_number_points_caricature}. To evaluate the quality of a simplification, distance functions between polylines are employed, with the Hausdorff and Fréchet distance being the most common. These distances can be applied either \emph{locally}, where each segment of the simplified polyline is compared the corresponding part of the original, or \emph{globally}, where the entire simplification is compared to the original as a whole. 
+
+Local simplification has been extensively studied for both the Hausdorff and the Fréchet distances \cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve}. In contrast, global simplification has only recently gained attention. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} proposed a polynomial-time algorithm for global Fréchet simplification and proved that global Hausdorff simplification is NP-hard. Later, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} improved this result by developing a cubic-time algorithm and establishing conditional lower bounds for global Fréchet simplification as well as both local variants. 
+
+In this report we implement the algorithm by \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} and propose optimizations to achieve better practical performance, supported by extensive experimental evaluation. 
+
+We provide detailed derivations of the necessary equation-solving algorithms for the Manhattan, the Euclidean, and Chebyshev distances, along with other prerequisites for implementation, making this report a largely self-contained reference for global polyline simplification. Additionally, We demonstrate the algorithm's behaviour through examples and discuss modifications and optimizations that can enhance its efficiency. 
+
+As an alternative conventional \emph{explicit} simplification methods, we introduce an \emph{implicit} approach and adapt the existing algorithms accordingly. We demonstrate this approach for the Euclidean case and briefly discuss how it generalizes to a problem in real algebraic geometry. We then compare the explicit and implicit methods, highlighting their respective advantages and disadvantages. 
+
+Next, we evaluate our implementations -- both explicit and implicit -- along with the impact of optimizations and parallelization. We also analyze how the runtime varies with the ``well-behavedness" of the input. 
+
+Finally, we conclude with key insights and open problems in global polyline simplification. 
+

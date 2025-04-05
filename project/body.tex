@@ -19,29 +19,31 @@
 
 \renewcommand*{\O}{\mathcal{O}}
 
-\section{Introduction}
-\label{sec:introduction}
+\input{section_introduction.tex}
 
 \section{Related Work}
 \label{sec:related_work}
-This report is mainly based on the previous work from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}
-and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, both of which construct algorithms to solve the problem of global polyline simplification under the Fréchet distance.
-\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm is itself an variant of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm that reduces the runtime down to cubic runtime.  
-We implement \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm and explain thoroughly necessary implementation details for every step of the algorithm. We also mention possible optimizations to reach more practical algorithms.
-In a coming thesis we will also implement \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm and compare the two. 
+This report builds primarily on the work of \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}
+and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, who proposed algorithms for global polyline simplification under the Fréchet distance.
+While \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} introduced the first polynomial-time solution, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} later improved this to a cubic-time algorithm.
 
-Most, if not all, previously known algorithms in the general topic of polyline simplification and the Fréchet distance require explicit computation of the roots of polynomials which results in the need for square roots in the Euclidean case and impractical algorithms for general Minkowski distances. We introduce implicit decision problems and show how to reformulate many algorithms using them. We explicitly derive the implicit version of the Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and the polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}.
+Here, we implement the original algorithm by \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, providing detailed explanations of each step and discussing practical optimizations. 
+In future work, we plan to implement and compare the cubic-time variation by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. 
+
+Most existing algorithms for polyline simplification under the Fréchet distance rely on \emph{explicit} computation of polynomial roots, which introduces numerical challenges -- such as square roots in the Euclidean case -- and complicates generalization to arbitrary Minkowski distances. To address this, we propose an \emph{implicit} decision problem framework. We adapt the Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and the polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} into this framework, eliminating the need for explicit root calculations.
 
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-In this section we cover notation, conventions, and definitions used throughout this report.  
+This section introduces the notation, conventions, and definitions used throughout this report.  
 
-We denote the natural numbers \(\N\) and they contain \(0\) and the positive natural numbers \(\N_+ = \N \setminus\set{0}\).
+We denote the natural numbers \(\N\), which includes \(0\), and define positive natural numbers as \(\N_+ = \N \setminus\set{0}\).
 
 \subsection{Polylines}
 \label{ssec:polylines}
-The main geometric figure we are analysing is the \emph{polyline}.
+
+The central geometric object of our study is the \emph{polyline}, defined as follows:
+
 \begin{definition}[Polyline]
   Let \(d\in \N_+\) and \(n \in \N\) be natural numbers and \(u_0, \dots, u_n \in \R^d\) be \(d\)-dimensional points. 
 
@@ -51,61 +53,53 @@ The main geometric figure we are analysing is the \emph{polyline}.
 
       Points inbetween are linearly interpolated, meaning that for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\) we set \(P(i + t) = (1- t)u_i + t u_{i+1} = u_i + t(u_{i+1} - u_i)\)
     \item We denote \(P[t'\dots t]\) to be the subpolyline from \(t' \in [0, n]\) to \(t \in [t', n]\). Formally, \[P[t'\dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2) \dots, P(\ceil{t} - 1), P(t)}.\]
-
   \end{itemize}
 
 \end{definition}
-Throughout this report we denote the dimension as \(d\). Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case we mostly call them \(e\). The length of a polyline is generally \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline.
+Throughout this report we denote the dimension as \(d\). Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case they are mostly denoted as \(e\). The length of a polyline is typically \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline.
 
 
 \subsection{Distances}
 \label{ssec:distances}
-We distinguish between distance measurements between two points and distance measurements between two polylines. 
+We distinguish between distances between points and distance between polylines. 
+
 \begin{definition}[Distances]\label{def:point_distance}
-  Let \(d \in \N_+\) and \(\ell \geq 1\) be a real number.
+  Let \(d \in \N_+\) and \(\ell \geq 1\).
   \begin{itemize}
-    \item We define the \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) as 
+    \item The \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) is defined as 
       \[\delta'_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \sum_{i = 1}^d |u_i - v_i|^\ell.\]
-    \item We define the \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) as 
+    \item The \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) is 
       \[\delta_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \delta'_\ell(u, v)^{\frac1\ell} = \parenth{\sum_{i = 1}^d |u_i - v_i|^\ell}^{\frac1\ell}.\]
-    \item In the case of \(\ell = 2\), we call \(\delta_2'\)  the \emph{unnormalized Euclidean distance} and \(\delta_2\) the \emph{(normalized) Euclidean distance}.
+    \item The special case of \(\delta_2'\) is called the \emph{unnormalized Euclidean distance} and \(\delta_2\) the \emph{(normalized) Euclidean distance}.
     \item In the case of \(\ell = 1\), the unnormalized and normalized versions coincide. We call \(\delta_1' = \delta_1\) the \emph{Manhattan distance}. 
     \item We further define the \emph{Chebyshev distance} \(\delta'_\infty = \delta_\infty\) as 
       \[\delta_\infty:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \max_{i = 1, \dots, d} |u_i - v_i|.\]
-    \item We define the function \(\nu_\ell:\R_{\geq 0} \to \R_{\geq 0}\) by \(\nu_\ell(x) = x^\ell\) for \(\ell \neq \infty\) and \(\nu_\infty(x) = x\).
+    \item We define the auxiliary function \(\nu_\ell:\R_{\geq 0} \to \R_{\geq 0}\) as \(\nu_\ell(x) = x^\ell\) for \(\ell \neq \infty\) and \(\nu_\infty(x) = x\).
   \end{itemize}
 
-  If \(\ell\) is clear from the context or irrelevant, we will omit it.
+  The subscript \(\ell\) is omitted when clear from context.
 \end{definition}
 
-The Euclidean distance is the most important case and commonly used distance measure. The Manhattan distance and Chebyshev distance are simple to compute as they do not require exponentiation to rational numbers. When the points have rational coordinates, both distances will produces rational numbers.
-The other Minkowski distances are less used and less numerically stable. For this reason we introduce their unnormalized versions and will see how some of the algorithms can be adjusted to use them instead. 
-
-We finally define a distance function on polylines which will be used throughout this report. 
+The Euclidean distance (\(\ell = 2\)) is the most widely used metric. The Manhattan distance (\(\ell = 1\)) and Chebyshev distance (\(\ell = \infty\)) are computationally simpler, as they avoid roots. 
+Other Minkowski distances are less common due to numerical instability and lack of geometric interpretation. The unnormalized variants will later allow us to avoid explicit root computations in algorithms. 
 
 \begin{definition}[Fréchet Distance]
-  Let \(d \in \N_+\) and \(\delta\) be a (normalized) distance function. The \emph{Fréchet distance} \(\delta^F\) for two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\) respectively is 
-  \[\delta^F(P, Q) = \inf_{f,g} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
-  where the infimum is taken over all continuous monotone functions \(f:[0,1] \to [0, p]\) and \(g:[0,1] \to [0,q]\) with \(f(0) = 0\), \(f(1) = p\), \(g(0) = 0\), and \(g(1) = q\).
+  Let \(\delta\) be a normalized distance. The \emph{Fréchet distance} \(\delta^F\) between two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\) respectively is 
+	\[\delta^F(P, Q) = \inf_{\substack{f \in \mathcal{C}([0,1], [0, p]) \\ g \in \mathcal{C}([0,1], [0, q])}} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
+	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, monotone functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) \(f(b) = d\).
 \end{definition}
-
-With this we can finally define our objective throughout this report. 
 
 \begin{definition}[Polyline Simplification]
-  Let \(P\) be a polyline of length \(n\) and \(\varepsilon > 0\) be a fixed real number. Let \(\delta\) be a known distance function. 
-
-  The objective of polyline simplification is to find a minimal subsequence \(S\) of the defining points of \(P\) that contains both the start \(P(0)\) and end \(P(n)\) and \(\delta^F(P, Q) \leq \varepsilon\).
+	Given a polyline \(P\) of length \(n\), and \(\varepsilon > 0\), and a distance \(\delta\), \emph{global Fréchet simplification problem} seeks a minimal subsequence \(S\) of \(P\)'s vertices that includes both the start \(P(0)\) and end \(P(n)\), and \(\delta^F(P, Q) \leq \varepsilon\).
 \end{definition}
 
-This is also known as polyline simplification using the \emph{global Fréchet distance} as the distance measurement for the polylines is the Fréchet distance which is applied to the whole resulting polyline and simplification. In contrast, there is also the local version which is more strict as for each line segment \(e = \overline{S(i)S(i+1)}\) where \(S(i) = P(j')\) and \(S(i+1) = P(j)\) must satisfy that \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\). Further, there are also both the local and global \emph{Hausdorff distance} as measurements. Here, we only consider the global Fréchet distance.
+This differs from \emph{local} simplification, where each line segment \(e = \overline{S(i)S(i+1)}\) must satisfy \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\) for its corresponding subpolyline. We focus exlusively on the global Fréchet case.
 
 \subsection{Properties of Distances}
-Here, we want to briefly cover some properties of the just defined distance functions, both for points and polylines.
-
-All distance functions we have introduced are examples of metrics on \(\R^d\) (see, e.g., \cite{metric_spaces} for respective proofs).
+All introduced distances are \emph{metrics} on \(\R^d\)\cite{metric_spaces}:
 
 \begin{definition}[Metric Spaces]\label{def:metric}
-  Let \(X\) be a set and \(\delta:X\times X \to \R\). Then \(\delta\) is a \emph{metric} on \(X\) if, and only if, for each \(a, b, c \in X\), 
+  Let \(X\) be a set and \(\delta:X\times X \to \R\). \(\delta\) is a \emph{metric} on \(X\) if, and only if, for each \(a, b, c \in X\), 
   \begin{itemize}
     \item \(\delta(a, b) \geq 0\) with equality if, and only if, \(a = b\), \hfill (Positivity)
     \item \(\delta(a, b) = \delta(b, a)\), and \hfill (Symmetry)
@@ -115,44 +109,45 @@ All distance functions we have introduced are examples of metrics on \(\R^d\) (s
   A set \(X\) together with a metric \(\delta\) is called a \emph{metric space}.
 \end{definition}
 
-We also note an obvious, but useful fact which allows avoiding roots when comparing distances. 
 \begin{observation}\label{obs:unnormalize}
   Let \(\ell \in [1, \infty]\), \(\varepsilon > 0\), and \(u, v \in \R^d\). Then 
     \[\delta_\ell(u, v) \leq \varepsilon \iff \delta_\ell'(u, v) \leq \nu_\ell(\varepsilon).\]
 \end{observation}
 
-
 \begin{lemma}\label{lem:distance_properties}
-  Let \(\delta\) be any Minkowski distance (including the Chebyshev distance).
+	Let \(\delta\) be any Minkowski distance (including Chebyshev). For all \(u, v, w \in \R^d\), \(a \in \R\), and \(t \in [0, 1]\)
   \begin{enumerate}
-    \item \(\delta(u, v) = \delta(u - w, v - w)\) for all \(u, v, w\in \R^d\).
-    \item \(\delta(a u, a v) = |a| \delta(u, v)\) for all \(u, v\in \R^d\)  and \(a \in \R\).
-    \item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\) then also \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\) for all \(u, v, w\in \R^d\), \(\varepsilon > 0\) and all \(t \in [0, 1]\).
-    \item \(\delta^F(\overline{ab}, \overline{cd}) \leq \varepsilon\) if, and only if, \(\delta(a, c) \leq \varepsilon\) and \(\delta(b, d) \leq \varepsilon\) for \(a,b,c,d \in \R^d\).
-  \end{enumerate}
+		\item \(\delta(u, v) = \delta(u - w, v - w)\), \hfill (Translation)
+		\item \(\delta(a u, a v) = |a| \delta(u, v)\), \hfill (Homogeneity)
+		\item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\) then also \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\), and \hfill (Convexity)
+		\item \(\delta^F(\overline{ab}, \overline{cd}) \leq \varepsilon\) if, and only if, \(\delta(a, c) \leq \varepsilon\) and \(\delta(b, d) \leq \varepsilon\) for \(a,b,c,d \in \R^d\).
+	\end{enumerate}
+
 \end{lemma}
 
-The third property implies that \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is a convex set for fixed \(v \in \R^d\) and \(\varepsilon >0 \).
-The fourth property gives us a characterization of the Fréchet distance when comparing single line segments. 
+Convexity implies that \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is a convex set for fixed \(v \in \R^d\) and \(\varepsilon \geq 0\) motivating the name of the property. The fourth property gives us a characterization of the Fréchet distance when comparing single line segments. 
 
 \begin{proof}
   \begin{enumerate}
-    \item Follows directly from the definitions 
-    \item Follows directly from the definitions 
-    \item \begin{flalign*}
-        \delta((1-t)u + tv, w) &\overset{(1)}= \delta((1-t)u + tv- w, 0)\\
+    \item Follows directly from definitions 
+    \item Follows directly from definitions 
+    \item Assume \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). Then
+			\begin{flalign*}
+				\delta((1-t)u + tv, w) &= \delta((1-t)u + tv- w, 0) && \textrm{Translation}\\
          &= \delta((1-t)(u-w)+t(v-w), 0) \\
-         &= \delta((1-t)(u-w),t(w-v)) \\
+         &= \delta((1-t)(u-w),t(w-v)) && \textrm{Translation}\\
          &\leq \delta((1-t)(u-w),0) + \delta(0,t(w-v)) && \textrm{Triangle Inequality}\\
-         &\overset{(2)}= (1-t)\delta(u,w) + t\delta(v,w) \leq (1-t)\varepsilon + t\varepsilon = \varepsilon\\
+				 &= (1-t)\delta(u,w) + t\delta(v,w) && \textrm{Homogeneity} \\
+				 &\leq (1-t)\varepsilon + t\varepsilon = \varepsilon.\\
     \end{flalign*}
-  \item \(\Rightarrow\) follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)).
-    Let For \(\Leftarrow\) we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
+  \item \(\Rightarrow\) follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)). 
+		For \(\Leftarrow\) we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
     \begin{flalign*}
       \delta((1-f(t))a + f(t)b, (1-g(t))c + g(t)d) &= \delta((1-t)a + tb, (1-t)c + td) \\
-                                                   &\overset{(1)}= \delta((1-t)(a-c), t(d-b)) \\
+                                                   &= \delta((1-t)(a-c), t(d-b)) && \textrm{Translation}\\
                                                    &\leq \delta((1-t)(a-c), 0) + \delta(0, t(d-b)) && \textrm{Triangle Inequality}\\
-                                                   &\overset{(2)}= (1-t)\delta(a, c) + t\delta(b, d) \leq \varepsilon \\
+                                                   &= (1-t)\delta(a, c) + t\delta(b, d) && \textrm{Homogeneity and Translation} \\
+																									 &\leq \varepsilon.
     \end{flalign*}
   \end{enumerate}
 \end{proof}
@@ -165,9 +160,6 @@ The fourth property gives us a characterization of the Fréchet distance when co
 
 \section{Experimental Evaluation}
 \label{sec:evaluation}
-% test if sqrt less version is better for euclidean or not, probably not - actually yes 
-%
-%
 \subsection{Experimental Setup}
 \label{subsec:exp_setup}
 
@@ -197,44 +189,240 @@ The choice of using a dynamic instead of a static scheduler for parallelization 
 
 The results we show are the effect of data, i.e., well-behaved vs. non-well-behaved polylines, the effects of parallelization, some combinations of the optimizations we outlined in \cref{ssec:optimizations}, as well as a comparison of the explicit and implicit implementations. 
 
-For all the following diagrams we use for each polyline size 30 polylines with the average, maximum, and minimum for each size plotted. Additionally, we show regression lines based on the average runtimes using the function \(y = \alpha x^\beta\) where the coefficients \(\alpha\) and \(\beta\).
+For all the following diagrams we use for each polyline size 30 polylines with the average, maximum, and minimum for each size plotted. Additionally, we show regression lines based on the average runtimes using the function \(y = \alpha x^\beta\) where the coefficients \(\alpha\) and \(\beta\). These regression lines should only serve as orientations but for good estimations much larger tests are necessary which are computationally infeasible.
 
 We compare the following characteristics: 
 \begin{enumerate}
   \item Parallel (p) vs. Sequential (s)
   \item Choice of algorithm, i.e., explicit Euclidean (se) and implicit Euclidean (sei)\footnote{This stands for \emph{Simple Euclidean} and \emph{Simple Euclidean Implicit} respectively where we denote them as \emph{simple} in contrast to the advanced cubic algorithm.}
   \item well-behaved polylines (n) and non-well-behaved polylines (u) where well-behaved ones have a maximum degree of \(60\)° as outlined in \cref{subsubsec:software} whereas non-well-behaved ones have a maximum degree of \(180\)°, meaning they are unrestricted. 
-  \item Finally we also test the individual optimizations mentioned in \cref{ssec:optimizations} %TODO: 
+  \item Finally we also test the individual optimizations mentioned in \cref{ssec:optimizations}. More precisely, we test omitting one or all three of them. This gives four additional categories: Without global minimality (g), without reachability (r), without local minimality (l), and with none of these optimizations (n).
 \end{enumerate}
 
 Each characteristic has its own abbreviation as mentioned. We label the tests as such, e.g., \emph{psen} is the parallelized explicit Euclidean algorithm for well-behaved polylines\footnote{The order of the abbreviations always remains as listed, i.e., the first letter is always p or s, then either se or sei then n or u.}.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.5]{figures/psen.png}
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psen.png}
   \caption{Parallel, explicit for well-behaved polylines}
   \label{fig:psen}
 \end{figure}
 
+In \cref{fig:psen} we can already see the first surprising result that is is also confirmed by the other tests: Using the simple optimizations that we have outlined, the runtime is far better than the theoretical \(\O(n^6)\) for large simplifications to a sub-quartic, but super-cubic, runtime. We still want to mention that \(350\) is still a rather small size thus the runtime could grow worse than what these plots show. 
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psein.png}
+  \caption{Parallel, implicit for well-behaved polylines}
+  \label{fig:psein}
+\end{figure}
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psen-psein.png}
+  \caption{Parallel, both implicit and explicit for well-behaved polylines}
+  \label{fig:psen-psein}
+\end{figure}
 
-% compare 
-% - explicit v implicit
-% - parallel v non parallel 
-% - optimized v non optimized (multiple optimizations, turn off individually)
-% - ugly v nice 
+The implicit approach, as can be seen in \cref{fig:psein} and in comparison with the explicit in \cref{fig:psen-psein} is about 20\% slower than the explicit algorithm. We suspect that is because of added complexity and checks in the implicit case which are harder to parallelize. Interestingly, there is a noticeable increase in the runtime from polyline of size \(160\) to \(170\). As the data points before form a rather smooth line as well as the ones after that point, it is unlikely that it is just an outlier. It could possibly be because of the chunksize for the parallelization or other intricacies of the parallelization that allow faster simplification for polylines of size smaller than \(170\).
 
-% notes 
-% - minor changes can have big impact (eg inlining)
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/ssein.png}
+  \caption{Sequential, explicit for well-behaved polylines}
+  \label{fig:ssen}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/ssein.png}
+  \caption{Sequential, implicit for well-behaved polylines}
+  \label{fig:ssein}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/ssen-ssein.png}
+  \caption{Sequential, both explicit and implicit for well-behaved polylines}
+  \label{fig:ssen-ssein}
+\end{figure}
+
+The sequential algorithms in \cref{fig:ssen}, \cref{fig:ssein}, and \cref{fig:ssen-ssein}  do not feature such noticeable jumps providing evidence that they are caused by less optimal parallelization. Surprisingly, whereas the explicit implementation was clearly faster in the parallelized case, for the sequential implementation the implicit one prevails. The explicit implementation seems to be almost 80\% slower than the implicit one. This could be because of compiler optimizations as the implicit case subdivides the needed work into multiple steps that allow early returns and throughout the algorithm multiple values can be shared thus profitting from instruction scheduling. The explicit algorithm needs to compute the whole solution every time.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psen-ssen.png}
+  \caption{Parallel and sequential, explicit for well-behaved polylines}
+  \label{fig:psen-ssen}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psein-ssein.png}
+  \caption{Parallel and sequential, implicit for well-behaved polylines}
+  \label{fig:psein-ssein}
+\end{figure}
+
+Comparing the sequential and parallel algorithm, in \cref{fig:psen-ssen} we notice that the explicit algorithm is about \(6.5\) times faster parallelized, the implicit algorithm in \cref{fig:psein-ssein} only gains a sppedup of a factor of \(3\). 
+
+Having seen the different implementations of the algorithm, we now investigate the effect of the data.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseu.png}
+  \caption{Parallel, explicit for non-well-behaved polylines}
+  \label{fig:pseu}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psen-pseu.png}
+  \caption{Parallel, explicit for well-behaved and non-well-behaved polylines}
+  \label{fig:psen-pseu}
+\end{figure}
+
+Looking at the maximum and minimum time in \cref{fig:pseu} and especially \cref{fig:pseiu} we can see that there is more variance than in the well-behaved polylines showing that non-well-behaved can take longer than well-behaved ones even if they are smaller. \cref{fig:psen-pseu} and \cref{fig:psein-pseiu} compares the non-well-behaved and the well-behaved ones directly showing that they take more than twice as long to process.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseiu.png}
+  \caption{Parallel, implicit for non-well-behaved polylines}
+  \label{fig:pseiu}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psein-pseiu.png}
+  \caption{Parallel, implicit for well-behaved and non-well-behaved polylines}
+  \label{fig:psein-pseiu}
+\end{figure}
+
+Finally, we cover the effect of our optimizations. We test all of them on well-behaved polylines with parallelization for polylines of length upto \(150\).
+\cref{fig:psenn} and \cref{fig:pseinn} are exhibit very smooth behaviour with little variation as is expected because they perform all computations for all polylines with the only difference being the size of the simplification. We again remind that the regression lines do not capture the full behaviour of the algorithms because of the few data samples. The runtime for the unoptimized version \emph{cannot} be faster than \(O(n^5)\) and as we always used a rather small \(\varepsilon\) resulting in large simplifications, the actual runtime is of the order \(\O(n^6)\).
+Without the reachability optimization, the runtimes also look rather smooth, especially for the implicit algorithm in \cref{fig:pseinr} while the explicit version in \cref{fig:psenr} has more variance.  
+The minimality optimizations, on the other hand, exhibit rather wild behavior with very noticeable outliers for both. We are unsure whether that is caused by some implementation bug, external circumstances, or an inherent property of the polyline. Note that the outliers are different for the explicit and implicit case as the data is generated for each separately. 
+
+The outliers may be more highlighted because of less data and only testing for smaller test cases so it can be questioned how representative they are. 
+
+Lastly comparing the optimizations against each other we can see that in the explicit case, any of the three optimization suffices to get the speedup, while the implicit case requires the reachability optimization however we are unsure how it is possible that the case with no optimizations at all is faster than the one that only omits the reachability optimization. It may be that the needed comparisons for the other optimizations take more time than they save but why there is such an extreme difference between the explicit and implicit case in this regards is unclear. 
+
+It can be easily seen that the optimizations are necessary for reasonable runtimes, however which ones to use is unclear. Theoretically, the local minimality optimization is unnecessary when using the global one as the local version can only ever occur once per \((i, j)\) pair. This is because it finds the minimum which causes the global optimization to skipp all further iterations over the same pair meaning the local optimization can never occur again for the same \(i, j\). This could explain why omitting the local optimization seems to be faster than having it while omitting only the global one is slower. The reason that omitting the global minimality optimzation is not that much slower than having it could be because we only tested well-behaved polylines which may allow finding the minimum value more easily and thus allowing the local optimization to act as the global one. 
+
+It is surprising that even without optimizations we can perform the algorithm somewhat comfortably on polylines of size \(150\) as \(150^5 \approx 7.5 \cdot 10^10\) which is the amount of steps the runtime suggests. We suspect that it still runs rather good is because the individual computations are fast arithmetical ones and the algorithm itself is structurally rather simple with little overhead. On our hardware we have a clock speed of about \(4.38 \cdot 10^9\) cycles per second. Accounting for parallelization as well as low constants factors that we would expect for the algorithm, this matches the observed execution time.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psenn.png}
+  \caption{Parallel, explicit for well-behaved with no optimizations}
+  \label{fig:psenn}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseinn.png}
+  \caption{Parallel, implicit for well-behaved with no optimizations}
+  \label{fig:pseinn}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psenl.png}
+  \caption{Parallel, explicit for well-behaved without local minimality optimization}
+  \label{fig:psenl}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseinl.png}
+  \caption{Parallel, implicit for well-behaved without local minimality optimization}
+  \label{fig:pseinl}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psenr.png}
+  \caption{Parallel, explicit for well-behaved without reachability optimization}
+  \label{fig:psenr}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseinr.png}
+  \caption{Parallel, implicit for well-behaved without reachability optimization}
+  \label{fig:pseinr}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseng.png}
+  \caption{Parallel, explicit for well-behaved without global minimality optimization}
+  \label{fig:pseng}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/pseing.png}
+  \caption{Parallel, implicit for well-behaved without global minimality optimization}
+  \label{fig:pseing}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psen-opt1.png}
+  \caption{Parallel, explicit for well-behaved polylines, comparison of optimizations}
+  \label{fig:psen-opt1}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psen-opt2.png}
+  \caption{Parallel, explicit for well-behaved polylines, comparison of selected optimizations}
+  \label{fig:psen-opt2}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psein-opt1.png}
+  \caption{Parallel, implicit for well-behaved polylines, comparison of optimizations}
+  \label{fig:psein-opt1}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5, width=\linewidth]{figures/psein-opt2.png}
+  \caption{Parallel, implicit for well-behaved polylines, comparison of selected optimizations}
+  \label{fig:psein-opt2}
+\end{figure}
 
 \section{Conclusions and Future Work}
 \label{sec:discussion_conclusion}
+We gave a thorough tour through all steps necessary to simplify a polyline using the global Fréchet distance using the algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}. We have extensively discussed how to solve equations involving distance metrics and gave detailed algorithms to solve them for the Manhattan distance, Euclidean distance, and Chebyshev distance. We explained the just mentionend simplification algorithm as well as the algorithm to decide the Fréchet distance decision problem from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} for which we provided a simple modified version that is tailored to the given problem. We went through examples for these algorithms to illustrate them and show their geometric intuition and discussed possible optimizations that can be applied. 
 
-% Questions: 
-% - Can the runtime of Van Kreveld et al algorithm be analyzed such that it has a better runtime with the optimizations? Maybe for a subset of polylines only 
-% - Can space consumption reach quadratic? Maybe by using tree trimming 
-% - 
+Having seen the algorithms, we introduced the implcit and semiexplicit approach to polyline simplification which show that a weaker computational model is sufficient that does not need to take square roots or perform divisons. The semiexplicit approach is an appromative approach that allows easier implementation for general distance metrics. 
 
+Finally, we tested our implementations, showed the results and interpreted them. The explicit approach is more useful in a parallelized setting while the implicit outperforms unparallelized. Surprisingly, the algorithms performed well for relatively long polylines with respect to the theoretical runtime, even without optimizations. 
 
+This leaves many open questions, some of which will be researched in a future thesis. 
+
+\begin{enumerate}
+  \item How does the cubic runtime algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} fare against the optimized versions of the \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} algorithm? 
+
+    The optimized versions have subquartic runtime but still seem to be slower than cubic runtime. It is possible that the cubic algorithm is worse because of higher constant factors and worse parallelizability. 
+
+  \item Can the space consumption be improved? 
+
+  In the worst case, the polyline simplification algorithm has cubic space complexity. If we only need the size but not the actual simplification itself, it is easy to see that quadratic space suffices. The space can generally be reduced by storing a rooted tree of the triples \((k, i, j)\) which are actually used. An edge in the tree represents one application of the modified Fréchet distance decision problem, meaning we add another shortcut to the simplification. After each layer all nodes on the previously layer which are unused can be trimmed to further reduce space. Such a tree allows inverting the main computation of the algorithm in that we start from the given nodes and find where we can proceed to, instead of iterating over all previous entries to find where we can procede from. The problem is that such a datastructure is less compact as it needs pointers and we still require one layer of quadratic size to efficiently lookup nodes. Further it does not allow for parallelization as easily. 
+
+\item Can simplification be solved in subcubic runtime for the Euclidean distance or small dimensional data? Are there good subcubic approximations?
+
+  \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} established a cubic conditional lower bound for the problem which explicitly excludes these cases which are practically the most relevant.
+
+  \item Can simplification be sped up by preprocessing the polyline into a datastructure that allows fast querying?
+  
+	  This question can already be answered in the affermative, as a simple sorted array with the \(\varepsilon\) intervals that allow simplifications of a certain size can be stored allowing logarithmic querying. However, it is not obvious how to efficiently construct such a datastructure. We think that a sweepline algorithm might work where the events are selected values for \(\varepsilon\). The relevance of this question arises from the cubic conditional lower bound shown by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. If we cannot improve the runtime for relevant distance metrics or small dimensional data like in the local version of the problem, another way to address the high runtimes preprocessing. 
+
+\item Can the polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} with the outlined optimizations be reanalyzed to have a better theoretical runtime?
+
+  Our experimental data shows that not even quartic runtime is reached so a more sophisticated analysis might yield a better runtime.
+\end{enumerate}
 
