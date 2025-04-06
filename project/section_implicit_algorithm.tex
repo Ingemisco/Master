@@ -177,13 +177,3 @@ The first, easiest, but also broadest question is to which current algorithms th
 
 Another open question is whether the decision problems can be fully answered for general \(\ell\)-Minkowski distances with \(\ell \in \N\). We have already proposed a method to decide the \(\leftrightarrow\) relation using simple methods from real algebraic geometry but failed to solve the other two relations. This requires a more sophisticated approach and will likely involve more properties of the distance polynomials, e.g., that they have at most two roots, or that they are the sum of linear terms to the power \(\ell\). These results will likely be only of theoretical interest as they simplify the required computational model but do not lead to practical algorithms. 
 
-When it comes to practical implementations, it would be interesting to know if the Chebyshev decisions can be implemented in linear runtime instead of \(d\log d\). We are not certain whether there are linear algorithms for the explicit solutions, we have no knowledge of such algorithms nor of lower bounds that disprove them so improving the explicit solution might be a way but if this is not possible the implicit approach could still allow it. An easier, albeit tedious further improvement is to adapt the algorithms for Manhattan and Chebyshev to avoid divisions in the implicit case. Similarly to the Euclidean distance, we expect it to be possible by replacing them by multiplications in the comparisons. 
-
-
-% section Implicit Polyline Simplification (end)
-
-
-
-
-
-

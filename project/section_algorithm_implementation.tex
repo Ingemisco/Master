@@ -1,21 +1,21 @@
 \section{Algorithm \& Implementation}
 \label{sec:algorithm_implementation}
 
-In this subsection we will sketch \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification as well as a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if two polylines have Fréchet distance of at most \(\varepsilon\). We will see an example of these algorithms and end with optimizations that can be applied.
+In this section we will sketch \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification as well as a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if two polylines have Fréchet distance of at most \(\varepsilon\). We will see an example of these algorithms and end with optimizations that can be applied.
 
 \subsection{Fréchet Distance Decision Algorithm}
 \label{ssec:alt_godau}
-The simplification algorithm we will describe heavily uses a subroutine to solve the following problem: Given \(\varepsilon > 0\), a polyline \(P \) of length \(p\), a polyline segment \(P[j' + t' \dots j+1]\) and a line segment \(\overline{P(i')P(i)}\) for \(i' < i \leq p, j' \leq j < p\in \N\) and \(t \in [0, 1]\). Decide if there is a \(t' \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], \overline{P(i')P(i)}) \leq \varepsilon\) and if so determine the smallest such \(t\).  
+The simplification algorithm we will describe heavily uses a subroutine to solve the following problem: Given \(\varepsilon > 0\), a polyline \(P\) of length \(p\), a subpolyline \(P[j' + t' \dots j+1]\), and a line segment \(\overline{P(i')P(i)}\) (where \(i' < i \leq p, j' \leq j < p\in \N\), and \(t \in [0, 1]\)), decide whether there exists \(t' \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], \overline{P(i')P(i)}) \leq \varepsilon\). If so, return the minimal such \(t\).  
 
 This can be solved by a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if the Fréchet distance of two polylines is at most \(\varepsilon\). We present the algorithm in the specific form needed for this problem. 
 
-In both cases we require that \(\delta(P(j' + t'), P(i')) \leq \varepsilon\) as the starting points of both polylines must match by definition. If this is not the case we can return that there is no such \(t\). We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). As the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there is no such interval we can return that there is no solution.
+By definition, the Fréchet distance requires the starting points to match, i.e., \(\delta(P(j' + t'), P(i')) \leq \varepsilon\). If this fails, we immediately return ``no solution". We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). Similarly, as the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there is no such interval we can return that there is no solution.
 
 We distinguish the two cases \(j' = j\) and \(j' < j\). 
 \begin{enumerate}
-  \item[\(j' = j\): ] In this case both \(t'\) and \(t\) lie on the same line segment \(\overline{P(j)P(j+1)}\) (which is the only line segment of the polyline segment). The only constraints on \(t\) are that \(t \in [t', 1]\) and \(t \in [ t_0, t_1]\) which is possible if and only if \(t' \leq t_1\). If this is the case the solution is \(\max(t', t_0)\).
+	\item[\(j' = j\): ] The subpolyline reduces to a single line segment \(\overline{P(j)P(j+1)}\). The constraints simplify to \(t \in [t', 1] \cap [t_0, t_1]\), which is feasible if, and only if, \(t' \leq t_1\). The solution is then \(\max(t', t_0)\).
 
-  \item[\(j' < j\): ] In this case we iterate over all points of the polyline segment \(P(k) = P(j'+1), \dots, P(j)\) and compute the solutions \(\hat t_0'(\overline{P(i')P(i)}, P(k)), \hat t_0'(\overline{P(i')P(i)}, P(k))\). We maintain the first reachable point \(t'\) (initially \(0\)) on the line segment \(\overline{P(i')P(i)}\) for these points and test if \(t' \leq \hat t_0'(\overline{P(i')P(i)}, P(k))\). If that is the case we can update it \(t' \gets \max(t', \hat t_0'(\overline{P(i')P(i)}, P(k)))\). If this is not possible at any step we can return that there is no solution. Otherwise, we have fully traversed the line segment and most of the polyline segment. At this point the solution is merely \(t_0\).
+	\item[\(j' < j\): ] We iterate over the intermediate points \(P(k) = P(j'+1), \dots, P(j)\) and compute the solutions \(\hat t_0'(\overline{P(i')P(i)}, P(k))\), and \(\hat t_0'(\overline{P(i')P(i)}, P(k))\). We maintain the first reachable point \(s\) on the line segment \(\overline{P(i')P(i)}\) (initially \(s = 0\)) for these points and test if \(s \leq \hat t_1'(\overline{P(i')P(i)}, P(k))\). If this fails we return that there is no solution. Otherwise we update \(s = \max(s, \hat t_0'(\overline{P(i')P(i)}, P(k)))\). Otherwise, we have fully traversed the line segment and most of the subpolyline. At this point the solution is merely \(t_0\).
 \end{enumerate}
 
 \subsection{Polyline Simplification Algorithm}
@@ -23,21 +23,21 @@ We distinguish the two cases \(j' = j\) and \(j' < j\).
 
 Here we outline the global polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which we have implemented and tested for the Euclidean distance, the Manhattan distance, and the Chebyshev distance. 
 
-Similar to the decision problem we use a dynamic program in which we store the earliest reachable points although in a more complicated manner. We construct a three dimensional table \(DP\) with entries in \([0, 1] \cup \set{\infty}\) for each triple \((k, i, j)\) with \(k, i \in \set{0, \dots, n}\) and \(j \in \set{0, \dots, n - 1}\) where \(n\) is the length of the given polyline \(P\). 
+Similar to the decision problem we use a dynamic program in which we store the earliest reachable points although in a more complicated manner. We build a 3D table \(DP[k,i,j] \in [0, 1] \cup \set{\infty}\) for each triple \((k, i, j)\) with \(k, i \in \set{0, \dots, n}\) and \(j \in \set{0, \dots, n - 1}\) where \(n\) is the length of the given polyline \(P\). 
 
 Each entry \(DP[k, i, j]\) stores the smallest \(t \in [0, 1]\) s.t. there is a simplification \(Q\) of \(P[0 \dots i]\) with exactly \(k\) line segments with \(\delta^F(Q, P[0\dots j + t]) \leq \varepsilon\). If no such \(t\) exists we store \(\infty\) in that entry. 
-The solution is the smallest \(k^*\) s.t. \(DP[k^*, n, n - 1]\) exists, i.e., there is a simplification \(Q\) of the whole polyline with \(k^*\) many line segments that has \(\delta^F(Q, P[0\dots n - 1 + t]) \leq \varepsilon\) for some \(t \in [0, 1]\) so we can complete the simplification by simply going from \(n-1+t\) to \(n\) on the last line segment of \(P\) while staying on the last point of the simplification. 
+To retrieve the simplification from this table, we find the smallest \(k^*\) s.t. \(DP[k^*, n, n - 1]\) exists, i.e., there is a simplification \(Q\) of the whole polyline with \(k^*\) many line segments that has \(\delta^F(Q, P[0\dots n - 1 + t]) \leq \varepsilon\) for some \(t \in [0, 1]\) so we can complete the simplification by simply going from \(n-1+t\) to \(n\) on the last line segment of \(P\) while staying on the last point of the simplification. 
 
-For \(k = 0\) it is trivial to compute the entries. If \(i > 0\) we can store \(\infty\) as it is impossible to create a simplification of size \(0\) that goes to any point other than the first point. To find \(DP[0, 0, j]\) we only need to compute the distances from \(P(0)\) to the points \(P(j)\) (see \cref{fig:simpl_init}). Until the first \(j\) with \(\delta(P(0), P(j)) > \varepsilon\) we can store \(0\). From the first such \(j\) we store \(\infty\). This is because the simplification only consists of a single point \(P(0)\) thus the condition \(\delta^F(Q, P[0\dots j + t]) \leq \varepsilon\) simplifies to \(\delta^F(P[0 \dots 0], P[0 \dots j + t])\) and as we cannot move on the single point \(P(0)\) the earliest reachable point on each line segment must be \(t = 0\). 
+For \(k = 0\) it is trivial to compute the entries. If \(i > 0\) no simplification exists, i.e., we can store \(\infty\), as it is impossible to create a simplification of size \(0\) that goes to any point other than the initial point. To find \(DP[0, 0, j]\) we only need to compute the distances from \(P(0)\) to the points \(P(j)\) (see \cref{fig:simpl_init}). Until the first \(j\) with \(\delta(P(0), P(j)) > \varepsilon\) we can store \(0\). From the first such \(j\) we store \(\infty\). This is because the simplification only consists of a single point \(P(0)\) thus the condition \(\delta^F(Q, P[0\dots j + t]) \leq \varepsilon\) simplifies to \(\delta^F(P[0 \dots 0], P[0 \dots j + t])\) and as we cannot move on the single point \(P(0)\) the earliest reachable point on each line segment must be \(t = 0\). 
 
 The correctness of this initialization can be shown rather easily. 
 \begin{lemma}
   Let \(P = \angl{P(0)}\) a polyline consisting of a single point and \(Q\) be a polyline of size \(n\). Then \(\delta^F(P, Q) \leq \varepsilon\) if, and only if, \(\delta(P(0), Q(i)) \leq \varepsilon\) for all \(i \in \set{0, \dots, n}\). 
 \end{lemma}
 \begin{proof}
-  For \(\Rightarrow\) we must have some functions \(f,q\) with \(\delta(P(f(t)), Q(g(t))) \leq \varepsilon\) for all \(t\in [0,1]\) where \(f(0) = g(0) = 0\) and \(f(1) = 0\), \(g(1) = n\) and \(f\) and \(g\) are  monotone, meaning that \(\delta(P(0), Q(g(t))) \leq \varepsilon\). As \(g\) is continuous and \(g(0) = 0 \leq g(1) = n\) there must be some \(t \in [0,1]\) with \(g(t) = x\) for any \(x\in \set{0, \dots, n}\).
+  For \(\Rightarrow\) there are functions \(f,q\) with \(\delta(P(f(t)), Q(g(t))) \leq \varepsilon\) for all \(t\in [0,1]\) where \(f(0) = g(0) = 0\) and \(f(1) = 0\), \(g(1) = n\) and \(f\) and \(g\) are  monotone, meaning that \(\delta(P(0), Q(g(t))) \leq \varepsilon\). As \(g\) is continuous and \(g(0) = 0 \leq g(1) = n\) there must be some \(t \in [0,1]\) with \(g(t) = x\) for any \(x\in \set{0, \dots, n}\).
   
-  For \(\Leftarrow\) we show that every point on \(Q\) has distance at most \(\varepsilon\) from \(P(0)\) thus we can choose any suitable function \(g\) (for \(f:[0,0] \to [0,0]\) there is only one possibility). This follows directly from property 3 from \cref{lem:distance_properties} applied to all individual line segment on \(Q\).
+  For \(\Leftarrow\) we show that every point on \(Q\) has distance at most \(\varepsilon\) from \(P(0)\) thus we can choose any suitable function \(g\) (for \(f:[0,0] \to [0,0]\) there is only one possibility). This follows directly from the convexity property from \cref{lem:distance_properties} applied to all individual line segment on \(Q\).
 \end{proof}
 
 \begin{figure}[b]
@@ -82,7 +82,7 @@ As for the other entries, the authors show that the entry \(DP[k, i, j]\) can be
 There are \(\O(k^* n^2)\) many iterations to fill in the table and each entry requires \(\O(n^2)\) many computations to find the minimum. Each call to the \(AltGodau\) subroutine requires linear runtime thus in total we have \(\O(k^*n^5)\) run time.
 
 \subsection{Examples}
-Before going into possible optimizations, we want to go through an example for the algorithm as well as the \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} subroutine. This gives us more intuition for the algorithms as well as ideas for further optimizations. Because of cubic amount of entries it is unreasonable to show all computations thus we only show the computations that lead to the simplification and the subroutine for them. 
+Before going into possible optimizations, we want to go through an example for the algorithm as well as the \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} subroutine. This gives us more intuition for the algorithms as well as ideas for further optimizations. Because of the cubic number of entries it is unreasonable to show all computations thus we only show the computations that lead to the simplification and the subroutine for them. 
 
 \begin{figure}
   \centering

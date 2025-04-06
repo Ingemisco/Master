@@ -1,0 +1,10 @@
+\section{Related Work}
+\label{sec:related_work}
+This report builds primarily on the work of \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}
+and \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, who proposed algorithms for global polyline simplification under the Fréchet distance.
+While \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} introduced the first polynomial-time solution, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} later improved this to a cubic-time algorithm.
+
+Here, we implement the original algorithm by \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, providing detailed explanations of each step and discussing practical optimizations. 
+In future work, we plan to implement and compare the cubic-time variation by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. 
+
+Most existing algorithms for polyline simplification under the Fréchet distance rely on \emph{explicit} computation of polynomial roots, which introduces numerical challenges -- such as square roots in the Euclidean case -- and complicates generalization to arbitrary Minkowski distances. To address this, we propose an \emph{implicit} decision problem framework. We adapt the Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and the polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} into this framework, eliminating the need for explicit root calculations.
