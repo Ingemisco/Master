@@ -13,7 +13,7 @@ By definition, the Fréchet distance requires the starting points to match, i.e.
 
 We distinguish the two cases \(j' = j\) and \(j' < j\). 
 \begin{enumerate}
-	\item[\(j' = j\): ] The subpolyline reduces to a single line segment \(\overline{P(j)P(j+1)}\). The constraints simplify to \(t \in [t', 1] \cap [t_0, t_1]\), which is feasible if, and only if, \(t' \leq t_1\). The solution is then \(\max(t', t_0)\).
+	\item[\(j' = j\): ] The subpolyline reduces to a single line segment \(\overline{P(j)P(j+1)}\). The constraints simplify to \(t \in [t', 1] \cap [t_0, t_1]\), which is feasible if and only if \(t' \leq t_1\). The solution is then \(\max(t', t_0)\).
 
 	\item[\(j' < j\): ] We iterate over the intermediate points \(P(k) = P(j'+1), \dots, P(j)\) and compute the solutions \(\hat t_0'(\overline{P(i')P(i)}, P(k))\), and \(\hat t_0'(\overline{P(i')P(i)}, P(k))\). We maintain the first reachable point \(s\) on the line segment \(\overline{P(i')P(i)}\) (initially \(s = 0\)) for these points and test if \(s \leq \hat t_1'(\overline{P(i')P(i)}, P(k))\). If this fails we return that there is no solution. Otherwise we update \(s = \max(s, \hat t_0'(\overline{P(i')P(i)}, P(k)))\). Finally, we have fully traversed the line segment and most of the subpolyline. At this point the solution is merely \(t_0\).
 \end{enumerate}
@@ -32,7 +32,7 @@ For \(k = 0\) it is trivial to compute the entries. If \(i > 0\) no simplificati
 
 The correctness of this initialization can be shown rather easily. 
 \begin{lemma}
-  Let \(P = \angl{P(0)}\) a polyline consisting of a single point and \(Q\) be a polyline of size \(n\). Then \(\delta^F(P, Q) \leq \varepsilon\) if, and only if, \(\delta(P(0), Q(i)) \leq \varepsilon\) for all \(i \in \set{0, \dots, n}\). 
+  Let \(P = \angl{P(0)}\) a polyline consisting of a single point and \(Q\) be a polyline of size \(n\). Then \(\delta^F(P, Q) \leq \varepsilon\) if and only if \(\delta(P(0), Q(i)) \leq \varepsilon\) for all \(i \in \set{0, \dots, n}\). 
 \end{lemma}
 \begin{proof}
   For the forward direction, there exist functions \(f\) and \(g\) such that \(\delta(P(f(t)), Q(g(t))) \leq \varepsilon\) for all \(t\in [0,1]\), where \(f(0) = g(0) = 0\), \(f(1) = 0\), \(g(1) = n\), and \(f\) and \(g\) are  monotone. This implies that \(\delta(P(0), Q(g(t))) \leq \varepsilon\). As \(g\) is continuous and \(g(0) = 0 \leq g(1) = n\) there must be some \(t \in [0,1]\) with \(g(t) = x\) for any \(x\in \set{0, \dots, n}\).

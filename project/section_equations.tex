@@ -102,13 +102,13 @@ For the Euclidean distance, \cref{eq:eq_solve_main} simplifies to
 \end{align*}
 
 Here, we use Dirac notation for the inner product as \(\langle \cdot , \cdot \rangle\) denotes a polyline of length \(1\).
-This is a quadratic equation in \(t\), which can be solved explicitly as 
+This is a quadratic equation in \(t\) and can be solved explicitly as 
 
 \begin{equation}
   \hat t_{0,1} = \frac{-\alpha_1 \pm \sqrt{\alpha_1^2 - 4\alpha_0\alpha_2}}{2\alpha_2}.\label{eq:sol_explicit_euclidean}
 \end{equation}
 
-If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is less than \(0\), there is no real solution. Otherwise, we can compute the two roots and identify the smallest and largest among them. 
+If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is negative, there is no real solution. Otherwise, we can compute the two roots and identify the smallest and largest among them. 
 
 
 \subsection{Manhattan Distance}
@@ -172,12 +172,12 @@ We also address two edge cases:
   Sort \(events\) by their \(zero\) component\;
   \(start \gets 0\)\;
   \For{\((zero, slope, offset) \in events\)}{
-    Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, zero]\) and report solution if so\;
+    Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, zero]\) and report it if so\;
     \(global\_offset \gets global\_offset + 2offset\)\;
     \(global\_slope \gets global\_slope + 2slope\)\;
     \(start \gets zero\)
   }
-  Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, 1]\) and report solution if so\;
+  Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, 1]\) and report it if so\;
 
   \caption{manhattan\_solver(\(u, v, w, \varepsilon\))}
   \label{algo:solve_manhattan}

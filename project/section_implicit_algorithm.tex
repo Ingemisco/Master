@@ -8,13 +8,13 @@ We introduce three decision problems, each based on a relation.
   Let \(e = \overline{e_1e_2}\) be a line segment, and \(u, v\) with \(e_1, e_2, u\) and \(v\) having the same dimension. 
   \begin{itemize}
     \item We say \(u\) \emph{reaches} \(e\) (in symbols \(u \leftrightarrow e\)) if there is a point \(x\) on \(e\) with \(\delta(u,x)\leq \varepsilon\). This is equivalent to the existence of \(\hat t_0'(e, u)\).
-    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{proceeds to} \(v\) \emph{in} \(e\) (in symbols \(u \overset{e}\rightarrow v\)) if, and only if 
+    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{proceeds to} \(v\) \emph{in} \(e\) (in symbols \(u \overset{e}\rightarrow v\)) if and only if 
       \begin{itemize}
         \item \(v \leftrightarrow e\), 
         \item \(\hat t_0'(e, u) \leq \hat t_0'(e, v)\)
       \end{itemize}
 
-    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{waits for} \(v\) \emph{on} \(e\) (in symbols \(u \overset{e}\leftarrow v\)) if, and only if
+    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{waits for} \(v\) \emph{on} \(e\) (in symbols \(u \overset{e}\leftarrow v\)) if and only if
       \begin{itemize}
         \item \(v \leftrightarrow e\), 
         \item \(\hat t_0'(e, v) \leq \hat t_0'(e, u) \leq \hat t_1'(e, v)\)
@@ -23,7 +23,7 @@ We introduce three decision problems, each based on a relation.
   For \(u \overset e\rightarrow v\), we say that \(v\) becomes the new \emph{restriction point} and similarly if \(u \overset e\leftarrow v\) we say that \(u\) remains the restriction point.
 \end{definition}
 
-As a note, for \(e = \overline{e_1e_2}\) and a point \(u\) it holds \(u \leftrightarrow e\) if, and only if, \(e_1 \overset{e}\rightarrow u\). Thus it is not necessary to provide an implementation for \(\leftrightarrow\) directly. We separate the relations because \(\rightarrow\) is more complex but often the simpler \(\leftrightarrow\) relation suffices and is geometrically more intuitive.
+As a note, for \(e = \overline{e_1e_2}\) and a point \(u\) it holds \(u \leftrightarrow e\) if and only if \(e_1 \overset{e}\rightarrow u\). Thus it is not necessary to provide an implementation for \(\leftrightarrow\) directly. We separate the relations because \(\rightarrow\) is more complex but often the simpler \(\leftrightarrow\) relation suffices and is geometrically more intuitive.
 
 We will see how we can implement the previous algorithms using procedures to decide these relations for a line segment and points. The idea is, instead of computing the solutions to the required equations and then comparing them throughout the algorithms, we have procedures to compare them directly. This allows us to only maintain the point that causes the solution of the equation, which we call the restriction point as it restricts the earliest reachable point on a line segment. A visual example of these relations can be seen in \cref{fig:restrictions}.
 
@@ -157,9 +157,9 @@ Having seen how we can use these decision problems to implement the algorithms, 
 As we expect that the adaptions from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} are compatible with our decision problems, the runtime of \cref{thm:euclidean_implicit_simplification_simple} can likely be adjusted to \(\O(d n^3)\). We will review, and hopefully verify, this in a following thesis. 
 This theorem also extends to the Manhattan and Chebyshev distance (even with the cubic runtime algorithm) by using explicit computations but storing the results as a numerator-denominator pair. For this, note that we only compare the fractions but do not perform any computations with these thus the magnitudes of numerator and denominator do not explode.
 
-The decision problems for the relations \(\leftrightarrow, \leftarrow\) and \(\rightarrow\) are simple to implement without division and square roots but quite technical. We start with \(\leftrightarrow\) which can be implemented as a special case of \(\rightarrow\) but can be solved even simpler. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). \(u \leftrightarrow e\) holds if, and only if, the distance to the closest point on \(e\) to \(u\) has distance at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\) then \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\)~\cite{linear_algebra}. 
+The decision problems for the relations \(\leftrightarrow, \leftarrow\) and \(\rightarrow\) are simple to implement without division and square roots but quite technical. We start with \(\leftrightarrow\) which can be implemented as a special case of \(\rightarrow\) but can be solved even simpler. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). \(u \leftrightarrow e\) holds if and only if the distance to the closest point on \(e\) to \(u\) has distance at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\) then \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\)~\cite{linear_algebra}. 
 
-To decide \(u \leftrightarrow e\) we only need to test if either of the two end points is reachable from \(u\), i.e., \(\delta_2'(e_i, u) \leq \varepsilon^2\) for \(i = 1\) or \(i = 2\). If both fail we must check the projection. Thus we return true if, and only if, \(t \in [0, 1]\) and the following inequality is true. 
+To decide \(u \leftrightarrow e\) we only need to test if either of the two end points is reachable from \(u\), i.e., \(\delta_2'(e_i, u) \leq \varepsilon^2\) for \(i = 1\) or \(i = 2\). If both fail we must check the projection. Thus we return true if and only if \(t \in [0, 1]\) and the following inequality is true. 
 
 \begin{alignat*}{3}
 &\delta_2'(e_1 + t(e_2 - e_1), u) &&\leq \varepsilon^2 \\

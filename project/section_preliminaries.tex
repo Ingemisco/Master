@@ -65,9 +65,9 @@ This differs from \emph{local} simplification, where each line segment \(e = \ov
 All introduced distances are \emph{metrics} on \(\R^d\)~\cite{metric_spaces}:
 
 \begin{definition}[Metric Spaces]\label{def:metric}
-  Let \(X\) be a set and \(\delta:X\times X \to \R\). \(\delta\) is a \emph{metric} on \(X\) if, and only if, for each \(a, b, c \in X\), 
+  Let \(X\) be a set and \(\delta:X\times X \to \R\). \(\delta\) is a \emph{metric} on \(X\) if and only if for each \(a, b, c \in X\), 
   \begin{itemize}
-    \item \(\delta(a, b) \geq 0\) with equality if, and only if, \(a = b\), \hfill (Positivity)
+    \item \(\delta(a, b) \geq 0\) with equality if and only if \(a = b\), \hfill (Positivity)
     \item \(\delta(a, b) = \delta(b, a)\), and \hfill (Symmetry)
     \item \(\delta(a, c) \leq \delta(a, b) + \delta(b, c)\). \hfill (Triangle Inequality)
   \end{itemize}
@@ -86,7 +86,7 @@ All introduced distances are \emph{metrics} on \(\R^d\)~\cite{metric_spaces}:
 		\item \(\delta(u, v) = \delta(u - w, v - w)\), \hfill (Translation)
 		\item \(\delta(a u, a v) = |a| \delta(u, v)\), \hfill (Homogeneity)
 		\item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\) then also \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\), and \hfill (Convexity)
-		\item \(\delta^F(\overline{uv}, \overline{wx}) \leq \varepsilon\) if, and only if, \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, x) \leq \varepsilon\).
+		\item \(\delta^F(\overline{uv}, \overline{wx}) \leq \varepsilon\) if and only if \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, x) \leq \varepsilon\).
 	\end{enumerate}
 
 \end{lemma}
