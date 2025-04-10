@@ -1,10 +1,3 @@
-% some hacky stuff for editor to properly find bibliography
-\let\oldbibliography\bibliography % Save the original \bibliography command
-\renewcommand{\bibliography}[1]{} % Redefine \bibliography to do nothing
-\bibliography{bibliography}
-\renewcommand{\bibliography}{\oldbibliography} % Redefine \bibliography to do nothing
-
-
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\R}{\mathbb{R}}
@@ -41,7 +34,7 @@
 
 \subsubsection{Software and Data}
 \label{subsubsec:software}
-The algorithms were implemented in C++ and compiled using GCC with all optimizations. For parallelization we used OpenMP using dynamic scheduling with a chunk size of \(32\) to run the loops over \(i\) and \(j\) in parallel. 
+The algorithms were implemented in C++ and compiled using GCC with all optimizations. For parallelization we used OpenMP with dynamic scheduling and a chunk size of \(32\) to run the loops over \(i\) and \(j\) in parallel. 
 
 The polylines which were used as test cases were automatically generated using multiple parameters. These include the minimum and maximum length of all line segment as well as the maximum angle that two consecutive line segments could deviate by, i.e., for a maximum angle of \(0\)° the whole polyline would be a straight line while a maximum angle of \(180\)° allows any direction. The reasoning behind this is that a small angle forces the polyline to be more smooth while a large angle allows erratic polylines. We test both smooth and erratic ones, the parameters are given for each test case. 
 
@@ -56,7 +49,7 @@ The code was tested on a laptop with an AMD Ryzen 5 7520U, 4.38 GHz CPU on eight
 
 \subsection{Results}
 \label{subsec:results}
-Before we show the results, we note that even minor changes in the implementation such as inlining a function, changing the order of comparisons and other details affect the practical runtime heavily, especially for the implicit approach. We suspect that this is because of the technical simplicity of the algorithm in that it is five nested loops (or six including the first reachable point subroutine). Thus changes in the innermost loops propagate heavily. We cannot mention all these low-level decisions without explaining in depth our implementation which is outside the scope of this report. We chose the versions that generally gave us the best performance for well-behaved polylines on two dimensions as that is the most interesting case for us. For others that want to implement and test these algorithms, we advise testing multiple equivalent approaches as simple design choices can affect the practical runtim by upto 20\% in either direction. 
+Before we show the results, we note that even minor changes in the implementation such as inlining a function, changing the order of comparisons and other details affect the practical runtime heavily, especially for the implicit approach. We suspect that this is because of the technical simplicity of the algorithm in that it is five nested loops (or six including the first reachable point subroutine). Thus changes in the innermost loops propagate heavily. We cannot mention all these low-level decisions without explaining in depth our implementation which is outside the scope of this report. We chose the versions that generally gave us the best performance for well-behaved polylines on two dimensions as that is the most interesting case for us. For others that want to implement and test these algorithms, we advise testing multiple equivalent approaches as simple design choices can affect the practical runtime by upto 20\% in either direction. 
 
 The choice of using a dynamic instead of a static scheduler for parallelization and the chunk size of \(32\) were also determined by testing. We suspect that a static scheduler fails to fully utilize the cores as it would subdivide the looped ranges before running the loop which causes less utilization for unbalanced iterations. However, we generally do expect unbalanced iterations when using optimizations as not all iterations allow the same optimizations. Furthermore, those iterations that require more work typically are close together in the sense of close \(i\) and \(j\) values. This is because the results of the optimizations are not independent even though the computation is: When allowing a sightly different \(i\) or \(j\) the result may not change drastically and thus the computational load stays comparable. This is bad for a static scheduler as most cores would be done rather fast with only few doing most of the work. 
 
@@ -120,7 +113,7 @@ The implicit approach, as can be seen in \cref{fig:psein} and in comparison with
   \label{fig:ssen-ssein}
 \end{figure}
 
-The sequential algorithms in \cref{fig:ssen}, \cref{fig:ssein}, and \cref{fig:ssen-ssein}  do not feature such noticeable jumps providing evidence that they are caused by less optimal parallelization. Surprisingly, whereas the explicit implementation was clearly faster in the parallelized case, for the sequential implementation the implicit one prevails. The explicit implementation seems to be almost 80\% slower than the implicit one. This could be because of compiler optimizations as the implicit case subdivides the needed work into multiple steps that allow early returns and throughout the algorithm multiple values can be shared thus profitting from instruction scheduling. The explicit algorithm needs to compute the whole solution every time.
+The sequential algorithms in \cref{fig:ssen}, \cref{fig:ssein}, and \cref{fig:ssen-ssein}  do not feature such noticeable jumps providing evidence that they are caused by less optimal parallelization. Surprisingly, whereas the explicit implementation was clearly faster in the parallelized case, for the sequential implementation the implicit one prevails. The explicit implementation seems to be almost 80\% slower than the implicit one. This could be because of compiler optimizations as the implicit case subdivides the needed work into multiple steps that allow early returns and throughout the algorithm multiple values can be shared thus profiting from instruction scheduling. The explicit algorithm needs to compute the whole solution every time.
 
 \begin{figure}[ht]
   \centering
@@ -136,7 +129,7 @@ The sequential algorithms in \cref{fig:ssen}, \cref{fig:ssein}, and \cref{fig:ss
   \label{fig:psein-ssein}
 \end{figure}
 
-Comparing the sequential and parallel algorithm, in \cref{fig:psen-ssen} we notice that the explicit algorithm is about \(6.5\) times faster parallelized, the implicit algorithm in \cref{fig:psein-ssein} only gains a sppedup of a factor of \(3\). 
+Comparing the sequential and parallel algorithm, in \cref{fig:psen-ssen} we notice that the explicit algorithm is about \(6.5\) times faster parallelized, the implicit algorithm in \cref{fig:psein-ssein} only gains a speedup of a factor of \(3\). 
 
 Having seen the different implementations of the algorithm, we now investigate the effect of the data.
 
@@ -179,9 +172,9 @@ The outliers may be more highlighted because of less data and only testing for s
 
 Lastly comparing the optimizations against each other we can see that in the explicit case, any of the three optimization suffices to get the speedup, while the implicit case requires the reachability optimization however we are unsure how it is possible that the case with no optimizations at all is faster than the one that only omits the reachability optimization. It may be that the needed comparisons for the other optimizations take more time than they save but why there is such an extreme difference between the explicit and implicit case in this regards is unclear. 
 
-It can be easily seen that the optimizations are necessary for reasonable runtimes, however which ones to use is unclear. Theoretically, the local minimality optimization is unnecessary when using the global one as the local version can only ever occur once per \((i, j)\) pair. This is because it finds the minimum which causes the global optimization to skipp all further iterations over the same pair meaning the local optimization can never occur again for the same \(i, j\). This could explain why omitting the local optimization seems to be faster than having it while omitting only the global one is slower. The reason that omitting the global minimality optimzation is not that much slower than having it could be because we only tested well-behaved polylines which may allow finding the minimum value more easily and thus allowing the local optimization to act as the global one. 
+It can be easily seen that the optimizations are necessary for reasonable runtimes, however which ones to use is unclear. Theoretically, the local minimality optimization is unnecessary when using the global one as the local version can only ever occur once per \((i, j)\) pair. This is because it finds the minimum which causes the global optimization to skip all further iterations over the same pair meaning the local optimization can never occur again for the same \(i, j\). This could explain why omitting the local optimization seems to be faster than having it while omitting only the global one is slower. The reason that omitting the global minimality optimzation is not that much slower than having it could be because we only tested well-behaved polylines which may allow finding the minimum value more easily and thus allowing the local optimization to act as the global one. 
 
-It is surprising that even without optimizations we can perform the algorithm somewhat comfortably on polylines of size \(150\) as \(150^5 \approx 7.5 \cdot 10^{10}\) which is the amount of steps the runtime suggests. We suspect that it still runs rather good is because the individual computations are fast arithmetical ones and the algorithm itself is structurally rather simple with little overhead. On our hardware we have a clock speed of about \(4.38 \cdot 10^9\) cycles per second. Accounting for parallelization as well as low constants factors that we would expect for the algorithm, this matches the observed execution time.
+It is surprising that even without optimizations we can perform the algorithm somewhat comfortably on polylines of size \(150\) as \(150^5 \approx 7.5 \cdot 10^{10}\) which is the amount of steps the runtime suggests. We suspect that it still runs rather well is because the individual computations are fast arithmetical ones and the algorithm itself is structurally rather simple with little overhead. On our hardware we have a clock speed of about \(4.38 \cdot 10^9\) cycles per second. Accounting for parallelization as well as low constants factors that we would expect for the algorithm, this matches the observed execution time.
 
 \begin{figure}[ht]
   \centering
@@ -271,7 +264,7 @@ It is surprising that even without optimizations we can perform the algorithm so
 \label{sec:discussion_conclusion}
 We gave a thorough tour through all steps necessary to simplify a polyline using the global Fréchet distance using the algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}. We have extensively discussed how to solve equations involving distance metrics and gave detailed algorithms to solve them for the Manhattan distance, Euclidean distance, and Chebyshev distance. We explained the just mentionend simplification algorithm as well as the algorithm to decide the Fréchet distance decision problem from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} for which we provided a simple modified version that is tailored to the given problem. We went through examples for these algorithms to illustrate them and show their geometric intuition and discussed possible optimizations that can be applied. 
 
-Having seen the algorithms, we introduced the implcit and semiexplicit approach to polyline simplification which show that a weaker computational model is sufficient that does not need to take square roots or perform divisons. The semiexplicit approach is an appromative approach that allows easier implementation for general distance metrics. 
+Having seen the algorithms, we introduced the implicit and semiexplicit approach to polyline simplification which show that a weaker computational model is sufficient that does not need to take square roots or perform divisons. The semiexplicit approach is an approximative approach that allows easier implementation for general distance metrics. 
 
 Finally, we tested our implementations, showed the results and interpreted them. The explicit approach is more useful in a parallelized setting while the implicit outperforms unparallelized. Surprisingly, the algorithms performed well for relatively long polylines with respect to the theoretical runtime, even without optimizations. 
 
@@ -284,7 +277,7 @@ This leaves many open questions, some of which will be researched in a future th
 
   \item Can the space consumption be improved? 
 
-  In the worst case, the polyline simplification algorithm has cubic space complexity. If we only need the size but not the actual simplification itself, it is easy to see that quadratic space suffices. The space can generally be reduced by storing a rooted tree of the triples \((k, i, j)\) which are actually used. An edge in the tree represents one application of the modified Fréchet distance decision problem, meaning we add another shortcut to the simplification. After each layer all nodes on the previously layer which are unused can be trimmed to further reduce space. Such a tree allows inverting the main computation of the algorithm in that we start from the given nodes and find where we can proceed to, instead of iterating over all previous entries to find where we can procede from. The problem is that such a datastructure is less compact as it needs pointers and we still require one layer of quadratic size to efficiently lookup nodes. Further it does not allow for parallelization as easily. 
+  In the worst case, the polyline simplification algorithm has cubic space complexity. If we only need the size but not the actual simplification itself, it is easy to see that quadratic space suffices. The space can generally be reduced by storing a rooted tree of the triples \((k, i, j)\) which are actually used. An edge in the tree represents one application of the modified Fréchet distance decision problem, meaning we add another shortcut to the simplification. After each layer all nodes on the previously layer which are unused can be trimmed to further reduce space. Such a tree allows inverting the main computation of the algorithm in that we start from the given nodes and find where we can proceed to, instead of iterating over all previous entries to find where we can proceed from. The problem is that such a datastructure is less compact as it needs pointers and we still require one layer of quadratic size to efficiently lookup nodes. Further it does not allow for parallelization as easily. 
 
 \item Can simplification be solved in subcubic runtime for the Euclidean distance or small dimensional data? Are there good subcubic approximations?
 
@@ -292,7 +285,7 @@ This leaves many open questions, some of which will be researched in a future th
 
   \item Can simplification be sped up by preprocessing the polyline into a datastructure that allows fast querying?
   
-	  This question can already be answered in the affermative, as a simple sorted array with the \(\varepsilon\) intervals that allow simplifications of a certain size can be stored allowing logarithmic querying. However, it is not obvious how to efficiently construct such a datastructure. We think that a sweepline algorithm might work where the events are selected values for \(\varepsilon\). The relevance of this question arises from the cubic conditional lower bound shown by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. If we cannot improve the runtime for relevant distance metrics or small dimensional data like in the local version of the problem, another way to address the high runtimes preprocessing. 
+	  This question can already be answered in the affermative, as a simple sorted array with the \(\varepsilon\) intervals that allow simplifications of a certain size can be stored allowing logarithmic querying. However, it is not obvious how to efficiently construct such a datastructure. We think that a sweep-line algorithm might work where the events are selected values for \(\varepsilon\). The relevance of this question arises from the cubic conditional lower bound shown by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. If we cannot improve the runtime for relevant distance metrics or small dimensional data like in the local version of the problem, another way to address the high runtimes is preprocessing. 
 
 \item Can the polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} with the outlined optimizations be reanalyzed to have a better theoretical runtime?
 
