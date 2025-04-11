@@ -102,15 +102,19 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
         if (range.first == DataStructures::UNREACHABLE) {
           dp_first_reachable(table, k, i, j, dim1, dim2) =
               DataStructures::UNREACHABLE;
+          // optimization 2: reachability
           continue;
-        } else if (range.first ==
-                   dp_first_reachable(table, k - 1, i, j, dim1, dim2)) {
+        }
+
+        if (range.first == dp_first_reachable(table, k - 1, i, j, dim1, dim2)) {
+          // optimization 1: global minimality
           // already found best, cannot be reference (would be referenced
           // earlier because of minimality) so the i, j it references dont need
           // to be set
           dp_first_reachable(table, k, i, j, dim1, dim2) = range.first;
           continue;
         }
+
         // compute table[k,i,j]
         float first_reachable = 2; // valid values always between 0 and 1
         size_t ref_i = (size_t)-1;
@@ -134,6 +138,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
               ref_i = i_;
               ref_j = j_;
               if (reachable == range.first) {
+                // optimization 3: local minimality
                 // skip further iterations
                 j_ = j + 1;
                 i_ = i;
@@ -343,11 +348,13 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
     for (size_t i = k; i < point_count; i++) {
       for (size_t j = 0; j < point_count - 1; j++) {
         if (dp_restriction(table, k - 1, i, j, dim1, dim2) == i) {
+          // optimization 1: global minimality
           dp_restriction(table, k, i, j, dim1, dim2) = i;
           continue;
         } else if (!DataStructures::is_line_reachable_euclidean(
                        DataStructures::LineSegment(polyline.get_point(j),
                                                    polyline.get_point(j + 1)),
+                       // optimization 2: reachability
                        polyline.get_point(i), epsilon2)) {
           dp_restriction(table, k, i, j, dim1, dim2) = (size_t)-1;
           continue;
@@ -371,6 +378,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
             if (computed_restriction == (size_t)-1) {
               continue;
             } else if (computed_restriction == i) {
+              // optimization 3: local minimality
               new_restriction = computed_restriction;
               ref_i = i_;
               ref_j = j_;
