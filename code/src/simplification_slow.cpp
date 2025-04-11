@@ -72,10 +72,9 @@ _simplification_initialization(DataStructures::Polyline &polyline,
 
   dp_first_reachable(table, 0, 0, 0, dim1, dim2) = 0;
   unsigned int j = 1;
-  while (j < point_count - 1 &&
-         _distance(origin, polyline.get_point(j)) < epsilon) {
+  for (; j < point_count - 1 &&
+         _distance(origin, polyline.get_point(j)) < epsilon; j++) {
     dp_first_reachable(table, 0, 0, j, dim1, dim2) = 0;
-    j++;
   }
 
 #if DEBUG
