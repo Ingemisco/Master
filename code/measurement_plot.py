@@ -62,7 +62,7 @@ def plot_data(directory):
 
     plt.xlabel("Polyline Length")
     plt.ylabel("Time (seconds)")
-    plt.title(f"Performance of {algorithm}\nDimensions: {dimension_count}")
+    plt.title(f"Performance of {directory.split("/")[-1]}\nDimensions: {dimension_count}")
     plt.legend()
     ax = plt.gca()
     ax.grid(True)
@@ -129,6 +129,9 @@ def plot_data_compare(directory1, directory2):
     dimension_count1 = data_points1[0]["dimension"]
     dimension_count2 = data_points1[0]["dimension"]
     
+    case_name1 = directory1.split("/")[-1]
+    case_name2 = directory2.split("/")[-1]
+
     # Plot data
     plt.figure(figsize=(10, 5))
     plt.plot(x_labels, avg_times1, marker='d', label=f'Avg Time {directory1.split("/")[-1]}')
@@ -141,7 +144,7 @@ def plot_data_compare(directory1, directory2):
 
     plt.xlabel("Polyline Length")
     plt.ylabel("Time (seconds)")
-    plt.title(f"Performance of {algorithm1} and {algorithm2}\nDimensions: {dimension_count1}, {dimension_count2}")
+    plt.title(f"Performance of {case_name1} and {case_name2}\nDimensions: {dimension_count1}")
     plt.legend()
     ax = plt.gca()
     ax.grid(True)
@@ -151,6 +154,58 @@ def plot_data_compare(directory1, directory2):
     plt.show()
 
 
+def temp(d1, d2, d3, d4, d5):
+    data_points1 = read_json_files(d1)
+    data_points2 = read_json_files(d2)
+    data_points3 = read_json_files(d3)
+    data_points4 = read_json_files(d4)
+    data_points5 = read_json_files(d5)
+
+    data_points1.sort(key=lambda x: int(x["point_count"]))
+    data_points2.sort(key=lambda x: int(x["point_count"]))
+    data_points3.sort(key=lambda x: int(x["point_count"]))
+    data_points4.sort(key=lambda x: int(x["point_count"]))
+    data_points5.sort(key=lambda x: int(x["point_count"]))
+
+    # Extract values
+    avg_times1 = [entry["avg"] for entry in data_points1]
+    avg_times2 = [entry["avg"] for entry in data_points2]
+    avg_times3 = [entry["avg"] for entry in data_points3]
+    avg_times4 = [entry["avg"] for entry in data_points4]
+    avg_times5 = [entry["avg"] for entry in data_points5]
+    
+    x_labels =  [entry["point_count"] for entry in data_points2]  
+
+    # Extract metadata (same for all files)
+    dimension_count = data_points1[0]["dimension"]
+    
+    case_name1 = d1.split("/")[-1]
+    case_name2 = d2.split("/")[-1]
+    case_name3 = d3.split("/")[-1]
+    case_name4 = d4.split("/")[-1]
+    case_name5 = d5.split("/")[-1]
+
+    # Plot data
+    plt.figure(figsize=(10, 5))
+    plt.plot(x_labels, avg_times1[0:len(x_labels)], marker='d', label=f'Avg Time {d1.split("/")[-1]}')
+    plt.plot(x_labels, avg_times2, marker='d', label=f'Avg Time {d2.split("/")[-1]}')
+    plt.plot(x_labels, avg_times3, marker='d', label=f'Avg Time {d3.split("/")[-1]}')
+    plt.plot(x_labels, avg_times4, marker='d', label=f'Avg Time {d4.split("/")[-1]}')
+    plt.plot(x_labels, avg_times5, marker='d', label=f'Avg Time {d5.split("/")[-1]}')
+    
+    # Labels and title
+
+    plt.xlabel("Polyline Length")
+    plt.ylabel("Time (seconds)")
+    plt.title(f"Performance of implicit algorithms\nDimensions: {dimension_count}")
+    plt.legend()
+    ax = plt.gca()
+    ax.grid(True)
+    plt.grid()
+    
+    # Show plot
+    plt.show()
+
 
 if __name__ == "__main__":
 
@@ -158,6 +213,9 @@ if __name__ == "__main__":
         plot_data(sys.argv[1])
     elif len(sys.argv) == 3:
         plot_data_compare(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 6:
+        temp(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+
     else:
         print("Usage: python measurement_plot.py <directory> or python measurement_plot.py <directory> <directory>")
         sys.exit(1)
