@@ -7,6 +7,7 @@
 #include "simplification.h"
 #include "visualizer.h"
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -290,11 +291,7 @@ struct DPImplicitTable final {
         point_reference_i(
             new size_t[point_count * point_count * (point_count - 1)]),
         point_reference_j(
-            new size_t[point_count * point_count * (point_count - 1)]) {
-    // set first layer to be unreachable, needs to be updated accordingly. All
-    // other layers will be tested individually
-    std::fill_n(restriction, point_count * (point_count - 1), DataStructures::IMPLICIT_UNREACHABLE);
-  }
+            new size_t[point_count * point_count * (point_count - 1)]) { }
 
   ~DPImplicitTable() {
     delete[] restriction;
@@ -331,7 +328,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
   auto const origin = polyline.get_point(0);
   dp_restriction(table, 0, 0, 0, dim1, dim2) = 0;
   unsigned int j = 1;
-  for (; j < point_count && DataStructures::unnormalized_euclidean_distance(
+  for (; j < point_count - 1 && DataStructures::unnormalized_euclidean_distance(
                                 origin, polyline.get_point(j)) < epsilon2;
        j++) {
     dp_restriction(table, 0, 0, j, dim1, dim2) = 0;
@@ -342,6 +339,18 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
       polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN_IMPLICIT);
   log.leave_range(j);
 #endif
+  for (unsigned int i = 0; i < point_count; i++) {
+		for (; j < point_count - 1; j++) {
+			if (DataStructures::is_line_reachable_euclidean(DataStructures::LineSegment(polyline.get_point(j), polyline.get_point(j + 1)), polyline.get_point(i), epsilon2)) {
+				dp_restriction(table, 0, i, j, dim1, dim2) = DataStructures::IMPLICIT_UNREACHABLE;
+			} else {
+				dp_restriction(table, 0, i, j, dim1, dim2) = DataStructures::IMPLICIT_NEVER_REACHABLE;
+			}
+		}
+		j = 0;
+	}
+
+	std::cout << "Test" << std::endl;
 
   for (unsigned int k = 1; true; k++) {
 #pragma omp parallel for collapse(2) schedule(dynamic, 32)
@@ -351,12 +360,8 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
           // optimization 1: global minimality
           dp_restriction(table, k, i, j, dim1, dim2) = i;
           continue;
-        } else if (!DataStructures::is_line_reachable_euclidean(
-                       DataStructures::LineSegment(polyline.get_point(j),
-                                                   polyline.get_point(j + 1)),
-                       // optimization 2: reachability
-                       polyline.get_point(i), epsilon2)) {
-          dp_restriction(table, k, i, j, dim1, dim2) = DataStructures::IMPLICIT_UNREACHABLE;
+        } else if (dp_restriction(table, k - 1, i, j, dim1, dim2) == DataStructures::IMPLICIT_NEVER_REACHABLE) {
+          dp_restriction(table, k, i, j, dim1, dim2) = DataStructures::IMPLICIT_NEVER_REACHABLE;
           continue;
         }
 
@@ -367,7 +372,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
           for (size_t j_ = 0; j_ <= j; j_++) {
             size_t const val = dp_restriction(table, k - 1, i_, j_, dim1, dim2);
 
-            if (val == DataStructures::IMPLICIT_UNREACHABLE) {
+            if (val >= DataStructures::IMPLICIT_NEVER_REACHABLE) {
               continue;
             }
 
@@ -413,7 +418,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
         for (unsigned int b = a; b < point_count; b++) {
           for (unsigned int c = 0; c < point_count - 1; c++) {
             size_t v = dp_restriction(table, a, b, c, dim1, dim2);
-            if (v != DataStructures::IMPLICIT_UNREACHABLE &&
+            if (v < DataStructures::IMPLICIT_NEVER_REACHABLE &&
                 (a == 0 ||
                  dp_restriction(table, a - 1, b, c, dim1, dim2) != v)) {
 
