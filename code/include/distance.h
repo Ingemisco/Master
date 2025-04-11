@@ -23,7 +23,11 @@ typedef float AltGodau(PolylineRange, LineSegment, float);
 
 // used to designate that no point on a line segment is reachable.
 // in ReachabilityData first and last will be set to this in this case
-float const UNREACHABLE = -1;
+float const EXPLICIT_UNREACHABLE = -1;
+float const EXPLICIT_NEVER_REACHABLE = -2;
+
+size_t const IMPLICIT_UNREACHABLE = (size_t)-1;
+size_t const IMPLICIT_NEVER_REACHABLE = (size_t)-2;
 
 float integer_exponentiation(float, int);
 int integer_exponentiation(int, int);

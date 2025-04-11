@@ -28,8 +28,8 @@ static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
     auto data = _solver(polyline.polyline.get_point(polyline.start_point_index),
                         polyline.polyline.get_point(polyline.end_point_index),
                         line.end, epsilon);
-    if (data.first == UNREACHABLE || polyline.start_point_offset > data.last) {
-      return UNREACHABLE;
+    if (data.first == EXPLICIT_UNREACHABLE || polyline.start_point_offset > data.last) {
+      return EXPLICIT_UNREACHABLE;
     }
     return std::max(data.first, polyline.start_point_offset);
   }
@@ -41,8 +41,8 @@ static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
        i < polyline.end_point_index; i++) {
     auto data =
         _solver(line.start, line.end, polyline.polyline.get_point(i), epsilon);
-    if (data.first == UNREACHABLE || data.last < first_reachable) {
-      return UNREACHABLE;
+    if (data.first == EXPLICIT_UNREACHABLE || data.last < first_reachable) {
+      return EXPLICIT_UNREACHABLE;
     }
 
     first_reachable = std::max(first_reachable, data.first);
@@ -76,7 +76,7 @@ float alt_godau_manhattan(PolylineRange polyline, LineSegment line,
     initial_dist += std::abs(coord);
   }
   if (initial_dist > epsilon) {
-    return UNREACHABLE;
+    return EXPLICIT_UNREACHABLE;
   }
 
   return _alt_godau_main<solve_manhattan>(polyline, line, epsilon);
@@ -102,7 +102,7 @@ float alt_godau_euclidean(PolylineRange polyline, LineSegment line,
     initial_dist += coord * coord;
   }
   if (initial_dist > epsilon * epsilon) {
-    return UNREACHABLE;
+    return EXPLICIT_UNREACHABLE;
   }
 
   return _alt_godau_main<solve_euclidean>(polyline, line, epsilon);
@@ -215,11 +215,7 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
   if (!_alt_godau_euclidean_implicit_init(
           polyline.get_point(j_), polyline.get_point(j_ + 1),
           polyline.get_point(restriction), polyline.get_point(i_), epsilon2)) {
-    // if (1 != solve_implicit_euclidean_in(
-    //              LineSegment(polyline.get_point(j_), polyline.get_point(j_ +
-    //              1)), polyline.get_point(restriction),
-    //              polyline.get_point(i_), epsilon2)) {
-    return (size_t)-1;
+    return IMPLICIT_UNREACHABLE;
   } else if (j_ == j) {
     auto const res = solve_implicit_euclidean_in(
         LineSegment(polyline.get_point(j), polyline.get_point(j + 1)),
@@ -234,7 +230,7 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
         LineSegment(polyline.get_point(i_), polyline.get_point(i)),
         polyline.get_point(new_restriction), polyline.get_point(x), epsilon2);
     if (res == 0) {
-      return (size_t)-1;
+      return IMPLICIT_UNREACHABLE;
     }
     size_t const results[3] = {0, new_restriction, x};
     new_restriction = results[res];
@@ -245,7 +241,7 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
           polyline.get_point(i), epsilon2)) {
     return i;
   }
-  return (size_t)-1;
+  return IMPLICIT_UNREACHABLE;
 }
 
 float alt_godau_chebyshev(PolylineRange polyline, LineSegment line,
@@ -267,7 +263,7 @@ float alt_godau_chebyshev(PolylineRange polyline, LineSegment line,
     initial_dist = std::max(initial_dist, std::abs(coord));
   }
   if (initial_dist > epsilon) {
-    return UNREACHABLE;
+    return EXPLICIT_UNREACHABLE;
   }
 
   return _alt_godau_main<solve_chebyshev>(polyline, line, epsilon);

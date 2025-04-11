@@ -28,7 +28,7 @@ struct DPTable final {
     // set first layer to be unreachable, needs to be updated accordingly. All
     // other layers will be tested individually
     std::fill_n(reachable_points, point_count * (point_count - 1),
-                DataStructures::UNREACHABLE);
+                DataStructures::EXPLICIT_UNREACHABLE);
   }
 
   ~DPTable() {
@@ -99,9 +99,9 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
         auto const range =
             _solver(polyline.get_point(j), polyline.get_point(j + 1),
                     polyline.get_point(i), epsilon);
-        if (range.first == DataStructures::UNREACHABLE) {
+        if (range.first == DataStructures::EXPLICIT_UNREACHABLE) {
           dp_first_reachable(table, k, i, j, dim1, dim2) =
-              DataStructures::UNREACHABLE;
+              DataStructures::EXPLICIT_UNREACHABLE;
           // optimization 2: reachability
           continue;
         }
@@ -117,13 +117,13 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
 
         // compute table[k,i,j]
         float first_reachable = 2; // valid values always between 0 and 1
-        size_t ref_i = (size_t)-1;
-        size_t ref_j = (size_t)-1;
+        size_t ref_i = DataStructures::IMPLICIT_UNREACHABLE;
+        size_t ref_j = DataStructures::IMPLICIT_UNREACHABLE;
         for (unsigned int i_ = k - 1; i_ < i; i_++) {
           for (unsigned int j_ = 0; j_ <= j; j_++) {
             float const val =
                 dp_first_reachable(table, k - 1, i_, j_, dim1, dim2);
-            if (val == DataStructures::UNREACHABLE) {
+            if (val == DataStructures::EXPLICIT_UNREACHABLE) {
               continue;
             }
             float const reachable = _alt_godau(
@@ -131,7 +131,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
                 DataStructures::LineSegment(polyline.get_point(i_),
                                             polyline.get_point(i)),
                 epsilon);
-            if (reachable == DataStructures::UNREACHABLE) {
+            if (reachable == DataStructures::EXPLICIT_UNREACHABLE) {
               continue;
             } else if (reachable < first_reachable) {
               first_reachable = reachable;
@@ -153,13 +153,13 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
           dp_first_reachable(table, k, i, j, dim1, dim2) = first_reachable;
         } else {
           dp_first_reachable(table, k, i, j, dim1, dim2) =
-              DataStructures::UNREACHABLE;
+              DataStructures::EXPLICIT_UNREACHABLE;
         }
       }
     }
 
     if (dp_first_reachable(table, k, point_count - 1, point_count - 2, dim1,
-                           dim2) != DataStructures::UNREACHABLE) {
+                           dim2) != DataStructures::EXPLICIT_UNREACHABLE) {
 #if DEBUG
       // print whole table (relevant entries)
       for (unsigned int a = 1; a <= k; a++) {
@@ -293,7 +293,7 @@ struct DPImplicitTable final {
             new size_t[point_count * point_count * (point_count - 1)]) {
     // set first layer to be unreachable, needs to be updated accordingly. All
     // other layers will be tested individually
-    std::fill_n(restriction, point_count * (point_count - 1), (size_t)-1);
+    std::fill_n(restriction, point_count * (point_count - 1), DataStructures::IMPLICIT_UNREACHABLE);
   }
 
   ~DPImplicitTable() {
@@ -356,18 +356,18 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
                                                    polyline.get_point(j + 1)),
                        // optimization 2: reachability
                        polyline.get_point(i), epsilon2)) {
-          dp_restriction(table, k, i, j, dim1, dim2) = (size_t)-1;
+          dp_restriction(table, k, i, j, dim1, dim2) = DataStructures::IMPLICIT_UNREACHABLE;
           continue;
         }
 
-        size_t new_restriction = (size_t)-1;
-        size_t ref_i = (size_t)-1;
-        size_t ref_j = (size_t)-1;
+        size_t new_restriction = DataStructures::IMPLICIT_UNREACHABLE;
+        size_t ref_i = DataStructures::IMPLICIT_UNREACHABLE;
+        size_t ref_j = DataStructures::IMPLICIT_UNREACHABLE;
         for (size_t i_ = k - 1; i_ < i; i_++) {
           for (size_t j_ = 0; j_ <= j; j_++) {
             size_t const val = dp_restriction(table, k - 1, i_, j_, dim1, dim2);
 
-            if (val == (size_t)-1) {
+            if (val == DataStructures::IMPLICIT_UNREACHABLE) {
               continue;
             }
 
@@ -375,7 +375,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
                 DataStructures::alt_godau_euclidean_implicit(
                     polyline, j_, j, i_, i, val, epsilon2);
 
-            if (computed_restriction == (size_t)-1) {
+            if (computed_restriction == DataStructures::IMPLICIT_UNREACHABLE) {
               continue;
             } else if (computed_restriction == i) {
               // optimization 3: local minimality
@@ -384,7 +384,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
               ref_j = j_;
               j_ = j + 1;
               i_ = i;
-            } else if (new_restriction == (size_t)-1 ||
+            } else if (new_restriction == DataStructures::IMPLICIT_UNREACHABLE ||
                        !DataStructures::solve_implicit_euclidean(
                            DataStructures::LineSegment(
                                polyline.get_point(j),
@@ -406,14 +406,14 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
     }
 
     if (dp_restriction(table, k, point_count - 1, point_count - 2, dim1,
-                       dim2) != (size_t)-1) {
+                       dim2) != DataStructures::IMPLICIT_UNREACHABLE) {
 #if DEBUG
       // print whole table (relevant entries)
       for (unsigned int a = 1; a <= k; a++) {
         for (unsigned int b = a; b < point_count; b++) {
           for (unsigned int c = 0; c < point_count - 1; c++) {
             size_t v = dp_restriction(table, a, b, c, dim1, dim2);
-            if (v != (size_t)-1 &&
+            if (v != DataStructures::IMPLICIT_UNREACHABLE &&
                 (a == 0 ||
                  dp_restriction(table, a - 1, b, c, dim1, dim2) != v)) {
 

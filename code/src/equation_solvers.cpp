@@ -31,9 +31,9 @@ typedef struct {
 // returns true if no further computation would change result
 static inline bool make_solution(float &first_sol, float &last_sol,
                                  float new_sol_first, float new_sol_last) {
-  if (first_sol == UNREACHABLE) {
+  if (first_sol == EXPLICIT_UNREACHABLE) {
     first_sol = new_sol_first;
-    if (last_sol == UNREACHABLE) {
+    if (last_sol == EXPLICIT_UNREACHABLE) {
       last_sol = first_sol;
     } else {
       return true;
@@ -71,8 +71,8 @@ ReachabilityData solve_manhattan(Point const &point1, Point const &point2,
     return {0, 1};
   }
 
-  float first_sol = first_reachable ? 0 : UNREACHABLE;
-  float last_sol = last_reachable ? 1 : UNREACHABLE;
+  float first_sol = first_reachable ? 0 : EXPLICIT_UNREACHABLE;
+  float last_sol = last_reachable ? 1 : EXPLICIT_UNREACHABLE;
 
   CoordCandidate *candidates = new CoordCandidate[point1.dimension];
   unsigned int index = 0;
@@ -166,8 +166,8 @@ ReachabilityData solve_chebyshev(Point const &point1, Point const &point2,
     return {0, 1};
   }
 
-  float first_sol = first_reachable ? 0 : UNREACHABLE;
-  float last_sol = last_reachable ? 1 : UNREACHABLE;
+  float first_sol = first_reachable ? 0 : EXPLICIT_UNREACHABLE;
+  float last_sol = last_reachable ? 1 : EXPLICIT_UNREACHABLE;
 
   CoordCandidate *candidates = new CoordCandidate[2 * point1.dimension];
   unsigned int index = 0;
@@ -290,14 +290,14 @@ ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
 
   float const discriminant = a1 * a1 - 4 * a2 * a0;
   if (discriminant < 0) {
-    return {UNREACHABLE, UNREACHABLE};
+    return {EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE};
   }
 
   float const root = std::sqrt(discriminant);
   float const t0 = (-a1 - root) / (2 * a2);
   float const t1 = (-a1 + root) / (2 * a2);
   if (t0 > 1 || t1 < 0) {
-    return {UNREACHABLE, UNREACHABLE};
+    return {EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE};
   }
   return {t0 < 0 ? 0 : t0, t1 > 1 ? 1 : t1};
 }
