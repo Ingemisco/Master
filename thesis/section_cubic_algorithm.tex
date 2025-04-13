@@ -58,6 +58,7 @@ This also gives us another way to update the sequence: When updating the sequenc
 
 The necessary operations are queue operations which can be implemented in constant time using an array. For each \(\lambda_i\) we add at most one element to the queue so te total size is bounded by \(n\). By preallocating an array of size \(2n - 1\) and starting in the middle, we can guarantee that we avoid reaching either end of the array so we can avoid modulo operations, allowing for a simple and fast queue implementation.
 
+As a practical note, we mention that the two early returns in line 7,8 and 28, 29 can be improved somewhat. The second return can be completely removed as it is only to prevent undefined behaviour. The value of the interval is never actually used as the loop would finish immediately after. Extending the array of intervals by one is the faster and more elegant solution. The first condition can be pulled out of the innermost loop and put just before the update of the interval (but it is necessary to compare against \(n\) instead of \(n-1\)). We only need to guarantee that the just artificially added last entry is a non-empty interval. 
 
 \begin{algorithm}[htb]
   \DontPrintSemicolon
@@ -140,9 +141,7 @@ Iteration \(j = 3\) is similar to the previous one, so we look at \(j = 4\). The
 
 As all currently stored second components are in bounds, the second while loop does nothing. We set \(\mu_4 = 1\).
 
-Eventually, the additional return condition on lines 7 and 8 is triggered as the last interval is empty. The other return condition on lines 28 and 29 are merely present to avoid undefined behaviour as there is no interval \(I_{n-1}\). If this undefined behaviour does not lead to problems, e.g., because the intervals are stored in an array of size \(n\) instead of \(n-1\), this comparison can be skipped without any ill effects.
-
-A full list of iterations can be found in \cref{tab:cell_reachability_execution}
+Eventually, the additional return condition on lines 7 and 8 is triggered as the last interval is empty. A full list of all iterations can be found in \cref{tab:cell_reachability_execution}
 
 \begin{table}[htb]
 	\centering
