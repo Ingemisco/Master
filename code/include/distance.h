@@ -26,6 +26,7 @@ typedef float AltGodau(PolylineRange, LineSegment, float);
 float const EXPLICIT_UNREACHABLE = -1;
 
 size_t const IMPLICIT_UNREACHABLE = (size_t)-1;
+size_t const EXPLICIT_INDEX_UNREACHABLE = (size_t)-1;
 size_t const IMPLICIT_NEVER_REACHABLE = (size_t)-2;
 
 float integer_exponentiation(float, int);
