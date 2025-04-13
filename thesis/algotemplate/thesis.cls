@@ -9,7 +9,7 @@
     prefix=kn@
 }
 \DeclareStringOption[bibliography]{bibfile}
-\DeclareStringOption[abbrvurl]{bibstyle}
+\DeclareStringOption[abbrvnat]{bibstyle}
 \DeclareStringOption[1]{openuptoc}
 \def\kn@defaulttarget{print}
 \expandafter\DeclareStringOption\expandafter[\kn@defaulttarget]{target}

@@ -1,0 +1,189 @@
+\section{Cubic Simplification Algorithm}
+\label{sec:cubic_algo}
+
+
+\subsection{Cell Reachability}
+\label{ssec:cell_reachability}
+As the main step to achieve cubic runtime, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} introduce the \emph{cell reachability} problem and show how to solve it efficiently. We introduce a slightly generalized version of the problem and a modified version of the algorithm. 
+
+\begin{definition}[Cell Reachability Problem]
+  In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in \R_{>0}\), as well as intervals \(I_1, \dots, I_{n-1} \subseteq [0, 1]\). 
+
+	\begin{itemize}
+		\item We write write \(I_i = [a_i, b_i]\) for the boundaries of the interval \(I_i\) for \(i \in \set{1, \dots, n - 1}\). If \(I_i = \empty\) we write \(a_i = \infty\) and \(b_i = -\infty\).
+	  
+		\item We define a relation \(\prec\) on \(\set{1, \dots, n}\) such that \(i \prec j\) holds if and only if \(i < j\) and there are \(x_i \in I_i, \dots, x_{j-1} \in I_{j-1}\) with \(x_i \leq \dots \leq x_{j - 1}\).
+
+		\item The goal of cell reachability is to find the sequence of minimal \emph{exit-costs} \(\angl{\mu_1, \dots, \mu_n}\) where \(\mu_i \coloneq \min \set{ \lambda_j \mid j \prec i}\). We define \(\min \emptyset = \infty\).
+	\end{itemize}
+\end{definition}
+
+This is to be interpreted as a set of \(n\) consecutive square cells arranged in a line. Each has an assigned entry-cost and an exit-cost to be computed. The intervals are passages between neighboring cells. See \cref{fig:ex_cell_reachability_statement} for an example instance with solution.
+
+This definition only differs from the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in that we allow positive real entry-costs \(\lambda \in \R_{>0}\) instead of integral one and that we allow empty intervals. The first modification can also be solved with their original algorithm but only integral costs are used for the simplification algorithm. Empty intervals can occur but they handle them by performing cell reachability multiple times which we avoid. 
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=1, width=0.9\linewidth]{tikz-fig/ex_cell_reachability_statement.pdf}
+  \caption{An instance of cell reachability. The last three intervals are empty. The first cell is the left most, the lower boundary of the intervals is the below, the upper boundary is on top. The cells can be traversed only by going right or up.}
+  \label{fig:ex_cell_reachability_statement}
+\end{figure}
+
+We now inspect properties of the exit-costs to derive the algorithm. We refer to the paths drawn in \cref{fig:ex_cell_reachability_statement} as examples for these properties. We define \(x_{i, j}\) as the minimal \(x_{j-1} \in I_{j-1}\) such that there exist \(x_i \in I_i, \dots, x_{j-2} \in I_{j-2}\) with \(x_i \leq \dots \leq x_{j-2} \leq x_{j-1}\) for \(i < j\). If no such value exists, we set \(x_{i, j} = \infty\). We call \(x_{i,j}\) the \emph{first reachable point in \(j\) from \(i\)}. It holds trivially that \(\mu_i = \min \set{\lambda_j \mid x_{i, j} \neq \infty}\).
+
+\begin{observation}\label{obs:recursive_x}
+  \begin{enumerate}
+		\item \(x_{i, i+1} = a_i\) for \(i \in \set{1, \dots, n - 1}\) 
+		\item For \(i, j \in \set{1, \dots, n}\) with \(i + 1 < j\)
+			\[x_{i, j} = 
+			\begin{cases}
+				\max(a_{j-1}, x_{i, j - 1}) & \textrm{if } x_{i, j-1} \leq b_{j-1}\\
+				\infty &\textrm{otherwise}
+			\end{cases}\]
+  \end{enumerate}
+\end{observation}
+
+To compute \(\mu_j\) we maintain the set of all relevant pairs \(S_j = \set{(\lambda_i, x_{i, j}) \mid i < j, x_{i, j} \neq \infty}\). At each iteration \(j\) we update this set of pairs by removing unnecessary ones and possibly adding new ones. It is \(\mu_j = \lambda\) where \((\lambda, x) \in S_j\) with \(\lambda\) minimal and \(x \in I_{j-1}\).
+
+\begin{lemma}\label{lem:asc-desc}
+	Let \((\lambda_i, x_{i, j}), (\lambda_{i'}, x_{i', j}) \in S_j\) for a fixed \(j \in \set{1, \dots, n-1}\). If \(x_{i, j} \leq x_{i', j}\) and \(\lambda_i \leq \lambda_{i'}\), we can safely remove \((\lambda_{i'}, x_{i', j'})\) from all \(S_{j'}\) with \(j' \geq j\) without affecting any \(\mu_{j'}\).
+\end{lemma}
+\begin{proof}
+	Suppose that \(\mu_{j'} = \lambda_{i'}\). By following the construction of \cref{obs:recursive_x}, we see that \(x_{i, j'} \leq x_{i', j'}\) as \(x_{i, j} \leq x_{i', j}\) and thus \((x_{i, j'}, \lambda_i) \in S_{j'}\) but \(\mu_{j'} \leq \lambda_i \leq \lambda_{i'}\). Thus \(\lambda_i = \lambda_{i'}\) but \(\lambda_i\) has the smaller first reachable point \(x\) so we can use that pair wherever \((x_{i', j}, \lambda_{i'})\) would be used to arrive at the minimum.
+\end{proof}
+
+By \cref{lem:asc-desc} sorting according to the first component of the tuples ascendingly and sorting according to the second coordinate descendingly is equivalent. This motivates storing the tuples in a sorted list which allows retrieving \(\mu_j\) by accessing the last element whose first component is in the interval \(I_{j-1}\). Note that there can be no pair whose first coordinate \(x > b_{j-1}\) is it would have been impossible for it to pass through interval \(I_{j-1}\). Thus \(\mu_j\) is the first component of the last entry of the sorted sequence. 
+
+This also gives us another way to update the sequence: When updating the sequence for \(I_{j-1}\) we can remove the last entries that lie outside the interval. Similarly we must update the first entries that are before the interval as the new first reachable point cannot lie before it. We can use this step to merge all such pairs to one with the least \(\lambda\). This already concludes the construction of the algorithm. To account for empty intervals, it suffices to empty the whole current sequence. The implementation in \cref{algo:cell_reachability} is written to reuse the queue in the simplification algorithm to avoid unnecessary allocation and initialization.
+
+The necessary operations are queue operations which can be implemented in constant time using an array. For each \(\lambda_i\) we add at most one element to the queue so te total size is bounded by \(n\). By preallocating an array of size \(2n - 1\) and starting in the middle, we can guarantee that we avoid reaching either end of the array so we can avoid modulo operations, allowing for a simple and fast queue implementation.
+
+
+\begin{algorithm}[htb]
+  \DontPrintSemicolon
+	\KwData{Entry-costs \(\lambda_0, \dots, \lambda_{n-1}\), intervals \(I_0 = [a_0, b_0], \dots, I_{n-2} = [a_{n-2}, b_{n-2}], Queue\ queue\)}
+	\KwResult{Sequence \(\angl{\mu_0, \dots, \mu_{n-1}}\)}
+  \BlankLine
+	\(last\_interval \gets \emptyset\) \;
+	\For{\(j=0 \dots n - 1\)} {
+		\If{\(last\_interval = \emptyset\)}{
+			\(queue.reset()\) \;
+			\SetKwRepeat{Do}{do}{while}
+			\Do{\(I_{j-1} = \emptyset\)}{
+				\(\mu_j = \infty\)\;
+				\If{\(j = n-1\)}{\Return}
+				\(j \gets j + 1\)
+			}
+			\(last\_interval \gets I_{j-1}\)
+		}
+
+		\(k_{left} \gets \lambda_{j-1}\)\;
+		\While{\(\lnot queue.empty()\)}{
+			\((k, t) \gets queue.peek\_front()\)\;
+			\If{\(k < \lambda_{j-1} \land t > last\_interval.left\) }{\Break}
+			\(k\_left \gets \min(k\_left, k)\)\;
+			\(queue.pop\_front()\)
+		}
+		\(queue.push\_front((k\_left, last\_interval.left))\) \;
+		\While{\(\lnot queue.empty()\)}{
+			\((k, t) \gets queue.peek\_back()\)\;
+			\If{\(t \leq last\_interval.right\) }{\Break}
+			\(k\_left \gets \min(k\_left, k)\)\;
+			\(queue.pop\_back()\)
+		}
+		\((k, t) \gets queue.peek\_back()\) \;
+		\(\mu_j \gets k\) \;
+		\If{\(j = n-1\)}{\Return}
+		\(last\_interval \gets I_j\)
+	}
+	\caption{CellReachability(\(\lambda_0, \dots, \lambda_{n-1}, I_0, \dots, I_{n-2}\))}
+  \label{algo:cell_reachability}
+\end{algorithm}
+
+\subsection{Cell Reachability Example}
+\label{ssec:cell_reachability_ex}
+
+For practical intuition into \cref{algo:cell_reachability}, we perform an example run with the example given in \cref{fig:ex_cell_reachability_statement}. The intervals are given in \cref{tab:cell_reachability_intervals}, the entry-costs are already given in \cref{fig:ex_cell_reachability_statement}.
+
+\begin{table}[htb]
+  \centering
+	\begin{tabular}{|ccc|}
+		\hline
+		\(I_0\) & \(=\) & \([0.70, 1.00]\) \\
+		\(I_1\) & \(=\) & \([0.44, 0.90]\) \\
+		\(I_2\) & \(=\) & \([0.00, 1.00]\) \\
+		\(I_3\) & \(=\) & \([0.23, 0.90]\) \\
+		\(I_4\) & \(=\) & \([0.12, 0.80]\) \\
+		\(I_5\) & \(=\) & \([0.34, 0.68]\) \\
+		\(I_6\) & \(=\) & \(\emptyset\) \\ 
+		\(I_7\) & \(=\) & \(\emptyset\) \\
+		\(I_8\) & \(=\) & \(\emptyset\) \\
+		\hline
+	\end{tabular}
+	\caption{Intervals from \cref{fig:ex_cell_reachability_statement}}
+	\label{tab:cell_reachability_intervals}
+\end{table}
+
+We iterate from \(j = 0\) to \(j = n - 1 = 9\). The initial \(last\_interval\) is the empty set \(\emptyset\). Thus we go into the branch from lines 3 to 11 and the queue is reset. This always happens initially so we can reuse the queue throughout all calls to this algorithm and don't need to explicitly reset the queue. 
+
+The loop in lines 5 to 10 skips over all empty intervals until we reach the next non-empty one. If the interval before a cell is empty, the exit-cost must be \(\infty\) as we have an empty minimization in the definition of the exit-cost. In this example, we set \(\mu_1 = \infty\) and can already stop with the inner loop after the first iteration. Hereafter, \(j = 1\) and \(last\_interval = [0.70, 1.00]\). 
+
+Lines 12 to 18 update all values in the queue whose first reachable point is before the interval. In this case, the queue is empty, so we only need to add the tuple \((1, 0.7)\) to the queue. This entry in the queue means that we can reach the current cell \(j = 1\) with at most cost \(1\) where with its first reachable point being \(0.7\). For all further iterations this first reachable point can only be put later or the tuple can be removed completely. 
+
+Now we need to remove the pairs whose first reachable point is after the current interval. In this case, there is none. We set \(\mu_2 = 1\) and update the last interval to \(I_2 = [0.44, 0.90]\).
+
+In the next iteration, the last interval was not empty. We set \(k_{left} = 3\) but as the queue is non-empty, we need to check if any elements need to be updated at the front. As \(0.44 \leq 0.7 \leq 0.9\), the queue does not change in lines 13 to 18. We push the new pair \((3, 0.44)\) to the front. The current queue consists of the two elements \((3, 0.44)\) and \((1, 0.7)\) in that order. Notice again that the first components are descending but the second ones are ascending. This will hold true for all iterations of the queue. 
+
+Lines 20 to 25 do not affect the queue at all as \(0.7\) is still in bounds. We set \(\mu_3 = 1\). 
+
+Iteration \(j = 3\) is similar to the previous one, so we look at \(j = 4\). The last interval is \([0.23, 0.90]\) and the current queue consists of \((5, 0), (3, 0.44), (1, 0.7)\). We skip the branch in lines 3 to 11 and set \(k_{left} = 10\). The first element of the queue is \((5, 0)\) and in fact, \(\lnot(0 > 0.23)\), so we remove it from the front and set \(k_{left} = \min(5, 10) = 5\). This concludes the first while loop from line 13 to 18. We push the new updated pair \((5, 0.23)\) to the front. This can be seen in \cref{fig:ex_cell_reachability_statement} by the merging of the two lines between the cells with entry-costs 10 and 7. 
+
+As all currently stored second components are in bounds, the second while loop does nothing. We set \(\mu_4 = 1\).
+
+Eventually, the additional return condition on lines 7 and 8 is triggered as the last interval is empty. The other return condition on lines 28 and 29 are merely present to avoid undefined behaviour as there is no interval \(I_{n-1}\). If this undefined behaviour does not lead to problems, e.g., because the intervals are stored in an array of size \(n\) instead of \(n-1\), this comparison can be skipped without any ill effects.
+
+A full list of iterations can be found in \cref{tab:cell_reachability_execution}
+
+\begin{table}[htb]
+	\centering
+	\begin{tabular}{|llcl|} \hline
+		iteration \(j\) & \(last\_interval\) & queue & performed actions \\ \hline
+		\(j=0\) & \(\emptyset\) & undefined & reset queue \\
+		        & \(\emptyset\) & \([]\) & \(\mu_0 = \infty\) \\
+		\(j=1\) & \([0.70, 10]\)  & \([]\) & pushfront \((1, 0.7)\) \\
+		        & \([0.70, 10]\)  & \([(1, 0.7)]\) & \(\mu_1 = 1\)\\
+		\(j=2\) & \([0.44, 0.90]\) & \([(1, 0.7)]\) & pushfront \((3, 0.44)\)\\
+		        & \([0.44, 0.90]\) & \([(3, 0.44), (1, 0.7)]\) & \(\mu_2 = 1\)\\
+		\(j=3\) & \([0.00, 1.00]\) & \([(3, 0.44), (1, 0.7)]\) & pushfront \((5, 0)\)\\
+		        & \([0.00, 1.00]\) & \([(5, 0), (3, 0.44), (1, 0.7)]\) & \(\mu_3 = 1\)\\
+		\(j=4\) & \([0.23, 0.90]\) & \([(5, 0), (3, 0.44), (1, 0.7)]\) & popfront\\
+						& \([0.23, 0.90]\) & \([(3, 0.44), (1, 0.7)]\) & pushfront \((5, 0.23)\)\\
+						& \([0.23, 0.90]\) & \([(5, 0.23), (3, 0.44), (1, 0.7)]\) & \(\mu_4 = 1\)\\
+		\(j=5\) & \([0.12, 0.80]\) & \([(5, 0.23), (3, 0.44), (1, 0.7)]\) & pushfront \((7, 0.12)\)\\
+						& \([0.12, 0.80]\) & \([(7, 0.12), (5, 0.23), (3, 0.44), (1, 0.7)]\) & \(\mu_5 = 1\)\\
+		\(j=6\) & \([0.34, 0.68]\) & \([(7, 0.12), (5, 0.23), (3, 0.44), (1, 0.7)]\) & popfront \\
+		        & \([0.34, 0.68]\) & \([(5, 0.23), (3, 0.44), (1, 0.7)]\) & popfront \\
+						& \([0.34, 0.68]\) & \([(3, 0.44), (1, 0.7)]\) & pushfront \((5, 0.34)\) \\
+						& \([0.34, 0.68]\) & \([(5, 0.34), (3, 0.44), (1, 0.7)]\) & popback \\
+						& \([0.34, 0.68]\) & \([(5, 0.34), (3, 0.44)]\) & \(\mu_6 = 3\)\\
+		\(j=7\) & \(\emptyset\)    & \([(5, 0.34), (3, 0.44)]\) & reset queue\\
+		        & \(\emptyset\)    & \([]\) & \(\mu_7 = \infty\)\\
+		\(j=8\) & \(\emptyset\)    & \([]\) & \(\mu_8 = \infty\)\\
+		\(j=9\) & \(\emptyset\)    & \([]\) & \(\mu_9 = \infty\)\\
+		\hline 
+  \end{tabular}
+	\caption{All iterations that would be performed on \cref{fig:ex_cell_reachability_statement} using \cref{algo:cell_reachability}}
+	\label{tab:cell_reachability_execution}
+\end{table}
+
+
+
+
+
+
+\subsection{Simplification Algorithm}
+\label{ssec:simplification_algo_cubic}
+
+
+
+
