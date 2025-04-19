@@ -92,6 +92,10 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Chebyshev distance.");
 
+  options("ae",
+          "Uses the Bringmann et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Euclidean distance.");
+
   po::variables_map map;
   po::store(po::command_line_parser(argc, argv)
                 .options(description)
@@ -123,22 +127,26 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
     _flag_action_simplify<Simplification::simplification_naive_chebyshev,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>(
         poly_line_file_name, epsilon);
+	}	else if (map.count("ae")) {
+    _flag_action_simplify<Simplification::simplification_advanced_euclidean_explicit,
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>(
+        poly_line_file_name, epsilon);
   }
 
-  // auto polyline = DataStructures::Polyline::from_file(
-  //     std::filesystem::path(poly_line_file_name));
-  // auto &p = *polyline;
-  //  auto res = DataStructures::alt_godau_euclidean_implicit(p, 65, 66, 66, 68,
-  //  66,
-  //                                                          epsilon *
-  //                                                          epsilon);
-  //  std::cout << res << std::endl;
+        // auto polyline = DataStructures::Polyline::from_file(
+        //     std::filesystem::path(poly_line_file_name));
+        // auto &p = *polyline;
+        //  auto res = DataStructures::alt_godau_euclidean_implicit(p, 65, 66,
+        //  66, 68, 66,
+        //                                                          epsilon *
+        //                                                          epsilon);
+        //  std::cout << res << std::endl;
 
-  //  auto expl = DataStructures::alt_godau_euclidean(
-  //      DataStructures::PolylineRange(p, 154, 159 + 1, 0.7),
-  //      DataStructures::LineSegment(p.get_point(155), p.get_point(160)),
-  //      epsilon);
-  //  std::cout << "explicit" << std::endl << expl << std::endl;
+        //  auto expl = DataStructures::alt_godau_euclidean(
+        //      DataStructures::PolylineRange(p, 154, 159 + 1, 0.7),
+        //      DataStructures::LineSegment(p.get_point(155), p.get_point(160)),
+        //      epsilon);
+        //  std::cout << "explicit" << std::endl << expl << std::endl;
 }
 
 int main(int argc, char *argv[]) {

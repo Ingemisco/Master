@@ -275,6 +275,7 @@ static inline float scalar_product(Point const &u, Point const &v,
   return dot_product;
 }
 
+
 ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
                                  Point const &point3, float epsilon) {
 #if DEBUG
@@ -290,14 +291,14 @@ ReachabilityData solve_euclidean(Point const &point1, Point const &point2,
 
   float const discriminant = a1 * a1 - 4 * a2 * a0;
   if (discriminant < 0) {
-    return {EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE};
+    return EMPTY_INTERVAL_EXPLICIT;
   }
 
   float const root = std::sqrt(discriminant);
   float const t0 = (-a1 - root) / (2 * a2);
   float const t1 = (-a1 + root) / (2 * a2);
   if (t0 > 1 || t1 < 0) {
-    return {EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE};
+    return EMPTY_INTERVAL_EXPLICIT;
   }
   return {t0 < 0 ? 0 : t0, t1 > 1 ? 1 : t1};
 }

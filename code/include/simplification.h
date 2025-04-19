@@ -2,6 +2,7 @@
 #define INCLUDE_INCLUDE_SIMPLIFICATION_H_
 
 #include "datastructures.h"
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -20,6 +21,15 @@ Simplification simplification_naive_chebyshev(DataStructures::Polyline &,
 
 Simplification
 simplification_naive_euclidean_implicit(DataStructures::Polyline &, float);
+
+
+
+Simplification simplification_advanced_manhattan_explicit(DataStructures::Polyline &, float);
+Simplification simplification_advanced_euclidean_explicit(DataStructures::Polyline &, float);
+Simplification simplification_advanced_euclidean_implicit(DataStructures::Polyline &, float);
+Simplification simplification_advanced_chebyshev_explicit(DataStructures::Polyline &, float);
+
+
 
 } // namespace Simplification
 

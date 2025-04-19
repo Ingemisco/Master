@@ -7,10 +7,7 @@ namespace DataStructures {
 #define NO_POINT_REACHABLE -1
 
 typedef float Distance(Point const &, Point const &);
-typedef struct {
-  float first;
-  float last;
-} ReachabilityData;
+typedef std::pair<float, float> ReachabilityData;
 
 typedef float Distance(Point const &, Point const &);
 
@@ -23,11 +20,14 @@ typedef float AltGodau(PolylineRange, LineSegment, float);
 
 // used to designate that no point on a line segment is reachable.
 // in ReachabilityData first and last will be set to this in this case
-float const EXPLICIT_UNREACHABLE = -1;
+float constexpr EXPLICIT_UNREACHABLE = -1;
 
-size_t const IMPLICIT_UNREACHABLE = (size_t)-1;
-size_t const EXPLICIT_INDEX_UNREACHABLE = (size_t)-1;
-size_t const IMPLICIT_NEVER_REACHABLE = (size_t)-2;
+size_t constexpr IMPLICIT_UNREACHABLE = (size_t)-1;
+size_t constexpr INDEX_UNREACHABLE = (size_t)-1;
+size_t constexpr IMPLICIT_NEVER_REACHABLE = (size_t)-2;
+
+std::pair<float const, float const> constexpr EMPTY_INTERVAL_EXPLICIT = std::pair<float const, float const>(EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE);
+
 
 float integer_exponentiation(float, int);
 int integer_exponentiation(int, int);
