@@ -6,6 +6,7 @@
 #include <memory>
 #include <ostream>
 #include <tuple>
+#include <vector>
 
 using DataStructures::Point, DataStructures::Polyline;
 
@@ -104,7 +105,7 @@ static void cell_reachability_explicit(size_t const *entry_costs, std::pair<T, T
 
 		size_t const lambda_j = entry_costs[j - 1];
 		size_t k_left = lambda_j;
-		size_t ref = j;
+		size_t ref = j - 1;
 		while(!queue.is_empty()) {
 			auto const [t, k, ref_index] = queue.peek_front();
 			if (k < lambda_j && t > last_interval.first) break;
@@ -276,7 +277,7 @@ struct Simplifier final {
 		}
 	}
 
-  inline void simplify() {
+  inline Simplification::Simplification simplify() {
 		this->initialize();
 		for (size_t i = 1; i < n; i++) {
 			kappa2_subroutine(i);
@@ -324,15 +325,26 @@ struct Simplifier final {
 			}
 		}
 
-		for (size_t i = 0; i < n; i++) {
-			for (size_t j = 0; j < n - 1; j++) {
-				std::cout << i << "," << j << ": " << kappa[j + (n-1)*i].smallest_k << "\n";
-				std::cout << i << "," << j << ": " << kappa2[j + (n-1)*i].smallest_k << "\n";
-			
+		size_t k = kappa[(n-1)*n - 1].smallest_k;
+		Simplification::Simplification result = std::make_unique<std::vector<size_t>>(1 + k);
+		auto &p = *result;
+		size_t i_ = n - 1;
+		size_t j_ = n - 2;
+
+		while (i_ > 0) {
+			p[k] = i_;
+			auto const temp = kappa2[i_ * (n-1) + j_];
+			if (temp.smallest_k <= k) {
+				i_ = temp.i_;
+				j_ = temp.j_;
+			} else {
+				i_ = dp1[k + n * (j_ + (n-1) * i_)].i_;
 			}
+			k--;
 		}
 
-		std::cout << "simplification size is " << kappa[(n-1) * n - 1].smallest_k << std::endl;
+		p[0] = 0;
+		return result;
 	}
 };
 
@@ -342,6 +354,5 @@ Simplification::Simplification
 Simplification::simplification_advanced_euclidean_explicit(DataStructures::Polyline &polyline, float epsilon) {
 	Simplifier<float, DataStructures::solve_euclidean, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> 
 		simplifier(polyline, epsilon);
-	simplifier.simplify();
-  return std::make_unique<std::vector<size_t>>();
+	return simplifier.simplify();
 }
