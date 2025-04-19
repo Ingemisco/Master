@@ -1,0 +1,371 @@
+\section{Equation Solving}
+\label{subsec:equation_solving}
+Before delving into the actual algorithms, we first need to address a problem at the core of the following procedures: the \emph{line segment intersection problem}. 
+\begin{definition}[Line Segment Intersection Problem]
+  Let \(e = \overline{e_1e_2}\) be a \(d\)-dimensional line segment, \(u \in \R^d\) a point, \(\varepsilon > 0\) and \(\delta\) a distance function. In the \emph{line segment intersection problem}, we aim to determine the set \(\set{t \in [0, 1] \mid \delta(e_1 + t(e_2 - e_1), u) \leq \varepsilon}\), where \(t\) represents the parameter along the line segment \(e\).
+
+  As the name suggests, this corresponds to the intersection of \(\set{x \in \R^d \mid \delta(x, u) \leq \varepsilon}\), the set of points within distance \(\varepsilon\) of \(u\), and the line segment \(e\). 
+\end{definition}
+
+\begin{observation}
+  For \(\ell \in [1, \infty]\) the solution set to the line segment intersection problem using the distance \(\delta_\ell\) is convex. Thus we can express it as a single interval \(I \subseteq [0, 1]\). This interval is either empty or closed, which allows us to identify it by its left and right boundaries. 
+\end{observation}
+\begin{proof}
+  Follows directly from the convexity property of \cref{lem:distance_properties} and the fact that intervals and the points on line segments are convex sets. 
+\end{proof}
+
+This simplifies the process of finding these sets to determining the boundaries or identifying that the interval is empty. To do so, we solve equations involving distance functions \(\delta\). Specifically, we aim to solve 
+\begin{equation}
+  \delta(u + t \cdot (v - u), w) = \varepsilon \label{eq:eq_solve_main}
+\end{equation}
+for arbitrary, fixed vectors \(u, v, w \in \R^d\), and fixed \(\varepsilon \in \R_{>0}\), solving the variable \(t \in \R\), or determine that no such solution exists. This corresponds to the points that lie on the line \(e = \overline{uv}\) (not just the line segment) and have distance \(\varepsilon\) from \(w\).
+
+We label the smallest solution of \cref{eq:eq_solve_main} \(\hat{t}_0\) and the largest solution \(\hat{t}_1\). Note that these may not be the solutions the line segment intersection problem as the solutions may be outside of the interval \([0, 1]\), i.e., they lie on the line defined by the two points but not the line segment. These two solutions may be the same (i.e, the interval collapses to a single point), or may not exist at all, in which case the interval is empty.
+
+We need to modify the solutions \(\hat{t}_0\) and \(\hat{t}_1\) to obtain the actual solutions, \(\hat{t}_0'\) and \(\hat{t}_1'\), which can be defined as 
+\begin{equation}
+  \hat{t}_0' \coloneq \begin{cases}
+    0 & \textrm{ if } \hat{t}_0 < 0 \textrm{ and } \hat{t}_1 \geq 0\\
+    \hat{t}_0 & \textrm{ if } \hat{t}_0 \in [0, 1]\\
+    \infty &\textrm{ otherwise }
+  \end{cases}\\
+  \hat{t}_1' \coloneq \begin{cases}
+    1 & \textrm{ if } \hat{t}_1 > 1 \textrm{ and } \hat{t}_0 \leq 1\\
+    \hat{t}_1 & \textrm{ if } \hat{t}_1 \in [0, 1]\\
+    \infty &\textrm{ otherwise }
+  \end{cases},
+\end{equation}
+where the \emph{otherwise} case also accounts for the absence of a solution to \cref{eq:eq_solve_main}. This corresponds to the smallest and largest points in the modified interval \([\hat t_0, \hat t_1] \cap [0, 1]\), which represents the actual solution to the line segment intersection problem. \cref{fig:solution_kinds} shows how this affects the solutions.
+For a line segment \(\overline{uv}\) and a point \(w\) we denote \(\hat t_0'(\overline{uv}, w)\) and \(\hat t_1'(\overline{uv}, w)\) to be the respective modified solutions for the given line segment and point. We do not include \(\varepsilon\) in that notation as it is fixed throughout all algorithms and thus requires no disambiguation.
+
+\begin{figure}
+    \centering
+    % First row of subfigures
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-1.pdf}
+      \caption{\(\hat t_0 < 0 < \hat t_1 < 1\) \\ 
+        \(\hat t_0' = 0, \hat t_1' = \hat t_1\)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-2.pdf}
+      \caption{\(0 < \hat t_0 < \hat t_1 < 1\)\\ 
+        \(\hat t_0' = \hat t_0, \hat t_1' = \hat t_1\)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-3.pdf}
+      \caption{\(0 < \hat t_0 < 1 < \hat t_1 \) \\
+        \(\hat t_0' = \hat t_0, \hat t_1' = 1\)}
+    \end{subfigure}
+
+    % Second row of subfigures
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-4.pdf}
+      \caption{\(\hat t_0 < \hat t_1 < 0\)\\ 
+        \(\hat t_0' = \hat t_1' = \infty\)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-5.pdf}
+      \caption{\(\hat t_0 < 0 < 1 < \hat t_1\)\\ 
+        \(\hat t_0' = 0, \hat t_1' = 1\)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-6.pdf}
+      \caption{\(1 < \hat t_0 < \hat t_1\)\\ 
+        \(\hat t_0' =  \hat t_1' = \infty\)}
+    \end{subfigure}
+
+    % Third row of subfigures (centered)
+    \begin{subfigure}[t]{0.3\textwidth}
+      \includegraphics{tikz-fig/solution-kinds-7.pdf}
+      \caption{\(\hat t_0, \hat t_1\) do not exist\\ 
+        \(\hat t_0' = \hat t_1' = \infty\)}
+    \end{subfigure}
+    \caption{The different kinds of solutions. Note that we associate \(0\) with \(u\), \(1\) with \(v\) and \(t\) with \((1-t)u + tv\)}
+    \label{fig:solution_kinds}
+\end{figure}
+
+In general, determining these solutions requires finding roots of polynomials. Therefore, there is no exact solution algorithm for Minkowski distances \(\delta_e\) when \(e > 4\), as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, Manhattan Distance, and Chebyshev Distance. 
+
+\subsection{Euclidean Distance}
+\label{subsubsec:eq_euclidean_distance}
+For the Euclidean distance, \cref{eq:eq_solve_main} simplifies to 
+\begin{align*}
+  \| (u - w) + t(v - u) \|_2 &= \varepsilon \\
+  \| (u - w) + t(v - u) \|_2^2 &= \varepsilon^2 \\
+  \| u - w \|_2^2 + 2\braket{u - w | v - u} t  +  \| v - u \|_2^2 t^2 &= \varepsilon^2 \\
+  \underbrace{\delta(u,w)^2 - \varepsilon^2}_{\alpha_0} + \underbrace{2\braket{u - w | v - u} }_{\alpha_1}t  +  \underbrace{\delta(v, u)^2}_{\alpha_2} t^2 &= 0 \\
+  \alpha_0 + \alpha_1 t  + \alpha_2 t^2 &= 0.
+\end{align*}
+
+Here, we use Dirac notation for the inner product as \(\langle \cdot , \cdot \rangle\) denotes a polyline of length \(1\).
+This is a quadratic equation in \(t\) and can be solved explicitly as 
+
+\begin{equation}
+  \hat t_{0,1} = \frac{-\alpha_1 \pm \sqrt{\alpha_1^2 - 4\alpha_0\alpha_2}}{2\alpha_2}.\label{eq:sol_explicit_euclidean}
+\end{equation}
+
+If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is negative, there is no real solution. Otherwise, we can compute the two roots and identify the smallest and largest among them. 
+
+
+\subsection{Manhattan Distance}
+\label{subsubsec:eq_manhattan_distance}
+For the Manhattan distance, \cref{eq:eq_solve_main} simplifies to 
+\begin{equation}
+  \sum_{i=0}^d |u_i - w_i + t (v_i - u_i)| = \varepsilon. \label{eq:solve_manhattan}
+\end{equation}
+
+To handle both the Manhattan and Chebyshev distances, we make use the following observation: 
+\begin{observation}\label{obs:permute-coordinates}
+  Let \(u, v \in \R^d\) and let \(\sigma: \set{1, \dots, d} \to \set{1, \dots, d}\) be a permutation. Define \(\sigma(u) \in \R^d\) as the vector obtained by permuting the coordinates of \(u\) according to \(\sigma\), i.e., \(\sigma(u)_i = u_{\sigma(i)}\) for each \(i\). Then \(\delta_\ell(u, v) = \delta_\ell(\sigma(u), \sigma(v))\) for any \(\ell \in [1, \infty]\).
+\end{observation}
+
+Note that the term \(|u_i - w_i + t (v_i - u_i )|\) takes on either the value \(u_i - w_i + t(v_i - u_i)\) or its negation, depending on the sign. For a fixed \(t\), each term in the sum becomes a linear expression in \(t\), and the entire equation reduces to a linear equation, which is trivial to solve. 
+
+We define 
+  \[t_i \coloneq \frac{w_i - u_i}{v_i - u_i},\]
+which is the zero of the respective coordinate. Let \(\sigma:\set{1,\dots, d} \to \set{1,\dots, d}\) be the sorting permutation such that 
+  \[t_{\sigma(1)} < t_{\sigma(2)} < \cdots < t_{\sigma(d)}.\] 
+By applying this permutation to both \(u-w\) and \(v -u\), the overall distance remains unchanged by \cref{obs:permute-coordinates}. 
+
+Within any interval \(t \in [t_{\sigma(i)}, t_{\sigma(i+1)}]\), each term in the sum can be simplified to a linear form without absolute values. Thus, over each such interval, the equation can be solved analytically. We then verify whether the obtained solution lies within the current interval. 
+
+A na\"ive implementation using a sweep-line approach would compute the \(t_i\), sort them, and evaluate each interval in linear time. To check each of the \(d+1\) intervals\footnote{Additionally, we need to account for the intervals \((-\infty, t_{\sigma(1)}]\) and \([t_{\sigma(d)}, \infty)\)} requires \(\O(d^2)\) runtime in total. However, by observing that only a single term in the sum changes sign between adjacent intervals, we can incrementally update the linear expression in constant time, reducing the complexity to \(\O(d \log d)\), dominated by the sorting step. 
+
+We also address two edge cases:
+\begin{itemize}
+	\item Coinciding \(t_i\): No special treatment is needed; these form single point intervals and thus can be ignored. If the solution is exactly the point in that interval it is also in the neighboring intervals as the total function is continuous in \(t\).
+	\item \(u_i = v_i\): In this case, the corresponding term becomes a constant and can be subtracted from \(\varepsilon\).
+\end{itemize}
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{vectors \(u, v, w \in \R^d\), \(\varepsilon > 0\)}
+  \KwResult{Solution to \cref{eq:solve_manhattan}}
+  \BlankLine
+  \(global\_slope \gets 0, global\_offset \gets 0\) \;
+  \(events \gets Array(d)\)
+  \For{\(i = 1, \dots, d\)}{
+    \(slope \gets v_i - u_i, offset \gets u_i - w_i\)\;
+    \If{\(slope < 0\)}{
+      \(slope \gets -slope, offset \gets -offset\)
+    } \ElseIf{\(slope = 0\)}{
+      \(\varepsilon \gets \varepsilon - |offset|\)\;
+      \Continue
+    }
+    \(zero \gets - \frac{offset}{slope}\)\;
+    \If{\(zero \leq 0\)}{
+      \(global\_offset \gets global\_offset + offset\)\;
+      \(global\_slope \gets global\_slope + slope\)\;
+      \Continue
+    } 
+    \(global\_offset \gets global\_offset - offset\)\;
+    \(global\_slope \gets global\_slope - slope\)\;
+    \If{\(zero \geq 1\)}{
+      \Continue
+    }
+    \(events.append((zero, slope, offset))\)\;
+  }
+  Sort \(events\) by their \(zero\) component\;
+  \(start \gets 0\)\;
+  \For{\((zero, slope, offset) \in events\)}{
+    Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, zero]\) and report it if so\;
+    \(global\_offset \gets global\_offset + 2offset\)\;
+    \(global\_slope \gets global\_slope + 2slope\)\;
+    \(start \gets zero\)
+  }
+  Test if solution \(\frac{\varepsilon - global\_offset}{global\_slope} \in [start, 1]\) and report it if so\;
+
+  \caption{manhattan\_solver(\(u, v, w, \varepsilon\))}
+  \label{algo:solve_manhattan}
+\end{algorithm}
+
+Finally, we can further reduce the runtime to expected linear time by observing that a full ordering of the \(t_i\) values is unnecessary. Instead, we only require the two values that bound the potential solutions. This allows us to use a modified version of the Quickselect algorithm to find the relevant boundaries in \(\O(d)\) expected time\footnote{This holds under the assumption of random pivot selection. A deterministic worst-case linear runtime is also achievable using robust pivot strategies, such as the median-of-medians method.}. 
+
+The structure of the algorithm remains similar. We work with an array of candidate pairs \((a, b)\), each representing a term of the form \(|a+bt|\). Initially, we define artificial left and right boundary tuples \((1, 0)\) and \((-1, 0)\), representing infinite bounds\footnote{We can also use the artificial bounds \((0, 1)\) to represent \(0\) and \((-1, 1)\) to represent \(1\) and ignore all coordinates outside of the interval \((0, 1)\) as previously. Note again that the zero of \((a, b)\) is \(-\frac{a}{b}\) forcing a negative sign.}. 
+
+To compare tuples \((a, b)\) and \( (c,d)\), we define an ordering based on the location of their respective zero crossing, i.e.,
+  \[(a, b) < (c, d) \quad \iff \quad -\frac{a}{b} < - \frac{c}{d} \quad \iff \quad ad > bc.\]
+This comparison is division-free, compatible with the artificial boundaries, and ensures numerical stability.  
+
+At each iteration, we 
+\begin{enumerate}
+	\item Choose a pivot \((a, b)\)	and find all tuples in the array that have the same zero (i.e., the same \(-\frac{a}{b}\)).
+	\item Merge those terms into the pivot by adding their components, keeping the same zero-crossing.
+	\item Partition the array into those before and after the pivot (based on the ordering defined above).
+	\item Maintain the global linear equation not only for the start but also directly before the pivot, updating it as in \cref{algo:solve_manhattan}.
+\end{enumerate}
+
+We then evaluate the distance at the pivot point using the current linear expression. Since the Manhattan distance is a convex function of \(t\), we can determine which direction to search based on the slope: 
+\begin{itemize}
+	\item If the distance at the pivot is greater than \(\varepsilon\), we can continue in the direction that the slope at the pivot indicates\footnote{If the slope at the pivot is negative, the solution must lie to the right. If the slope is positive, the solution lies to the left.}.
+	\item If the distance at the pivot is less than \(\varepsilon\), then one solution lies to the left of the pivot and one to the right. We can then search each side independently to find both.
+\end{itemize}
+
+This approach behaves like a simplified convex-aware gradient descent and ensures that solutions are found (if they exist) with high efficiency. 
+
+ It is also possible that no solution exists, in which case the function value at all breakpoints will exceed \(\varepsilon\). 
+
+ Throughout the search, we update the left and right boundary tuples to maintain the current interval of interest, replacing either with the pivot depending on which half of the array we are searching. 
+
+\subsection{Chebyshev Distance}
+\label{subsubsec:eq_chebyshev_distance}
+For the Chebyshev distance, \cref{eq:eq_solve_main} simplifies to 
+\begin{equation}
+  \max_{i = 1,\dots, d} |u_i - w_i + t(v_i - u_i)| = \varepsilon.\label{eq:solve_chebyshev}
+\end{equation}
+
+\paragraph{Na\"ive Approach.}
+A simple algorithm evaluates all possible breakpoint candidates. Each absolute value expression \(|u_i - w_i + t(v_i - u_i)|\) has two branches (positive and negative), resulting in \(2d\) candidate expressions. At each such candidate value \(t\), we compute whether that term is indeed the global maximum in \cref{eq:solve_chebyshev}. This leads to a straightforward \(\O(d^2)\) time algorithm: each candidate is evaluated in \(\O(d)\) time.
+
+For low dimensions, especially \(d = 2\), this approach is practical. Furthermore, as with the Manhattan case, we may restrict considerations to \(t \in [0, 1]\), reducing the number of candidates.
+
+\paragraph{Geometric Approach. }
+To improve performance, we observe that each term in the maximum of \cref{eq:solve_chebyshev} is linear in \(t\), forming a collection of \(2d\) linear functions. Solving this equations corresponds to tracking the upper envelope of these lines over the interval \([0, 1]\) and identifying when the envelope reaches value \(\varepsilon\).
+
+We can adapt a sweep-line method inspired by the Bentley-Ottmann algorithm~\cite{computational_geometry}, modified for our use case: 
+\begin{enumerate}
+	\item We sort all lines in decreasing order of their initial value (offset), breaking ties using slope.
+	\item We construct a doubly linked list to maintain the ordering of active lines. When two lines intersect, the lower one is removed, and only the upper continues to be tracked.
+	\item A priority queue holds upcoming intersections. At each step, we remove the lower line at the intersection and enque the next relevant intersection. 
+	\item When the topmost line changes, we check whether it intersects the level \(\varepsilon\) between the last and current intersection.
+\end{enumerate}
+
+This process guarantees that only \(\O(d)\) relevant intersections are processed, even if there are potentially \(\O(d^2)\) total line intersections. A self-balancing tree is unnecessary as deletion is the only operation that needs to be performed dynamically. An array-based doubly-linked list suffices, where each element stores previous and next nodes and the line parameters which are the offset and slope. 
+
+Pseudocode for this approach is provided in \cref{algo:solve_chebyshev_init} and \cref{algo:solve_chebyshev}. An example run of this algorithm is illustrated in \cref{fig:chebyshev_algo}. For a complete solution, the logic from \cref{subsec:equation_solving} on tracking valid solutions must also be applied.
+
+\begin{figure}
+  \centering 
+  \begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics{tikz-fig/chebyshev-algo-1.pdf}
+    \caption{All candidate lines}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics{tikz-fig/chebyshev-algo-2.pdf}
+    \caption{Lines that are not fully negative}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics{tikz-fig/chebyshev-algo-3.pdf}
+    \caption{Lines that are not fully below another line}
+  \end{subfigure}\\
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics{tikz-fig/chebyshev-algo-4.pdf}
+    \caption{Find next intersection. Here between topmost line so check for solution.}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics{tikz-fig/chebyshev-algo-5.pdf}
+    \caption{Find next intersection. No solution found}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.3\textwidth}
+    \includegraphics{tikz-fig/chebyshev-algo-6.pdf}
+    \caption{Check final line for an intersection}
+  \end{subfigure}
+  \caption{Line representation of the equation \(\delta_\infty((0,0,0) + t(-2,0,3), (-2,-1,1)) = 1.5\)}
+  \label{fig:chebyshev_algo}
+\end{figure}
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{vectors \(u, v, w \in \R^d\), \(\varepsilon > 0\)}
+  \BlankLine
+  \(candidates \gets \set{(2i, u_i - w_i, v_i - u_i), (2i+1, w_i - u_i, u_i - v_i) | i = 0, \dots, d - 1}\) \;
+  \(queue \gets PriorityQueue()\) \;
+  \(list \gets Array(|candidates|)\) \;
+  sort candidates according to second component descendingly,
+  in case of ties use the third component as tie breaker descendingly \;
+  \(PREV \gets 0, NEXT \gets 1\) \tcp{constants for readability}
+  \(curr \gets -1\) \;
+  \For{\((i, a, b) \in candidates\)}{
+    \If{\(curr = -1\)} {
+      \(curr \gets i, a' \gets a, b' \gets b\)\;
+      \(list[curr] \gets (-1, -1, a, b)\) \;
+      \Continue
+    } 
+
+    \If{\( a' + b' \geq a + b\)}{
+      \Continue \tcp{new line fully below current line so never maximum}
+    } 
+
+    \(list[curr][NEXT] \gets i, list[i] \gets (curr, -1, a, b)\) \;
+    \(intersection \gets \frac{a' - a}{b - b'}\) \tcp{always in \([0,1]\)}
+    \(queue.insert\_with\_priority((curr, i), intersection)\) \;
+    \(curr \gets i, a' \gets a, b' \gets b\) \;
+  }
+
+  \caption{chebyshev\_solver\_initialization(\(u, v, w\))}
+  \label{algo:solve_chebyshev_init}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{vectors \(u, v, w \in \R^d\), \(\varepsilon > 0\)}
+  \KwResult{Solution to \cref{eq:solve_chebyshev}}
+  \BlankLine
+  \(chebyshev\_solver\_initialization(u, v, w)\) \;
+  \(last\_intersection \gets 0\) \;
+  \While{\(\lnot queue.empty()\)}{
+    \((i, j), intersection \gets queue.poll()\) \;
+    \If{\(list[i][PREV] = -1 \lor list[j][PREV] = -1\)}{
+      \Continue \tcp{One of the lines already removed, no intersection}
+    } 
+    \If{\(i = HEAD\)}{
+      \(HEAD \gets j\) \;
+      \(\_, \_, a, b \gets list[i]\) \;
+      \If{\(b = 0\)}{
+        \If{\(a = \varepsilon\) }{
+          Mark \(last\_intersection\) as earliest solution or \(intersection\) as last solution \;
+        }
+        \(last\_intersection \gets intersection\) \;
+        \Continue 
+      }
+      \(solution \gets \frac{\varepsilon - a}{b}\) \;
+      Mark \(solution\) as earliest or last solution if \(solution \in [last\_intersection, intersection]\) \;
+      \(last\_intersection \gets intersection\) \;
+      \Continue
+    }
+    \(before_i \gets list[i][PREV]\) \;
+    \(list[before_i][NEXT] \gets j, list[j][PREV] \gets before_i\) \;
+    \(list[i][PREV] \gets -1\) \tcp{mark as removed}
+    \(last\_intersection \gets intersection\) \;
+    \If{\(before_i \neq HEAD\)}{
+      \(\_, \_, a, b \gets list[j]\) \;
+      \(\_, \_, a', b' \gets list[before_i]\) \;
+      \(intersection \gets \frac{a' - a}{b - b'}\) \tcp{also in \([0,1]\)}
+      \(queue.insert\_with\_priority((before_i, j), intersection)\) \;
+    }
+  }
+  Check for solution in \([last\_intersection, 1]\) \;
+
+  \caption{chebyshev\_solver(\(u, v, w, \varepsilon\))}
+  \label{algo:solve_chebyshev}
+\end{algorithm}
+
+\paragraph{Algebraic Approach.}
+There exists a simpler, linear-time algorithm to solve \cref{eq:solve_chebyshev}, based on rewriting the condition as a system of inequalities.
+
+\begin{observation}
+	Let \(a_1, \dots, a_d, b_1, \dots, b_d, t \in \R\). Then
+	\[\max_{i=1,\dots, d} |a_i + tb_i| = \varepsilon \iff \forall i \in \set{1,\dots, d}:  |a_i + tb_i| \leq \varepsilon \land \exists i \in \set{1,\dots, d}: |a_i + tb_i| = \varepsilon.\]
+\end{observation}
+
+This observation allows us to reduce the problem to computing and intersecting a set of intervals. Each inequality \(|a_i + tb_i| \leq \varepsilon\) defines a valid interval for \(t\), given by 
+	\[t \in \left[\frac{-\varepsilon - a_i}{b_i}, \frac{\varepsilon - a_i}{b_i}\right] \quad \text{if } b_i > 0.\]
+
+If \(b_i < 0\), we can flip the sign of both \(a_i\) and \(b_i\) to make the slope positive. If \(b_i = 0\), the term reduces to \(|a_i|\). This yields
+\begin{itemize}
+	\item No solution if \(|a_i| > \varepsilon\),
+	\item A trivially satisfied constraint if \(|a_i| < \varepsilon\) that can be ignored, or 
+	\item An always-satisfied constraint if \(|a_i| = \varepsilon\) that must be accounted for as a possible solution.
+\end{itemize}
+
+The solution set is the intersection of all valid intervals, which can be computed in linear time by maintaining the maximum of the left interval boundaries and the minimum of the right ones. We then verify whether any expression \(|a_i + tb_i| = \varepsilon\) is realized within this interval.
+
+\paragraph{Summary}
+We have described three methods to solve \cref{eq:solve_chebyshev}: A na\"ive, quadratic runtime method, an efficient, geometric \(\O(d\log d)\) method and a simple and elegant \(\O(d)\) method using interval intersection. For practical implementations, the linear method is typically preferable due to its clarity and performance.
+
+
+

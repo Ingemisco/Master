@@ -7,7 +7,7 @@
 As the main step to achieve cubic runtime, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} introduce the \emph{cell reachability} problem and show how to solve it efficiently. We introduce a slightly generalized version of the problem and a modified version of the algorithm. 
 
 \begin{definition}[Cell Reachability Problem]
-  In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in \R_{>0}\), as well as intervals \(I_1, \dots, I_{n-1} \subseteq [0, 1]\). 
+	In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in (0, \infty]\), as well as intervals \(I_1, \dots, I_{n-1} \subseteq [0, 1]\). 
 
 	\begin{itemize}
 		\item We write write \(I_i = [a_i, b_i]\) for the boundaries of the interval \(I_i\) for \(i \in \set{1, \dots, n - 1}\). If \(I_i = \empty\) we write \(a_i = \infty\) and \(b_i = -\infty\).
@@ -20,7 +20,7 @@ As the main step to achieve cubic runtime, \citeauthor{polyline_simplification_h
 
 This is to be interpreted as a set of \(n\) consecutive square cells arranged in a line. Each has an assigned entry-cost and an exit-cost to be computed. The intervals are passages between neighboring cells. See \cref{fig:ex_cell_reachability_statement} for an example instance with solution.
 
-This definition only differs from the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in that we allow positive real entry-costs \(\lambda \in \R_{>0}\) instead of integral one and that we allow empty intervals. The first modification can also be solved with their original algorithm but only integral costs are used for the simplification algorithm. Empty intervals can occur but they handle them by performing cell reachability multiple times which we avoid. 
+This definition only differs from the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in that we allow positive real or infinite entry-costs \(\lambda \in (0, \infty]\) instead of integral ones and that we allow empty intervals. The first modification can also be solved with their original algorithm but only integral costs (including infinite costs) are used for the simplification algorithm. Empty intervals can occur but they handle them by performing cell reachability multiple times.  This makes their cell reachability algorithm simpler but forces the caller to know how to handle this case.
 
 \begin{figure}[htb]
   \centering
@@ -175,13 +175,87 @@ Eventually, the additional return condition on lines 7 and 8 is triggered as the
 	\label{tab:cell_reachability_execution}
 \end{table}
 
-
-
-
-
-
 \subsection{Simplification Algorithm}
 \label{ssec:simplification_algo_cubic}
+
+The \(\O(n^3)\) algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} is a modification of the original polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} that improves the computations of each table entry. The cubic runtime per entry is brought down to amortized constant time per entry resulting (with some restructuring of the algorithm) in total cubic runtime. 
+
+Similar to the Fréchet distance decision algorithm we have outlined earlier, we separate the two cases of subpolylines that consist of one or multiple line segments. We motivate this separation both by the specialized algorithm we have presented, as well as our exploration of implicit polyline simplification. We recall the setting of the specialized Fréchet distance decision problem. Given a subpolyline \(P[j' + t' \dots j + 1]\), a line segment \(e = \overline(P(i')P(i))\), and \(\varepsilon > 0\). We want to determine if there is some point \(t \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], e) \leq \varepsilon\) and if so return the smallest one, in the implicit version we return the respective restriction point. We have seen that the restriction point depends on \(j' = j\), i.e., we compare a single line segment against \(e\), or \(j' < j\), i.e., we have a proper subpolyline. 
+In the case of \(j' < j\), there are two possible restriction points (if there is a solution): \(i'\) and \(r'\) where \(r'\) was the given restriction point that bounds \(t'\). If \(j' = j\) only \(i'\) can be the restriction point. This suggests that the two cases behave inherently different and should be treated separately. Instead of minimizing over all \(i' < i\) and \(j' \leq j\), we minimize separately over the cases \(i' < i, j' < j\) and \(i' < i, j' = j\) and finally combine the two results.
+
+We introduce two additional tables \(DP_1\) and \(DP_2\) with the same dimensions as \(DP\) which store the result of minimization over \(j'=j\) and \(j' < j\) respectively. It holds \(DP[k, i, j] = \min(DP_1[k,i,j], DP_2[k,i,j])\) trivially. 
+
+\subsubsection{Case \(j' = j\)}
+
+In this case we start and end on the same line segment \(e = \overline{P(j)P(j+1)}\) when traversing the whole polyline while we traverse the shortcut \(\overline{P{i'}P(i)}\). Let \(t'\) be the start on \(e\) and \(t\) be the end then \(t'\) must be some entry \(DP[k-1, \cdot, j']\) because of the way the algorithm works. As \(j' = j\), we only need to determine the respective \(i'\) such that \(t' = DP[k-1, i', j]\).
+
+Recall that Property 4 from \cref{lem:distance_properties} gives us a characterization of the Fréchet distance decision problem when comparing two line segments. 
+	\[\delta^F(P[j + t' \dots j + t], e) \leq \varepsilon \quad \iff \quad \delta(P(j+t'), P(j)) \leq \varepsilon \land \delta(P(j+t), P(j+1)) \leq \varepsilon\]
+	
+\(\delta(P(j+t'), P(j)) \leq \varepsilon\) already holds by construction of \(t'\) during the algorithm. Thus the only requirements on \(t\) are 
+\begin{enumerate}
+	\item \(t' \leq t\) as we cannot go backwards on the line and 
+	\item \(\delta(P(j + t), P(i)) \leq \varepsilon\).  
+\end{enumerate}
+
+We write \(t_i = \hat t_i'(e, P(i))\) for \(i \in \set{0, 1}\). A solution exists if and only if \([t_0, t_1] \cap [t', 1] \neq \emptyset\) by combining these two conditions. Thus, a solution exists if and only if \(t' \leq t_1 \) and the minimal solution is \(\max(t_0, t')\). 
+
+\begin{observation}
+	\(DP_1[k, i, j] = \min \set{ \max(\hat t'_0(e, P(i)), t') \mid i' \in \set{0 \dots, i - 1}, t' = DP[k-1, i', j], t' \leq \hat t_1'(e, P(i)) }\)
+\end{observation}
+
+Define the function \(f_{i,j}: \R \cup \set{\infty} \to [0, 1] \cup \set{\infty}\) with 
+	\[f_{i,j}(x) = 
+	\begin{cases}
+		\max(x, \hat t'_0(e, P(i))) &\textrm{if } x \leq \hat t'_1(e, P(i)) \\
+		\infty &\textrm{otherwise}
+	\end{cases}.\]
+	
+This allows us rewriting the above as \(DP_1[k, i, j] = f_{i, j}(\min \set{DP[k-1, i', j] \mid i' \in \set{0 \dots, i - 1} })\). We denote the inner term that is minimized as \(\overline{DP}_1[k,i,j] = \min \set{DP[k-1, i', j] \mid i' \in \set{0 \dots, i - 1}}\). 
+
+\begin{observation}
+	\[\overline{DP}_1[k,i,j] = \min (DP[k-1, i - 1, j], \overline{DP}_1[k, i - 1, j])\]
+\end{observation}
+
+This allows us computing \(DP_1\) in constant time as \(f_{i, j}\) and \(\overline{DP}_1\) can be computed in constant time.
+
+% TODO: Images for proofs and such 
+
+\subsubsection{Case \(j' < j\)}
+
+In the minimization over all \(j' < j\) and \(i' < i\) there are quadratically many entries to consider. To achieve amortized constant runtime, we need to investigate the structure of these. 
+
+We already have noted that \(DP_2[k,i,j]\) can either take on the value \(\hat t_0'(\overline{P(j)P(j+1)}, P(i))\) or it does not exist. Once we have found a \(k\) such that it exists, it will propagate to all higher \(k\). The the only relevant information for \(DP_2[\cdot, i, j]\) is the least \(k\) such that \(DP_2[k,i,j]\) exists thus it suffices to compute the function \(\kappa_2(i,j)\) which is the such least \(k\) if it exists and \(\infty\) otherwise. Similarly, we define \(\kappa_1(i,j)\) through \(DP_1\) and \(\kappa(i,j)\) via \(DP\) as the smallest \(k\) such that the respective entry in its table exists. 
+
+Fix \(i\) and \(j\). We set \(t = \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) which is \(DP_2[k, i, j]\) for a large enough \(k\). The Fréchet distance decision problem to test for valid \(i'\) and \(j'\)in the minimization simplifies to testing 
+\begin{equation}\label{eq:dp2-ag}
+	\delta^F(P[j' + DP[\kappa(i', j'),i', j'] \dots j + t], \overline{P(i')P(i)}) \leq \varepsilon
+\end{equation}
+which makes the result of minimization the smallest of all these valid \(\kappa(i', j')\). For the correctness of this, note that if \(t' \coloneq DP[k, i', j']\) exists then \(\delta(P(j' + 1), P(i') ) \leq \varepsilon\), i.e., we can proceed on the line segment \(\overline{P(j' + t')P(j' + 1)}\) while standing still on the point \(P(i')\). Thus the exact value of \(t'\) does not matter, only its existance which is why we can use the smallest possible \(k\) such that this \(t'\) exists which is \(\kappa(i',j')\). 
+
+% TODO: Image, illustration of above 
+	
+Similarly to \(\overline{DP}_1\) we aim to organize the computations in \cref{eq:dp2-ag} in a way that performs the same computation only once for all entries. For this, we investigate the procedure to solve the Fréchet distance decision problem for the case of \(j' < j\). The procedure has three steps:
+\begin{enumerate}
+	\item Test that the initial points of the line segment and subpolyline are within distance \(\varepsilon\).
+	\item Test all inner points of the subpolyline while proceeding on the line segment. If it is not possible to proceed at any point, we return that there is no reachable point.
+	\item We compute the first reachable point on the last line segment of the subpolyline as the restriction caused by the end of the line segment. 
+\end{enumerate}
+
+The first of these three steps can be skipped altogether as it is guaranteed by the simplification algorithm. The third step can be trivially done in constant time. The second step is the nontrivial one. We need to traverse the line segment \(\overline{P(i')P(i)}\) which is required for all \(j' < j\). For example, all \(j' \leq 2 < j\) need to test if we can proceed through point \(2\) on the same line segment \(\overline{P(i')P(i)}\) motivating the computations of \(\kappa_2(i, j)\) that use the shortcut \(\overline{P(i')P(i)}\) for all \(j\) at once. 
+
+We reuse \cref{lem:ag-neq}. More specifically, we only incorporate its third condition as the other two are trivial. This means we need to find \(x_i \in [\hat t_0'(e, P(i)), \hat t_1'(e, P(i))]\) such that \(x_1 \leq \cdots \leq x_{n-1}\) for \(i \in \set{1, \dots, p - 1}\) and \(e = \overline{P(i')P(i)}\). This almost looks like an instance of cell reachability, we only have to determine the entry-costs and discover how to use the exit-costs. 
+
+We are interested in the least \(k\) for given \(i\) and \(i'\) such that \(e\) is a valid shortcut by which we can proceed on the subpolyline to \(j\). This \(k\) is exactly one more than the least \(k'\) such that we can find some \(j' < j\) and traverse the subpolyline from \(j' + t'\) to \(j\) where \(t' = DP[k', i', j']\). By setting the entry costs as \(\kappa(i',j')\) for each cell \(j'\) and the intervals between cells as the respective \(\hat t_0'\) and \(\hat t_1'\) as \cref{lem:ag-neq} suggests we can retrieve the solutions for \(j\) as the successor of the exit-cost of the respective cell. 
+
+Thus, we can find for fixed \(i'\) and \(i\) the least \(k\) for all \(j\) in linear time. To determine \(\kappa_2(i, j)\) we only need to minimize the just computed values over all \(i'\) in linear time per \(j\), so for all \(j\) we need quadratic runtime. In total, each cell entry is only used an amortized constant amount of times resulting in total cubic runtime. 
+
+Note that we need to restructure the algorithm: The outermost iteration is now over \(i\) and the innermost over \(k\) because of the data requirements of the just outlined procedure. 
+
+One might ask, if it is possible to achieve a runtime of \(k^*n^2\), i.e., an algorithm that gains massive speedup for small simplifications. This is likely not the case. \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} gave conditional lower bounds showing that in high dimensions for all \(\delta_\ell\) with \(\ell \in [1, \infty)\), \(\ell \neq 2\) no subcubic algorithm exists. Their reduction constructs a polyline that always has a constant size simplification so it is not even possible to construct a general \(\O(f(k^*)n^{3-\varepsilon})\) algorithm for any function \(f\) and \(\varepsilon > 0\).
+
+
+
 
 
 

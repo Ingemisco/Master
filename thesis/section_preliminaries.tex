@@ -1,0 +1,120 @@
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+This section introduces the notation, conventions, and definitions used throughout this report.  
+
+We denote the set of natural numbers \(\N\), including \(0\), and define positive natural numbers as \(\N_+ = \N \setminus\set{0}\).
+
+\subsection{Polylines}
+\label{ssec:polylines}
+
+The central geometric object of our study is the \emph{polyline}, defined as follows:
+
+\begin{definition}[Polyline]
+  Let \(d\in \N_+\) and \(n \in \N\) be natural numbers and \(u_0, \dots, u_n \in \R^d\) be \(d\)-dimensional points. 
+
+  The sequence \(P = \angl{u_0, \dots, u_n}\) is a \(d\)-dimensional \emph{polyline} of length \(n\). It consists of \(n+1\) many points which are connected by \(n\) line segments. 
+  \begin{itemize}
+    \item We interpret \(P\) as a function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for \(i \in \set{0, \dots, n}\).
+
+      Points in between are linearly interpolated, meaning that for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\) we set \(P(i + t) = (1- t)u_i + t u_{i+1} = u_i + t(u_{i+1} - u_i)\)
+    \item We denote \(P[t'\dots t]\) as the subpolyline from \(t' \in [0, n]\) to \(t \in [t', n]\). Formally, \[P[t'\dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2) \dots, P(\ceil{t} - 1), P(t)}.\]
+  \end{itemize}
+
+\end{definition}
+We denote the dimension by \(d\) throughout the report. Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case they are mostly denoted as \(e\). The length of a polyline is typically \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline.
+
+
+\subsection{Distances}
+\label{ssec:distances}
+We distinguish between distances between points and distances between polylines. 
+
+\begin{definition}[Distances]\label{def:point_distance}
+  Let \(d \in \N_+\) and \(\ell \geq 1\).
+  \begin{itemize}
+    \item The \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) is defined as 
+      \[\delta'_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \sum_{i = 1}^d |u_i - v_i|^\ell.\]
+    \item The \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) is 
+      \[\delta_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \delta'_\ell(u, v)^{\frac1\ell} = \parenth{\sum_{i = 1}^d |u_i - v_i|^\ell}^{\frac1\ell}.\]
+    \item The special case of \(\delta_2'\) is called the \emph{unnormalized Euclidean distance} and \(\delta_2\) the \emph{(normalized) Euclidean distance}.
+    \item In the case of \(\ell = 1\), the unnormalized and normalized versions coincide. We call \(\delta_1' = \delta_1\) the \emph{Manhattan distance}. 
+    \item We further define the \emph{Chebyshev distance} \(\delta'_\infty = \delta_\infty\) as 
+      \[\delta_\infty:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \max_{i = 1, \dots, d} |u_i - v_i|.\]
+    \item We define the auxiliary function \(\nu_\ell:\R_{\geq 0} \to \R_{\geq 0}\) as \(\nu_\ell(x) = x^\ell\) for \(\ell \neq \infty\) and \(\nu_\infty(x) = x\).
+  \end{itemize}
+
+  The subscript \(\ell\) is omitted when clear from context.
+\end{definition}
+
+The Euclidean distance (\(\ell = 2\)) is the most widely used metric. The Manhattan distance (\(\ell = 1\)) and Chebyshev distance (\(\ell = \infty\)) are computationally simpler, as they avoid roots. 
+Other Minkowski distances are less common due to numerical instability and lack of geometric interpretation. The unnormalized variants will later allow us to avoid explicit root computations in algorithms. 
+
+\begin{definition}[Fréchet Distance]
+  Let \(\delta\) be a normalized distance. The \emph{Fréchet distance} \(\delta^F\) between two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\), respectively, is 
+	\[\delta^F(P, Q) = \inf_{\substack{f \in \mathcal{C}([0,1], [0, p]) \\ g \in \mathcal{C}([0,1], [0, q])}} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
+	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, monotone functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) \(f(b) = d\).
+\end{definition}
+
+\begin{definition}[Polyline Simplification]
+	Given a polyline \(P\) of length \(n\), and \(\varepsilon > 0\), and a distance \(\delta\), \emph{global Fréchet simplification problem} seeks a minimal subsequence \(Q\) of \(P\)'s vertices that includes both the start \(P(0)\) and end \(P(n)\), and \(\delta^F(P, Q) \leq \varepsilon\).
+\end{definition}
+
+This differs from \emph{local} simplification, where each line segment \(e = \overline{S(i)S(i+1)}\) must satisfy \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\) for its corresponding subpolyline. We focus exclusively on the global Fréchet case.
+
+\subsection{Properties of Distances}
+All introduced distances are \emph{metrics} on \(\R^d\)~\cite{metric_spaces}:
+
+\begin{definition}[Metric Spaces]\label{def:metric}
+  Let \(X\) be a set and \(\delta:X\times X \to \R\). \(\delta\) is a \emph{metric} on \(X\) if and only if for each \(a, b, c \in X\), 
+  \begin{itemize}
+    \item \(\delta(a, b) \geq 0\) with equality if and only if \(a = b\), \hfill (Positivity)
+    \item \(\delta(a, b) = \delta(b, a)\), and \hfill (Symmetry)
+    \item \(\delta(a, c) \leq \delta(a, b) + \delta(b, c)\). \hfill (Triangle Inequality)
+  \end{itemize}
+
+  A set \(X\) together with a metric \(\delta\) is called a \emph{metric space}.
+\end{definition}
+
+\begin{observation}\label{obs:unnormalize}
+  Let \(\ell \in [1, \infty]\), \(\varepsilon > 0\), and \(u, v \in \R^d\). Then 
+    \[\delta_\ell(u, v) \leq \varepsilon \iff \delta_\ell'(u, v) \leq \nu_\ell(\varepsilon).\]
+\end{observation}
+
+\begin{lemma}\label{lem:distance_properties}
+	Let \(\delta\) be any Minkowski distance (including Chebyshev). For all \(u, v, w, x \in \R^d\), \(a \in \R\), and \(t \in [0, 1]\)
+  \begin{enumerate}
+		\item \(\delta(u, v) = \delta(u - w, v - w)\), \hfill (Translation)
+		\item \(\delta(a u, a v) = |a| \delta(u, v)\), \hfill (Homogeneity)
+		\item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\) then also \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\), and \hfill (Convexity)
+		\item \(\delta^F(\overline{uv}, \overline{wx}) \leq \varepsilon\) if and only if \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, x) \leq \varepsilon\).
+	\end{enumerate}
+
+\end{lemma}
+
+Convexity implies that \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is a convex set for fixed \(v \in \R^d\) and \(\varepsilon \geq 0\), motivating the name of the property. The fourth property gives us a characterization of the Fréchet distance when comparing single line segments. 
+
+\begin{proof}
+  \begin{enumerate}
+    \item Follows directly from definitions.
+    \item Follows directly from definitions.
+    \item Assume \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). Then
+			\begin{flalign*}
+				\delta((1-t)u + tv, w) &= \delta((1-t)u + tv- w, 0) && \textrm{Translation}\\
+         &= \delta((1-t)(u-w)+t(v-w), 0) \\
+         &= \delta((1-t)(u-w),t(w-v)) && \textrm{Translation}\\
+         &\leq \delta((1-t)(u-w),0) + \delta(0,t(w-v)) && \textrm{Triangle Inequality}\\
+				 &= (1-t)\delta(u,w) + t\delta(v,w) && \textrm{Homogeneity} \\
+				 &\leq (1-t)\varepsilon + t\varepsilon = \varepsilon.\\
+    \end{flalign*}
+  \item The forward direction, follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)). 
+		For the backward direction, we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
+    \begin{flalign*}
+      \delta((1-f(t))u + f(t)v, (1-g(t))w + g(t)x) &= \delta((1-t)u + tv, (1-t)w + tx) \\
+                                                   &= \delta((1-t)(u-w), t(x-v)) && \textrm{Translation}\\
+                                                   &\leq \delta((1-t)(u-w), 0) + \delta(0, t(x-v)) && \textrm{Triangle Inequality}\\
+                                                   &= (1-t)\delta(u, w) + t\delta(x, v) && \textrm{Homogeneity and Translation} \\
+                                                   &\leq (1-t)\varepsilon + t\varepsilon \\
+																									 &\leq \varepsilon.
+    \end{flalign*}
+  \end{enumerate}
+\end{proof}
