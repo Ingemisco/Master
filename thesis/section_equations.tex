@@ -1,5 +1,5 @@
 \section{Equation Solving}
-\label{subsec:equation_solving}
+\label{sec:equation_solving}
 Before delving into the actual algorithms, we first need to address a problem at the core of the following procedures: the \emph{line segment intersection problem}. 
 \begin{definition}[Line Segment Intersection Problem]
   Let \(e = \overline{e_1e_2}\) be a \(d\)-dimensional line segment, \(u \in \R^d\) a point, \(\varepsilon > 0\) and \(\delta\) a distance function. In the \emph{line segment intersection problem}, we aim to determine the set \(\set{t \in [0, 1] \mid \delta(e_1 + t(e_2 - e_1), u) \leq \varepsilon}\), where \(t\) represents the parameter along the line segment \(e\).
@@ -91,28 +91,28 @@ For a line segment \(\overline{uv}\) and a point \(w\) we denote \(\hat t_0'(\ov
 In general, determining these solutions requires finding roots of polynomials. Therefore, there is no exact solution algorithm for Minkowski distances \(\delta_e\) when \(e > 4\), as such polynomials are not solvable. Here, we derive explicit solutions for the Euclidean Distance, Manhattan Distance, and Chebyshev Distance. 
 
 \subsection{Euclidean Distance}
-\label{subsubsec:eq_euclidean_distance}
+\label{ssec:eq_euclidean_distance}
 For the Euclidean distance, \cref{eq:eq_solve_main} simplifies to 
 \begin{align*}
   \| (u - w) + t(v - u) \|_2 &= \varepsilon \\
   \| (u - w) + t(v - u) \|_2^2 &= \varepsilon^2 \\
   \| u - w \|_2^2 + 2\braket{u - w | v - u} t  +  \| v - u \|_2^2 t^2 &= \varepsilon^2 \\
-  \underbrace{\delta(u,w)^2 - \varepsilon^2}_{\alpha_0} + \underbrace{2\braket{u - w | v - u} }_{\alpha_1}t  +  \underbrace{\delta(v, u)^2}_{\alpha_2} t^2 &= 0 \\
-  \alpha_0 + \alpha_1 t  + \alpha_2 t^2 &= 0.
+  \underbrace{\delta(u,w)^2 - \varepsilon^2}_{\alpha_0} + 2\underbrace{\braket{u - w | v - u} }_{\alpha_1}t  +  \underbrace{\delta(v, u)^2}_{\alpha_2} t^2 &= 0 \\
+  \alpha_0 + 2\alpha_1 t  + \alpha_2 t^2 &= 0.
 \end{align*}
 
 Here, we use Dirac notation for the inner product as \(\langle \cdot , \cdot \rangle\) denotes a polyline of length \(1\).
 This is a quadratic equation in \(t\) and can be solved explicitly as 
 
 \begin{equation}
-  \hat t_{0,1} = \frac{-\alpha_1 \pm \sqrt{\alpha_1^2 - 4\alpha_0\alpha_2}}{2\alpha_2}.\label{eq:sol_explicit_euclidean}
+	\hat t_{0,1} = \frac{-2\alpha_1 \pm \sqrt{(2\alpha_1)^2 - 4\alpha_0\alpha_2}}{2\alpha_2} = \frac{-\alpha_1 \pm \sqrt{\alpha_1^2 - \alpha_0\alpha_2}}{\alpha_2}.\label{eq:sol_explicit_euclidean}
 \end{equation}
 
-If the discriminant \(\alpha_1^2 - 4\alpha_0\alpha_2\) is negative, there is no real solution. Otherwise, we can compute the two roots and identify the smallest and largest among them. 
+If the discriminant \(\alpha_1^2 - \alpha_0\alpha_2\) is negative, there is no real solution. Otherwise, we can compute the two roots and identify the smallest and largest among them. 
 
 
 \subsection{Manhattan Distance}
-\label{subsubsec:eq_manhattan_distance}
+\label{ssec:eq_manhattan_distance}
 For the Manhattan distance, \cref{eq:eq_solve_main} simplifies to 
 \begin{equation}
   \sum_{i=0}^d |u_i - w_i + t (v_i - u_i)| = \varepsilon. \label{eq:solve_manhattan}
@@ -212,7 +212,7 @@ This approach behaves like a simplified convex-aware gradient descent and ensure
  Throughout the search, we update the left and right boundary tuples to maintain the current interval of interest, replacing either with the pivot depending on which half of the array we are searching. 
 
 \subsection{Chebyshev Distance}
-\label{subsubsec:eq_chebyshev_distance}
+\label{ssec:eq_chebyshev_distance}
 For the Chebyshev distance, \cref{eq:eq_solve_main} simplifies to 
 \begin{equation}
   \max_{i = 1,\dots, d} |u_i - w_i + t(v_i - u_i)| = \varepsilon.\label{eq:solve_chebyshev}
@@ -236,7 +236,7 @@ We can adapt a sweep-line method inspired by the Bentley-Ottmann algorithm~\cite
 
 This process guarantees that only \(\O(d)\) relevant intersections are processed, even if there are potentially \(\O(d^2)\) total line intersections. A self-balancing tree is unnecessary as deletion is the only operation that needs to be performed dynamically. An array-based doubly-linked list suffices, where each element stores previous and next nodes and the line parameters which are the offset and slope. 
 
-Pseudocode for this approach is provided in \cref{algo:solve_chebyshev_init} and \cref{algo:solve_chebyshev}. An example run of this algorithm is illustrated in \cref{fig:chebyshev_algo}. For a complete solution, the logic from \cref{subsec:equation_solving} on tracking valid solutions must also be applied.
+Pseudocode for this approach is provided in \cref{algo:solve_chebyshev_init} and \cref{algo:solve_chebyshev}. An example run of this algorithm is illustrated in \cref{fig:chebyshev_algo}. For a complete solution, the logic from \cref{sec:equation_solving} on tracking valid solutions must also be applied.
 
 \begin{figure}
   \centering 
