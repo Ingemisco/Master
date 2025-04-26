@@ -9,7 +9,7 @@ an input \(\varepsilon\) we find the smallest simplification within \(\varepsilo
 \end{lemma}
 
 \begin{proof}
-  The datastructure is a sorted array of length \(n\) with entries \((I, S_I)\) where \(I \subseteq \R_{\geq 0}\) and \(S_I\) is a simplification of \(P\). The \(I\) are intervals of the form \([\varepsilon_i, \varepsilon_{i+1})\) that partition \(\R_{\geq 0}\) with \(0 = \varepsilon_0 < \varepsilon_1 < \cdots \varepsilon_{n} = \infty\) that satisfy the property that for all \(\varepsilon \in I\) the simplification size is the same and \(S_I\) is a simplification of that size with the smallest Fréchet distance. 
+  The datastructure is a sorted array of length \(n\) with entries \((I, S_I)\) where \(I \subseteq \R_{\geq 0}\) and \(S_I\) is a simplification of \(P\). The \(I\) are intervals of the form \([\varepsilon_i, \varepsilon_{i+1})\) that partition \(\R_{\geq 0}\) with \(0 = \varepsilon_0 < \varepsilon_1 < \cdots < \varepsilon_{n} = \infty\) that satisfy the property that for all \(\varepsilon \in I\) the simplification size is the same and \(S_I\) is a simplification of that size with the smallest Fréchet distance. 
 
 	Given an \(\varepsilon\) we can query for the simplification using binary search on this interval in time \(\O(\log(n))\) to lookup the simplification. By construction this simplification must be optimal.
 
@@ -74,9 +74,9 @@ Single points are themselves events and for proper intervals we only need to inc
 	The amount of events at which the simplification can change is 
 	\begin{itemize}
 		\item \(\O(n^4)\) when using the Euclidean distance, 
-		\item \(\O(dn^4)\) when using the Manhattan or Chebyshev distance,
-		\item \(\O(\ell n^4)\) when using an even \(\ell\)-Minkowski distance with \(\ell \geq 4\), or 
-		\item \(\O(d \ell n^4)\) when using an odd \(\ell\)-Minkowski distance
+		\item \(\O((dn)^4)\) when using the Manhattan or Chebyshev distance,
+		\item \(\O((\ell n)^4)\) when using an even \(\ell\)-Minkowski distance with \(\ell \geq 4\), or 
+		\item \(\O((d \ell n)^4)\) when using an odd \(\ell\)-Minkowski distance
 	\end{itemize}
 \end{observation}
 
@@ -158,7 +158,7 @@ For the Chebyshev distance, we get similar results as in the Manhattan distance.
 Again, the linear amount of solutions is indeed reached.
 
 \begin{lemma}
-	For any \(d \in \N\) there is a line segment \(e\) and points \(u\) and \(v\) in \(d+1\) dimensions such that \cref{eq:ds-chebyshev} has \(2d\) many solutions. 
+	For any \(d \in \N\) there is a line segment \(e\) and points \(u\) and \(v\) in \(d+1\) dimensions such that \cref{eq:ds-chebyshev} has \(2d + 2\) many solutions. 
 \end{lemma}
 
 In fact, this follows directly from \cref{lem:ds-manhattan} and the following interesting lemma.
@@ -168,7 +168,7 @@ In fact, this follows directly from \cref{lem:ds-manhattan} and the following in
 \end{lemma}
 
 \begin{proof}
-	Without loss of generality, assume that the terms \(|a_i + b_i t|\) are sorted by their zero ascendingly. Then \(f\) is a piecewise linear function which can be defined by the line segments \(x_1 + y_1 t\), \(x_2 + y_2 t\), \dots, \(x_d + t y_d\), \(-x_1 - y_1 t\) where the first and last term are the same except for their sign as before the first zero, all terms are negated and after the last zero, all terms are add in without the absolute value. These linear terms can be directly used to define \(f\) through maximization. 
+	Without loss of generality, assume that the terms \(|a_i + b_i t|\) are sorted by their zero ascendingly. Then \(f\) is a piecewise linear function which can be defined by the line segments \(x_1 + y_1 t\), \(x_2 + y_2 t\), \(\dots\), \(x_d + t y_d\), \(-x_1 - y_1 t\) where the first and last term are the same except for their sign as before the first zero, all terms are negated and after the last zero, all terms are add in without the absolute value. These linear terms can be directly used to define \(f\) through maximization. 
 \end{proof}
 
 To find the solutions, we can use the \(\O(d \log d)\) algorithm described in \cref{ssec:eq_chebyshev_distance} by simultaneously iterating over the both sides of the equation, comparing the current line segment of both on the respective upper envelope and testing if they are in the current interval. Again, the linear algorithm is seemingly not able to be adapted to this more general question.
@@ -181,15 +181,74 @@ To find the solutions, we can use the \(\O(d \log d)\) algorithm described in \c
 	Given a polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is 
 	\begin{itemize}
 		\item \(\O(d n^4 \log n)\) using the Euclidean distance, 
-		\item \(\O(d^2 n^4 \log(nd)\log(d))\) using the Manhattan or Chebyshev distance, 
-		\item \(\O(d\ell n^4 \log(\ell n)f(\ell, d))\) using an \(\ell\)-Minkowski distance with even \(\ell\), and 
-		\item \(\O(d^2\ell n^4 \log(d \ell n)\log(d \ell)f(\ell, d))\) using an \(\ell\)-Minkowski distance with odd \(\ell\),
+		\item \(\O(d^5 n^4 \log(nd)\log(d))\) using the Manhattan or Chebyshev distance, 
+		\item \(\O(d\ell^4 n^4 \log(\ell n)f(\ell, d))\) using an \(\ell\)-Minkowski distance with even \(\ell\), and 
+		\item \(\O(d^5\ell^4 n^4 \log(d \ell n)\log(d \ell)f(\ell, d))\) using an \(\ell\)-Minkowski distance with odd \(\ell\),
 	\end{itemize}
 
 	where \(f\) is the time required to solve the necessary equations.
 
 	For the Euclidean distance, no square root computations are necessary.
 \end{theorem}
+
+\begin{corollary}
+	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
+\end{corollary}
+
+\subsection{Equation Solving Optimality}
+We have previously seen how to find the solutions to the required equations for the Manhattan and Chebyshev case in runtime \(\O(d \log d)\). Similar to \cref{sec:equation_solving}, we might wonder if there are linear algorithms for both. As a final note, we show that this is not the case. 
+
+\begin{definition}[Integer Element Distinctness Problem]
+  In the \emph{integer element distinctness problem} we are given integers \(x_1, \dots, x_d \in \N\). Decide if there are \(1 \leq i < j \leq d\) such that \(x_i = x_j\), i.e., we want to decide if all the given integers are unique or if there are duplicates.
+\end{definition}
+
+\begin{theorem}[\citeauthor{a_lower_bound_for_the_integer_element_distinctness_problem}~\cite{a_lower_bound_for_the_integer_element_distinctness_problem}]
+	The integer element distinctness problem has a lower bound of \(\Omega(d \log d)\) for \(d\) given integers. 
+\end{theorem}
+
+\begin{definition}[Manhattan Equation Problem]\label{def:manhattan-problem}
+	In the \emph{Manhattan equation problem} we are given \(a_i, b_i, x_i, y_i \in \R\) for \(i \in \set{1, \dots, d}\). We want to determine the solutions \(t \in \R\) of the equation 
+	\begin{equation}
+		\sum_{i=1}^d \abs{a_i + b_i t} = \sum_{i=1}^d \abs{x_i + y_i t}.
+	\end{equation}
+\end{definition}
+
+\begin{definition}[Chebyshev Equation Problem]\label{def:chebyshev-problem}
+	In the \emph{Chebyshev equation problem} we are given \(a_i, b_i, x_i, y_i \in \R\) for \(i \in \set{1, \dots, d}\). We want to determine the solutions \(t \in \R\) of the equation 
+	\begin{equation}
+		\max_{i=1, \dots, d} \abs{a_i + b_i t} = \max_{i=1,\dots, d} \abs{x_i + y_i t}.
+	\end{equation}
+\end{definition}
+
+We will reduce the integer element distinctness problem to both of these equation problems to show an \(\Omega(d \log d)\) lower bound matching our algorithms. 
+
+\begin{lemma}
+	The Chebyshev equation problem as stated in \cref{def:chebyshev-problem} has a lower bound of \(\Omega(d \log d)\).
+\end{lemma}
+
+\begin{proof}
+	Given an instance of the integer element distinctness problem \(x_1, \dots, x_d \in \N_+\). Let \(C\) be a large integer that we specify later. We construct the following instance of the Chebyshev equation problem. 
+	\begin{equation}\label{eq:red-eq-chebyshev}
+		\max_{i=1, \dots, d} |C + 4x_i - 4x_i^2 t| = \max_{i=1, \dots, d} |C + 2(2x_i + 1) - (2x_i+1)^2 t|
+	\end{equation}	
+
+	We define the function \(f_a(t) = C + 2a - a^2 t\) which corresponds to the maximized term on both sides without absolute value. Note that \(f_a(\frac{1}{a}) > f_b(\frac{1}{a})\) for all \(a \neq b \in \R_{> 0}\) as 
+	\begin{alignat*}{3}
+		& 0 &&< (b-a)^2 \\
+		\iff & 0 &&> -\frac{1}{a}(b-a)^2 =  2b -\frac{b^2}{a} - a \\
+		\iff & C + 2a - \frac{a^2}{a} &&> C + 2b -\frac{b^2}{a} \\
+	\end{alignat*}
+
+	This means that the functions \(g(t) = \max_{i=1,\dots, d} f_{2x_i}(t)\) and \(h(t) = \max_{i=1,\dots, d} f_{2x_i+1}(t)\) consist of exactly \(d'\) many distinct line segments where \(d'\) is the amount of distinct elements as each corresponds to exactly one line segment. From \(t=0\) towards \(t = 2\) all line segments are encountered in descending order of the respective \(x_i\) where the last line segment is encountered at least after \(t=1\) as we are dealing with integers and thus the maximal value of \(\frac{1}{n}\) is \(1\). 
+
+	Note that these two functions are almost the ones from \cref{eq:red-eq-chebyshev} but without the absolute values. Thus, if all of their linear functions are positive on \([0,2]\) these two functions are equal to the sides of the equation. For \(C = \max_{i=1, \dots, d}8(x_i+1)^2\) it can be easily checked that all linear terms are positive on \([0, 2]\).
+
+	We now investigate the solutions to the equation \(g(t) = h(t)\) on \([0, 2]\). For \(t = \frac{1}{2x_i}\) it holds \(g(t) > h(t)\) and for \(t = \frac{1}{2x_i + 1}\) it holds \(g(t) < h(t)\) for all \(i \in \set{1,\dots, d}\). Let \(d'\) again be the number of distinct elements. There are at least \(2d' - 1\) many solutions to the equation as there are \(2d'\) many distinct points of the form \(\frac{1}{2xi}\) and \(\frac{1}{2x_i+1}\) and the sign of \(g(t)-h(t)\) alternates between each of them. However, there cannot be more than \(2d'-1\) many solutions as each of the \(d'\) many line segments in \(g\) can only intersect at most \(2\) line segments in \(h\) because both are convex and the first and last line segment cannot both intersect \(h\) twice. Thus the amount of solutions in \([0,2]\) is exactly \(2d'-1\). 
+
+	To decide the integer element distinctness, we construct \cref{eq:red-eq-chebyshev} and find the solutions. We iterate over them in linear time and count how many solutions there are in the interval \([0, 2]\). This gives us \(2d'-1\) from which we can determine the amount of distinct elements.
+\end{proof}
+
+
 
 
 
