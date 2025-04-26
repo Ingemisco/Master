@@ -232,11 +232,11 @@ We will reduce the integer element distinctness problem to both of these equatio
 		\max_{i=1, \dots, d} |C + 4x_i - 4x_i^2 t| = \max_{i=1, \dots, d} |C + 2(2x_i + 1) - (2x_i+1)^2 t|
 	\end{equation}	
 
-	We define the function \(f_a(t) = C + 2a - a^2 t\) which corresponds to the maximized term on both sides without absolute value. Note that \(f_a(\frac{1}{a}) > f_b(\frac{1}{a})\) for all \(a \neq b \in \R_{> 0}\) as 
+	We define the function \(f_a(t) = C + 2a - a^2 t\) which corresponds to the maximized term on both sides without absolute value. The intuition behind this function is that \(f_a\) is the tangent on the function \(C + \frac{1}{x}\) at \(x = \frac{1}{a}\). Note that \(f_a(\frac{1}{a}) > f_b(\frac{1}{a})\) for all \(a \neq b \in \R_{> 0}\) as 
 	\begin{alignat*}{3}
 		& 0 &&< (b-a)^2 \\
 		\iff & 0 &&> -\frac{1}{a}(b-a)^2 =  2b -\frac{b^2}{a} - a \\
-		\iff & C + 2a - \frac{a^2}{a} &&> C + 2b -\frac{b^2}{a} \\
+		\iff & C + 2a - \frac{a^2}{a} &&> C + 2b -\frac{b^2}{a}.
 	\end{alignat*}
 
 	This means that the functions \(g(t) = \max_{i=1,\dots, d} f_{2x_i}(t)\) and \(h(t) = \max_{i=1,\dots, d} f_{2x_i+1}(t)\) consist of exactly \(d'\) many distinct line segments where \(d'\) is the amount of distinct elements as each corresponds to exactly one line segment. From \(t=0\) towards \(t = 2\) all line segments are encountered in descending order of the respective \(x_i\) where the last line segment is encountered at least after \(t=1\) as we are dealing with integers and thus the maximal value of \(\frac{1}{n}\) is \(1\). 
@@ -248,7 +248,22 @@ We will reduce the integer element distinctness problem to both of these equatio
 	To decide the integer element distinctness, we construct \cref{eq:red-eq-chebyshev} and find the solutions. We iterate over them in linear time and count how many solutions there are in the interval \([0, 2]\). This gives us \(2d'-1\) from which we can determine the amount of distinct elements.
 \end{proof}
 
+% TODO: Images 
 
+\begin{lemma}
+	The Manhattan equation problem as stated in \cref{def:manhattan-problem} has a lower bound of \(\Omega(d \log d)\).
+\end{lemma}
+
+\begin{proof}
+	Given an instance of the integer element distinctness problem \(x_1, \dots, x_d \in \N_+\). We construct the following instance of the Manhattan equation problem in \(2d\) dimensions. 
+	\begin{equation}\label{eq:red-eq-manhattan}
+		1 + \sum_{i=1}^d |6x_i + 4 - 2t| = \sum_{i=1}^d \parenth{|3x_i + 1 - t| + |3x_i + 3 - t|}
+	\end{equation}
+	
+	It can easily be seen that for \(t \notin [3x_i + 1, 3x_i + 3]\) that \(|6x_i + 4 - 2t| = |3x_i + 1 - t| + |3x_i + 3 - t|\) and for \(t \in (3x_i + 1, 3x_i + 3)\) we get \(|6x_i + 4 - 2t| < |3x_i + 1 - t| + |3x_i + 3 - t|\). Further, the equation \(1 + k|6x_i + 4 - 2t| = k|3x_i + 1 - t| + k|3x_i + 3 - t|\) has exactly two solutions, both of which are in the interval \([3x_i+1,3x_i+3]\) for any \(k \in \N_+\). Set \(g(t) = 1 + \sum_{i=1}^d |6x_i + 4 - 2t|\) and \(h(t) = \sum_{i=1}^d \parenth{|3x_i + 1 - t| + |3x_i + 3 - t|}\).
+
+	For \(t \in [3x_i, 3x_i + 1]\) for any \(x_i\) we can see that \(g(t) = 1 + h(t)\). For \(t \in (3x_i+1, 3x_i + 3)\) both sides of the equation are mostly the same, more specifically, \(g(t)- h(t) = 1 + k|6x_i + 4 - 2t| - k|3x_i + 1 - t| - k|3x_i + 3 - t|\) where \(k\) is the amount of datapoints which have the value \(x_i\). This has exactly two solutions in the interval. Thus the total amount of solutions is \(2d'\) where \(d'\) is the amount of distinct solutions.
+\end{proof}
 
 
 
