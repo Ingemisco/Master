@@ -227,10 +227,18 @@ We will reduce the integer element distinctness problem to both of these equatio
 \end{lemma}
 
 \begin{proof}
-	Given an instance of the integer element distinctness problem \(x_1, \dots, x_d \in \N_+\). Let \(C\) be a large integer that we specify later. We construct the following instance of the Chebyshev equation problem. 
+	Given an instance of the integer element distinctness problem \(x_1, \dots, x_d \in \N_+\). Let \(C\) be a large integer that we specify later. We construct the following instance of the Chebyshev equation problem. See \cref{fig:chebyshev-eq-red} for an example instance.
 	\begin{equation}\label{eq:red-eq-chebyshev}
 		\max_{i=1, \dots, d} |C + 4x_i - 4x_i^2 t| = \max_{i=1, \dots, d} |C + 2(2x_i + 1) - (2x_i+1)^2 t|
 	\end{equation}	
+
+	\begin{figure}
+		\centering
+		\includegraphics[scale=1, width=0.9\linewidth]{figures/chebyshev-eq-red.png}
+		\caption{Example of the two functions constructed for the Chebyshev equation problem. Here the integer sequence \(1, 2, 3, 4\) was used. These functions do not change if any of the integers appear more than once. }
+		\label{fig:chebyshev-eq-red}
+	\end{figure}
+
 
 	We define the function \(f_a(t) = C + 2a - a^2 t\) which corresponds to the maximized term on both sides without absolute value. The intuition behind this function is that \(f_a\) is the tangent on the function \(C + \frac{1}{x}\) at \(x = \frac{1}{a}\). Note that \(f_a(\frac{1}{a}) > f_b(\frac{1}{a})\) for all \(a \neq b \in \R_{> 0}\) as 
 	\begin{alignat*}{3}
@@ -239,16 +247,14 @@ We will reduce the integer element distinctness problem to both of these equatio
 		\iff & C + 2a - \frac{a^2}{a} &&> C + 2b -\frac{b^2}{a}.
 	\end{alignat*}
 
-	This means that the functions \(g(t) = \max_{i=1,\dots, d} f_{2x_i}(t)\) and \(h(t) = \max_{i=1,\dots, d} f_{2x_i+1}(t)\) consist of exactly \(d'\) many distinct line segments where \(d'\) is the amount of distinct elements as each corresponds to exactly one line segment. From \(t=0\) towards \(t = 2\) all line segments are encountered in descending order of the respective \(x_i\) where the last line segment is encountered at least after \(t=1\) as we are dealing with integers and thus the maximal value of \(\frac{1}{n}\) is \(1\). 
+	This means that the functions \(g(t) = \max_{i=1,\dots, d} f_{2x_i}(t)\) and \(h(t) = \max_{i=1,\dots, d} f_{2x_i+1}(t)\) consist of exactly \(d'\) many distinct line segments where \(d'\) is the amount of distinct elements as each corresponds to exactly one line segment. From \(t=0\) towards \(t = \frac{1}{2}\) all line segments are encountered in descending order of the respective \(x_i\) where the last line segment is encountered at least after \(t=1\) as we are dealing with integers and thus the maximal value of \(\frac{1}{n}\) is \(1\). 
 
-	Note that these two functions are almost the ones from \cref{eq:red-eq-chebyshev} but without the absolute values. Thus, if all of their linear functions are positive on \([0,2]\) these two functions are equal to the sides of the equation. For \(C = \max_{i=1, \dots, d}8(x_i+1)^2\) it can be easily checked that all linear terms are positive on \([0, 2]\).
+	Note that these two functions are almost the ones from \cref{eq:red-eq-chebyshev} but without the absolute values. Thus, if all of their linear functions are positive on \([0,\frac{1}{2}]\) these two functions are equal to the sides of the equation. For \(C = \max_{i=1, \dots, d}2x_i^2\) it can be easily checked that all linear terms are positive on \([0, \frac{1}{2}]\).
 
-	We now investigate the solutions to the equation \(g(t) = h(t)\) on \([0, 2]\). For \(t = \frac{1}{2x_i}\) it holds \(g(t) > h(t)\) and for \(t = \frac{1}{2x_i + 1}\) it holds \(g(t) < h(t)\) for all \(i \in \set{1,\dots, d}\). Let \(d'\) again be the number of distinct elements. There are at least \(2d' - 1\) many solutions to the equation as there are \(2d'\) many distinct points of the form \(\frac{1}{2xi}\) and \(\frac{1}{2x_i+1}\) and the sign of \(g(t)-h(t)\) alternates between each of them. However, there cannot be more than \(2d'-1\) many solutions as each of the \(d'\) many line segments in \(g\) can only intersect at most \(2\) line segments in \(h\) because both are convex and the first and last line segment cannot both intersect \(h\) twice. Thus the amount of solutions in \([0,2]\) is exactly \(2d'-1\). 
+	We now investigate the solutions to the equation \(g(t) = h(t)\) on \([0, \frac{1}{2}]\). For \(t = \frac{1}{2x_i}\) it holds \(g(t) > h(t)\) and for \(t = \frac{1}{2x_i + 1}\) it holds \(g(t) < h(t)\) for all \(i \in \set{1,\dots, d}\). Let \(d'\) again be the number of distinct elements. There are at least \(2d' - 1\) many solutions to the equation as there are \(2d'\) many distinct points of the form \(\frac{1}{2xi}\) and \(\frac{1}{2x_i+1}\) and the sign of \(g(t)-h(t)\) alternates between each of them. However, there cannot be more than \(2d'-1\) many solutions as each of the \(d'\) many line segments in \(g\) can only intersect at most \(2\) line segments in \(h\) because both are convex and the first and last line segment cannot both intersect \(h\) twice. Thus the amount of solutions in \([0,2]\) is exactly \(2d'-1\). 
 
-	To decide the integer element distinctness, we construct \cref{eq:red-eq-chebyshev} and find the solutions. We iterate over them in linear time and count how many solutions there are in the interval \([0, 2]\). This gives us \(2d'-1\) from which we can determine the amount of distinct elements.
+	To decide the integer element distinctness, we construct \cref{eq:red-eq-chebyshev} and find the solutions. We iterate over them in linear time and count how many solutions there are in the interval \([0, \frac{1}{2}]\). This gives us \(2d'-1\) from which we can determine the amount of distinct elements.
 \end{proof}
-
-% TODO: Images 
 
 \begin{lemma}
 	The Manhattan equation problem as stated in \cref{def:manhattan-problem} has a lower bound of \(\Omega(d \log d)\).
@@ -260,6 +266,29 @@ We will reduce the integer element distinctness problem to both of these equatio
 		1 + \sum_{i=1}^d |6x_i + 4 - 2t| = \sum_{i=1}^d \parenth{|3x_i + 1 - t| + |3x_i + 3 - t|}
 	\end{equation}
 	
+	For example instances see \cref{fig:manhattan-eq-red-1} and \cref{fig:manhattan-eq-red-2}. For a comparison of the subfunctions \(|6x_i + 4 - 2t|\) and \(|3x_i + 1 - t| + |3x_i + 3 - t|\) see \cref{fig:manhattan-building-block}.
+
+	\begin{figure}
+	  \centering
+	  \includegraphics[scale=1, width=0.9\linewidth]{figures/manhattan-building-block.png}
+	  \caption{Comparison of the functions \(|6x_i + 4 - 2t|\) and \(|3x_i + 1 - t| + |3x_i + 3 - t|\) for \(x_i = 1\).}
+	  \label{fig:manhattan-building-block}
+	\end{figure}
+
+	\begin{figure}
+	  \centering
+	  \includegraphics[scale=1, width=0.9\linewidth]{figures/manhattan-eq-red-1.png}
+	  \caption{Instance for the numbers \(1,2,3,4\). There are \(8\) solutions which means there are \(4\) distinct values.}
+	  \label{fig:manhattan-eq-red-1}
+	\end{figure}
+
+	\begin{figure}
+	  \centering
+	  \includegraphics[scale=1, width=0.9\linewidth]{figures/manhattan-eq-red-2.png}
+	  \caption{Instance for the numbers \(1,2,3,4,3,2,3,3\). The numbers \(2\) and \(3\) appear multiple times. This does not affect the amount of solutions but slightly moves their positions.}
+	  \label{fig:manhattan-eq-red-2}
+	\end{figure}
+
 	It can easily be seen that for \(t \notin [3x_i + 1, 3x_i + 3]\) that \(|6x_i + 4 - 2t| = |3x_i + 1 - t| + |3x_i + 3 - t|\) and for \(t \in (3x_i + 1, 3x_i + 3)\) we get \(|6x_i + 4 - 2t| < |3x_i + 1 - t| + |3x_i + 3 - t|\). Further, the equation \(1 + k|6x_i + 4 - 2t| = k|3x_i + 1 - t| + k|3x_i + 3 - t|\) has exactly two solutions, both of which are in the interval \([3x_i+1,3x_i+3]\) for any \(k \in \N_+\). Set \(g(t) = 1 + \sum_{i=1}^d |6x_i + 4 - 2t|\) and \(h(t) = \sum_{i=1}^d \parenth{|3x_i + 1 - t| + |3x_i + 3 - t|}\).
 
 	For \(t \in [3x_i, 3x_i + 1]\) for any \(x_i\) we can see that \(g(t) = 1 + h(t)\). For \(t \in (3x_i+1, 3x_i + 3)\) both sides of the equation are mostly the same, more specifically, \(g(t)- h(t) = 1 + k|6x_i + 4 - 2t| - k|3x_i + 1 - t| - k|3x_i + 3 - t|\) where \(k\) is the amount of datapoints which have the value \(x_i\). This has exactly two solutions in the interval. Thus the total amount of solutions is \(2d'\) where \(d'\) is the amount of distinct solutions.
