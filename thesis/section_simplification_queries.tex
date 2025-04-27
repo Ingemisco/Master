@@ -195,8 +195,8 @@ To find the solutions, we can use the \(\O(d \log d)\) algorithm described in \c
 	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
 \end{corollary}
 
-\subsection{Equation Solving Optimality}
-We have previously seen how to find the solutions to the required equations for the Manhattan and Chebyshev case in runtime \(\O(d \log d)\). Similar to \cref{sec:equation_solving}, we might wonder if there are linear algorithms for both. As a final note, we show that this is not the case. 
+\subsection{Lower Bounds for Equation Solving}
+We have previously seen how to find the solutions to the required equations for the Manhattan and Chebyshev case in runtime \(\O(d \log d)\). Similar to \cref{sec:equation_solving}, one might try to find linear algorithms for both. As a final note, we show that this is not possible. 
 
 \begin{definition}[Integer Element Distinctness Problem]
   In the \emph{integer element distinctness problem} we are given integers \(x_1, \dots, x_d \in \N\). Decide if there are \(1 \leq i < j \leq d\) such that \(x_i = x_j\), i.e., we want to decide if all the given integers are unique or if there are duplicates.
