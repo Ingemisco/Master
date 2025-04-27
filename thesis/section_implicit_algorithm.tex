@@ -117,7 +117,8 @@ This already concludes the necessary modifications to the algorithm. As a final 
 					\(DP[k,i,j] \gets i\)\;
 					\Continue \tcp{Global Minimality}
 				}
-				\If{\(\lnot P(i) \leftrightarrow \overline{P(j)P(j+1)}\)} {
+				\(e \gets \overline{P(j)P(j+1)}\)\;
+				\If{\(\lnot P(i) \leftrightarrow e\)} {
 					\Continue \tcp{Reachability}
 				}
         \For{\(k - 1 \leq i' < i\)}{
@@ -160,7 +161,6 @@ This theorem also extends to the Manhattan and Chebyshev distance (even with the
 The decision problems for the relations \(\leftrightarrow, \leftarrow\) and \(\rightarrow\) are simple to implement without division and square roots but quite technical. We start with \(\leftrightarrow\) which can be implemented as a special case of \(\rightarrow\) but can be solved even simpler. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). \(u \leftrightarrow e\) holds if and only if the distance to the closest point on \(e\) to \(u\) has distance at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\) then \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\)~\cite{linear_algebra}. 
 
 To decide \(u \leftrightarrow e\) we only need to test if either of the two end points is reachable from \(u\), i.e., \(\delta_2'(e_i, u) \leq \varepsilon^2\) for \(i = 1\) or \(i = 2\). If both fail we must check the projection. Thus we return true if and only if \(t \in [0, 1]\) and the following inequality is true. 
-
 \begin{alignat*}{3}
 &\delta_2'(e_1 + t(e_2 - e_1), u) &&\leq \varepsilon^2 \\
   \iff& \|e_1 - u + t(e_2 - e_1)\|^2 &&\leq \varepsilon^2 \\
@@ -169,9 +169,7 @@ To decide \(u \leftrightarrow e\) we only need to test if either of the two end 
   \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - 2\braket{e_1 - u | e_2 - e_1}^2 + \braket{e_2 - e_1 | u - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2)\\
   \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - \braket{e_1 - u | e_2 - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2)
 \end{alignat*}
-
 For the other two relations we get very similar procedures. For simplicity we only derive \(u \overset e\rightarrow v\). We define \(a_{0u} \coloneq \delta_2'(e_1, u)\), \(a_{0v} \coloneq \delta_2'(e_1, v)\), \(a_{1u} \coloneq 2\braket{e_2 - e_1 | e_1 - u}\), \(a_{1v} \coloneq 2\braket{e_2 - e_1 | e_1 - v}\), and \(a_{2} \coloneq \delta_2'(e_1, e_2)\) which are the coefficients of the quadratic equation needed to solve for \(\hat t_{0/1}(e, u)\) and \(\hat t_{0/1}(e, v)\). We further denote the discriminants of the solutions \(D_u \coloneq a_{1u}^2 - 4a_{0u}a_2\) and \(D_v \coloneq a_{1v}^2 - 4a_{0v}a_2\). We define \(x  \coloneq a_{1u} - a_{1v}\) and \(y \coloneq D_u + D_v - x^2\). With these we get 
-
 \begin{alignat*}{2}
   u \overset e\rightarrow v \iff& v \leftrightarrow e \land \hat t_0'(e, u) \leq \hat t_0'(e, u) \\
   \iff& v \leftrightarrow e \land \frac{-a_{1u} - \sqrt{D_u}}{2a_2} \leq \frac{-a_{1v} - \sqrt{D_v}}{2a_2} \\
@@ -181,15 +179,12 @@ For the other two relations we get very similar procedures. For simplicity we on
   \iff& v \leftrightarrow e \land ((x \geq 0 \land \sqrt{D_v} \leq \sqrt{D_u})\\ & \lor (x \geq 0 \land \sqrt{D_v} \geq \sqrt{D_u} \land \sqrt{D_v} - \sqrt{D_u} \leq x )\lor(x \leq 0 \land \sqrt{D_v} \leq \sqrt{D_u} \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) )  \\
   \iff& v \leftrightarrow e \land ((x \geq 0 \land D_v \leq D_u)\\ & \lor (x \geq 0 \land D_v \geq D_u \land \sqrt{D_v} - \sqrt{D_u} \leq x )\lor(x \leq 0 \land D_v \leq D_u \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) ).
 \end{alignat*}
-
 Now we consider only the inequalities \(\sqrt{D_v} - \sqrt{D_u} \leq x\) and \(\sqrt{D_u} - \sqrt{D_v} \geq -x\) where we know that all sides of the inequalities are positive thus squaring them preserves the inequalities. We get 
-
 \begin{align*}
   \sqrt{D_v} - \sqrt{D_u} \leq x &\iff D_v + D_u - 2\sqrt{D_uD_v} \leq x^2 \\
    &\iff y \leq 2\sqrt{D_uD_v} \\
    &\iff (y \leq 0) \lor (y^2 \leq 4D_uD_v)
 \end{align*}
-
 and similarly for the other inequality. With that this problem can be decided without square roots or divisions albeit in a rather technical manner.
 
 \subsection{General Minkowski Distances}

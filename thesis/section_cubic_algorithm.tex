@@ -1,4 +1,4 @@
-\section{Cubic Simplification Algorithm}
+\section{Simplification Algorithm from Bringmann et al.}
 \label{sec:cubic_algo}
 
 
@@ -10,7 +10,7 @@ As the main step to achieve cubic runtime, \citeauthor{polyline_simplification_h
 	In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in (0, \infty]\), as well as intervals \(I_1, \dots, I_{n-1} \subseteq [0, 1]\). 
 
 	\begin{itemize}
-		\item We write write \(I_i = [a_i, b_i]\) for the boundaries of the interval \(I_i\) for \(i \in \set{1, \dots, n - 1}\). If \(I_i = \empty\) we write \(a_i = \infty\) and \(b_i = -\infty\).
+		\item We write write \(I_i = [a_i, b_i]\) for the boundaries of the interval \(I_i\) for \(i \in \set{1, \dots, n - 1}\). If \(I_i = \emptyset\) we write \(a_i = \infty\) and \(b_i = -\infty\).
 	  
 		\item We define a relation \(\prec\) on \(\set{1, \dots, n}\) such that \(i \prec j\) holds if and only if \(i < j\) and there are \(x_i \in I_i, \dots, x_{j-1} \in I_{j-1}\) with \(x_i \leq \dots \leq x_{j - 1}\).
 
@@ -180,7 +180,7 @@ Eventually, the additional return condition on lines 7 and 8 is triggered as the
 
 The \(\O(n^3)\) algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} is a modification of the original polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} that improves the computations of each table entry. The cubic runtime per entry is brought down to amortized constant time per entry resulting (with some restructuring of the algorithm) in total cubic runtime. 
 
-Similar to the Fréchet distance decision algorithm we have outlined earlier, we separate the two cases of subpolylines that consist of one or multiple line segments. We motivate this separation both by the specialized algorithm we have presented, as well as our exploration of implicit polyline simplification. We recall the setting of the specialized Fréchet distance decision problem. Given a subpolyline \(P[j' + t' \dots j + 1]\), a line segment \(e = \overline(P(i')P(i))\), and \(\varepsilon > 0\). We want to determine if there is some point \(t \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], e) \leq \varepsilon\) and if so return the smallest one, in the implicit version we return the respective restriction point. We have seen that the restriction point depends on \(j' = j\), i.e., we compare a single line segment against \(e\), or \(j' < j\), i.e., we have a proper subpolyline. 
+Similar to the Fréchet distance decision algorithm we have outlined earlier, we separate the two cases of subpolylines that consist of one or multiple line segments. We motivate this separation both by the specialized algorithm we have presented, as well as our exploration of implicit polyline simplification. We recall the setting of the specialized Fréchet distance decision problem. Given a subpolyline \(P[j' + t' \dots j + 1]\), a line segment \(e = \overline{P(i')P(i)}\), and \(\varepsilon > 0\). We want to determine if there is some point \(t \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], e) \leq \varepsilon\) and if so return the smallest one, in the implicit version we return the respective restriction point. We have seen that the restriction point depends on \(j' = j\), i.e., we compare a single line segment against \(e\), or \(j' < j\), i.e., we have a proper subpolyline. 
 In the case of \(j' < j\), there are two possible restriction points (if there is a solution): \(i'\) and \(r'\) where \(r'\) was the given restriction point that bounds \(t'\). If \(j' = j\) only \(i'\) can be the restriction point. This suggests that the two cases behave inherently different and should be treated separately. Instead of minimizing over all \(i' < i\) and \(j' \leq j\), we minimize separately over the cases \(i' < i, j' < j\) and \(i' < i, j' = j\) and finally combine the two results.
 
 We introduce two additional tables \(DP_1\) and \(DP_2\) with the same dimensions as \(DP\) which store the result of minimization over \(j'=j\) and \(j' < j\) respectively. It holds \(DP[k, i, j] = \min(DP_1[k,i,j], DP_2[k,i,j])\) trivially. 

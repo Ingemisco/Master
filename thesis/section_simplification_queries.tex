@@ -86,6 +86,57 @@ Using \cref{obs:event-count} we can formulate a simple \(\O(n^7)\) algorithm to 
 
 With a simple trick, we can reduce the runtime down to \(\O(n^4 \log n)\). After sorting the events, we perform binary search to find the events that constitute the boundaries of the intervals. We need to perform the binary search \(\O(n)\) times, once for each possible simplification size. Each binary search takes runtime \(\log(n^4) \in \O(\log n)\) resulting in \(\O(n \log n)\) many events to test. For each event we perform the cubic simplification algorithm to obtain \(\O(n^4 \log n)\) for this step. As both the sorting step and the search step require \(\O(n^4\log n)\) time, the total algorithm requires the same time. 
 
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{Polyline \(P\) of length \(n\)}
+  \KwResult{Sorted array of events}
+  \BlankLine
+	\(events \gets Array()\) \tcp{capacity can be bounded based on dimension and \(\delta\)}
+	\For{\(i=1,\dots, d\)}{
+		\(events.append(\delta(P(0), P(i)))\)
+	}
+	\For{\(0 \leq i < j \leq n, k = 0, \dots, n\)}{
+		\(\varepsilon \gets \min_{t \in [0, 1]} \delta((1-t)P(i) + tP(j), P(k))\)\;
+		\(events.append(\varepsilon)\)
+	}
+	\For{\(0 \leq i' < i \leq n, 0 \leq u < v \leq n\)}{
+		Let \(S\) be the set of solutions in \((0,1)\) to \(\delta((1-t)P(i') + tP(i), P(u)) = \delta((1-t)P(i') + tP(i), P(v))\), 
+		for interval solutions add only the boundaries \;
+		\(events.addAll(S)\)
+	}
+	Sort \(events\) and filter out duplicates\;
+  \caption{EventList(\(P\))}
+  \label{algo:event-list}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+	\(events \gets EventList(P)\)\;
+	\(D \gets Array(n)\)\;
+	\(D[n-1] = (0, P)\)\;
+	\For{\(i=n-1,\dots, 1\)}{
+		\(left \gets 0, right \gets |events|\)\;
+		\While{\(right - left > 1\)}{
+			\(mid \gets \floor{\frac{left + right}{2}}\)\;
+			\(k \gets \) Simplification size with \(\varepsilon = events[mid]\)\;
+			\If{\(k < i\)}{
+				\(right \gets mid\)
+			}\ElseIf{\(k > i\)}{
+				\(left \gets mid\)
+			}\ElseIf{Simplification size with \(\varepsilon = events[mid-1]\) is \(i+1\)}{
+				\(left \gets mid, right \gets mid + 1\)
+			}\Else{
+				\(right \gets mid\)
+			}
+		}
+		\(\varepsilon \gets events[left]\)\;
+		Compute a simplification \(S\) with \(\varepsilon\)\;
+		\(D[i-1] = (\varepsilon, S)\)
+	}
+  \caption{QueryDatastructure(\(P\))}
+  \label{algo:query-datastructure}
+\end{algorithm}
+
+
 \subsection{Space Reduction}\label{ssec:space-reduction-ds}
 Finally, we want to improve the \(\O(n^4)\) space requirement that the events require. We shall see that \(\O(n^3)\) space consumption can be achieved which is the same as the simplification algorithm used. 
 
@@ -105,13 +156,11 @@ Here, we extend the results from \cref{sec:equation_solving} to be able to compu
 \paragraph{Euclidean Distance}
 As we have already seen in \cref{lem:event_counts}, the solution is unique if it exists. This is also a direct result from solving the relevant equation. In \cref{ssec:eq_euclidean_distance}, we have already determined determined an expression for the distance of a point \(e(t)\) from \(u\) on the line segment \(e\) which is 
 	\[\delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}t + \delta_2'(e_1, e_2)t^2.\]
-
 To get the point \(e(t)\) on \(e\) that has the same distance from both \(u\) and \(v\) we compute 
-
 \begin{align*}
 	\delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}t + \delta_2'(e_1, e_2)t^2 &= \delta_2'(e_1, v) + 2\braket{e_1 - v | e_2 - e_1}t + \delta_2'(e_1, e_2)t^2\\
 	\delta_2'(e_1, u) - \delta_2'(e_1, v) &=  2\braket{u -v | e_2 - e_1}t \\
-	\frac{\delta_2'(e_1, u) - \delta_2'(e_1, v)}{2\braket{u -v | e_2 - e_1}} &=  t. \\
+	\frac{\delta_2'(e_1, u) - \delta_2'(e_1, v)}{2\braket{u -v | e_2 - e_1}} &=  t. 
 \end{align*}
 
 Note that this solution is only valid if \(t \in [0, 1]\). Furthermore, we assume that \(u \neq v\) and \(u-v\) is not orthogonal to \(e_2 - e_1\). Otherwise there are no events to track\footnote{In both cases the result of neither relation will ever change. Both are always true.}. We can plug this into the distance expression to obtain \(\varepsilon^2\) and as \(\varepsilon \geq 0\) there is a unique solution. This mirrors our intuition that only one of the two relations \(\overset e\rightarrow\) and \(\overset e\leftarrow\) can change its result for different \(\varepsilon\).
