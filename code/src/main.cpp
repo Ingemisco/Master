@@ -1,9 +1,11 @@
 #include "datastructures.h"
 #include "distance.h"
 #include "log.h"
+#include "queries.h"
 #include "simplification.h"
 #include <boost/program_options.hpp>
 #include <boost/program_options/detail/parsers.hpp>
+#include <boost/program_options/errors.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -16,11 +18,16 @@
 
 namespace po = boost::program_options;
 
-template <Simplification::Simplification _simplification_algorithm(
-              DataStructures::Polyline &, float),
+template <Simplification::Simplification _simplification_algorithm(DataStructures::Polyline &, float),
           Log::Algorithm _algorithm>
-static inline void _flag_action_simplify(std::string &poly_line_file_name,
-                                         float epsilon) {
+static inline void _flag_action_simplify(po::variables_map &map, char const *flag) {
+
+	const auto &args = map[flag].as<std::vector<std::string>>();
+	if (args.size() != 2) {
+		throw po::error("Flag requires exactly two inputs, file and epsilon!");
+	}
+	std::string const &poly_line_file_name = args[0];
+	float const epsilon = std::stof(args[1]);
   Log::PerformanceLogger log(_algorithm, poly_line_file_name);
   if (std::filesystem::is_directory(poly_line_file_name)) {
     Log::measurement_directory = poly_line_file_name;
@@ -47,6 +54,7 @@ static inline void _flag_action_simplify(std::string &poly_line_file_name,
     auto end = std::chrono::high_resolution_clock::now();
     log.add_data(*polyline, simplification_vertices, end - start,
                  polypath.filename().string());
+		std::cout << "size: " << simplification_vertices->size() << std::endl;
   }
   log.emit();
 }
@@ -54,7 +62,6 @@ static inline void _flag_action_simplify(std::string &poly_line_file_name,
 static inline void handle_command_line_arguments(int argc, char *argv[]) {
   po::positional_options_description positional_options;
   positional_options.add("file", 1);
-  positional_options.add("epsilon", 1);
 
   po::options_description description("Allowed options");
   std::string poly_line_file_name;
@@ -64,37 +71,40 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 
   options("help,h", "Show help message");
 
-  options("file",
-          po::value<std::string>(&poly_line_file_name)
-              ->value_name("file")
-              ->required(),
-          "File from which to read the polyline");
-
-  options("epsilon",
-          po::value<float>(&epsilon)->value_name("epsilon")->required(),
-          "Maximal Distance the simplification is allowed to have to the "
-          "original polyline.");
-
   options("se",
+					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
   options("sei",
+					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance. Does not "
           "explicitly compute zeros but only implicitly compare them.");
 
   options("sm",
+					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Manhattan distance.");
 
   options("sc",
+					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Chebyshev distance.");
 
   options("ae",
+					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Bringmann et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
+
+  options("bes",
+					po::value<std::string>(&poly_line_file_name)->value_name("filename"),
+          "Builds the datastructure to allow fast simplification queries"
+					"for Euclidean distance. Simple version (n^4 space consumption).");
+
+  options("qe", 
+					po::value<float>(&epsilon)->value_name("epsilon"),
+					"Queries for a simplification given a file to the saved datastructure and an epsilon.");
 
   po::variables_map map;
   po::store(po::command_line_parser(argc, argv)
@@ -106,36 +116,39 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   if (map.count("help")) {
     std::cout << description;
     exit(0);
-  }
+  }  
 
   po::notify(map);
 
-  if (map.count("se")) {
+	if(map.count("bes")){
+		auto polyline = DataStructures::Polyline::from_file(std::filesystem::path(poly_line_file_name));
+		auto ds = build_querier_simple(*polyline);
+	} else if (map.count("se")) {
     _flag_action_simplify<Simplification::simplification_naive_euclidean,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>(
-        poly_line_file_name, epsilon);
+        map, "se");
   } else if (map.count("sei")) {
     _flag_action_simplify<
         Simplification::simplification_naive_euclidean_implicit,
         Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>(
-        poly_line_file_name, epsilon);
+        map, "sei");
   } else if (map.count("sm")) {
     _flag_action_simplify<Simplification::simplification_naive_manhattan,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>(
-        poly_line_file_name, epsilon);
+        map, "sm");
   } else if (map.count("sc")) {
     _flag_action_simplify<Simplification::simplification_naive_chebyshev,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>(
-        poly_line_file_name, epsilon);
+        map, "sc");
 	}	else if (map.count("ae")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_explicit,
-                          Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>(
-        poly_line_file_name, epsilon);
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>( map, "ae");
   }
 
-        // auto polyline = DataStructures::Polyline::from_file(
-        //     std::filesystem::path(poly_line_file_name));
-        // auto &p = *polyline;
+// 	auto polyline = DataStructures::Polyline::from_file(
+// 		 std::filesystem::path(poly_line_file_name));
+// 	auto &p = *polyline;
+// 	build_querier_simple(p);
         //  auto res = DataStructures::alt_godau_euclidean_implicit(p, 65, 66,
         //  66, 68, 66,
         //                                                          epsilon *
