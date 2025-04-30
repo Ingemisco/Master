@@ -35,7 +35,7 @@ The Fréchet distance decision procedure requires \(\varepsilon\) for the relati
 
 For the initialization, there is at most one such changing event per point on the polyline as we only need to track if the point and all previous ones are within \(\varepsilon\) of the starting point. Thus, this gives us only linearly many events to consider.
 
-The relation \(\leftrightarrow\) yields \(\O(n^3)\) many events \(\varepsilon\) to consider. We pick two points for the line segment and one to test against the line segment. For each such triple there is one \(\varepsilon\) at which the line segment is reachable from the point and for all larger \(\varepsilon\) it remains reachable. 
+The relation \(\leftrightarrow\) yields \(\O(n^3)\) many events \(\varepsilon\) to consider. We pick two points for the line segment and one to test against the line segment. For each such triple there is one \(\varepsilon\) at which the line segment is reachable from the point and for all larger \(\varepsilon\) it remains reachable. All initialization events are also included in this thus they do not have to be considered separately.
 
 For the two relations \(\overset e\rightarrow\) and \(\overset e\leftarrow\) there are \(\O(n^4)\) many event types to consider: Pick two points for the line segment and two further points \(u\) and \(v\) to compare. We may assume that both \(u\) and \(v\) reach the line segment as we have already included all such reachability events. To get the total amount of events we need to determine how many events per line segment and pair of points there are. 
 
@@ -92,9 +92,6 @@ With a simple trick, we can reduce the runtime down to \(\O(n^4 \log n)\). After
   \KwResult{Sorted array of events}
   \BlankLine
 	\(events \gets Array()\) \tcp{capacity can be bounded based on dimension and \(\delta\)}
-	\For{\(i=1,\dots, d\)}{
-		\(events.append(\delta(P(0), P(i)))\)
-	}
 	\For{\(0 \leq i < j \leq n, k = 0, \dots, n\)}{
 		\(\varepsilon \gets \min_{t \in [0, 1]} \delta((1-t)P(i) + tP(j), P(k))\)\;
 		\(events.append(\varepsilon)\)
@@ -192,8 +189,6 @@ As we have seen in \cref{lem:event_counts}, there may be \(\O(d)\) many events t
 	\end{align*}
 \end{proof}
 
-% TODO: figure, maybe
-
 To compute the solutions, we adapt the \(\O(d\log d)\) algorithm from \cref{ssec:eq_manhattan_distance}. This is, in fact, rather trivial as we can transform the equation \cref{eq:ds-manhattan} by moving all terms to one side, resulting in a sum with twice as many terms. To process events \((a, b)\) representing terms of the form \(-|a + bt|\) we proceed just as with the regular terms of the form \(|a+bt|\) with the only exception being that we negate both slope and offset. The intervals at which we can determine the absolute value does not change.
 
 Because of the linearly many solutions and the fact that this sum is not convex, we can not apply the linear optimizations we have found in \cref{ssec:eq_manhattan_distance}. This results in a \(\O(d\log d)\) algorithm in total.
@@ -222,10 +217,8 @@ In fact, this follows directly from \cref{lem:ds-manhattan} and the following in
 
 To find the solutions, we can use the \(\O(d \log d)\) algorithm described in \cref{ssec:eq_chebyshev_distance} by simultaneously iterating over the both sides of the equation, comparing the current line segment of both on the respective upper envelope and testing if they are in the current interval. Again, the linear algorithm is seemingly not able to be adapted to this more general question.
 
-
-
-\subsection{Conclusion}
-
+\subsection{Conclusion and Relevant Implementation Details}
+We conclude with a summary of the results of this section. 
 \begin{theorem}\label{thm:query-ds}
 	Given a polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is 
 	\begin{itemize}
@@ -243,6 +236,39 @@ To find the solutions, we can use the \(\O(d \log d)\) algorithm described in \c
 \begin{corollary}
 	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
 \end{corollary}
+
+We also note that to achieve \(\O(\log d)\) query time the query search is only allowed to return a reference to a precomputed simplification and not the simplification itself as it may have \(\O(d)\) many points.
+
+To implement the algorithms presented, one needs to consider a few critical details. 
+\begin{itemize}
+	\item Floating point inaccuracies in the event computations can cause the events to be negative (for example for the reachability events when testing three points that are almost colinear). Taking the maximum of zero and the computed value is a pragmatic approach. 
+	\item The simplification algorithm may not be able to find a simplification of the correct length because the computed event is too small because of floating point inaccuracies. To address this we can add a small threshold to the epsilon when computing the simplification. In our experience \(10^{-6}\) works well. By using a representation like a fraction, it is possible to avoid all numerical problems for the Manhattan, Chebyshev, and Euclidean distance.
+
+	\item It is possible that there is no simplification of a given size at all (take the degenerate case where all points are one dimensional and ordered by their coordinate. There are only simplifications of size \(1\)). This does not affect the query algorithm but we need to filter out invalid sizes when constructing the datastructure.
+	\item During the binary search the comparisons are by far the most expensive operation because of the need to compute simplifications. To minimize the amount of computations it is advisable to cache already computed simplifications. Alternatively, we can combine both the binary search and all iterations into one recursive algorithm that sets the datastructures entries as shown in \cref{algo:binary-search-alt}.
+\end{itemize}
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+	\KwData{Polyline \(P\) of length \(n\), \(events\) array, \(eventcount\), \(min\_to\_set\), \(max\_to\_set\), datastructure \(ds\)}
+  \KwResult{Filled in datastructure that uses the entries of \(event\) from index \(0\) to \(eventcount - 1\) and sets the minimal simplifications of size \(k\) with \(min\_to\_set \leq k \leq max\_to\_set\)}
+  \BlankLine
+	\If{\(eventcount = 0 \lor min\_to\_set > max\_to\_set\)}{
+		\Return 
+	}
+	\(mid \gets \floor{\frac{eventcount}{2}}\)\;
+	\(\varepsilon \gets events[mid]\)\;
+	\(S \gets simplify(P, \varepsilon)\) \tcp{Might need to add a threshold to \(\varepsilon\)}
+	\(size \gets |S|\)\;
+	\If{\(size \leq max\_to\_set\)}{
+		\(ds[size - 1] \gets (\varepsilon, S)\) \tcp{arrays are \(0\) indexed but the smallest polyline has \(1\) segment}
+		\tcp{Note that this is not necessarily the optimal value, but might be updated to a better one later}
+	}
+	FillDS(\(P, events, mid, size, max\_to\_set, ds\))\;
+	FillDS(\(P, events[mid + 1 \dots], eventcount - mid - 1, min\_to\_set, size - 1, ds\))\;
+	\caption{FillDS(\(P, events, eventcount, min\_to\_set, max\_to\_set, ds\)), initial call with FillDS(\(P, events, eventcount, 1, n, ds\))}
+	\label{algo:binary-search-alt}
+\end{algorithm}
 
 \subsection{Lower Bounds for Equation Solving}
 We have previously seen how to find the solutions to the required equations for the Manhattan and Chebyshev case in runtime \(\O(d \log d)\). Similar to \cref{sec:equation_solving}, one might try to find linear algorithms for both. As a final note, we show that this is not possible. 
@@ -296,7 +322,7 @@ We will reduce the integer element distinctness problem to both of these equatio
 		\iff & C + 2a - \frac{a^2}{a} &&> C + 2b -\frac{b^2}{a}.
 	\end{alignat*}
 
-	This means that the functions \(g(t) = \max_{i=1,\dots, d} f_{2x_i}(t)\) and \(h(t) = \max_{i=1,\dots, d} f_{2x_i+1}(t)\) consist of exactly \(d'\) many distinct line segments where \(d'\) is the amount of distinct elements as each corresponds to exactly one line segment. From \(t=0\) towards \(t = \frac{1}{2}\) all line segments are encountered in descending order of the respective \(x_i\) where the last line segment is encountered at least after \(t=1\) as we are dealing with integers and thus the maximal value of \(\frac{1}{n}\) is \(1\). 
+	This means that the functions \(g(t) = \max_{i=1,\dots, d} f_{2x_i}(t)\) and \(h(t) = \max_{i=1,\dots, d} f_{2x_i+1}(t)\) consist of exactly \(d'\) many distinct line segments where \(d'\) is the amount of distinct elements as each corresponds to exactly one line segment. From \(t=0\) towards \(t = \frac{1}{2}\) all line segments are encountered in descending order of the respective \(x_i\) where the last line segment is encountered at least after \(t=\frac{1}{2}\) as we are dealing with integers and thus the maximal value of \(\frac{1}{n}\) is \(\frac{1}{2}\) because the smallest used \(n\) is \(2 \cdot 1 = 2\). 
 
 	Note that these two functions are almost the ones from \cref{eq:red-eq-chebyshev} but without the absolute values. Thus, if all of their linear functions are positive on \([0,\frac{1}{2}]\) these two functions are equal to the sides of the equation. For \(C = \max_{i=1, \dots, d}2x_i^2\) it can be easily checked that all linear terms are positive on \([0, \frac{1}{2}]\).
 
