@@ -71,6 +71,7 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Poly
 				float const scalar_prod = scalar_product(polyline.get_point(i), polyline.get_point(j), polyline.get_point(k)); 
 				float const t = scalar_prod / dij;
 				if (0 <= t && t <= 1) {
+					// float inaccuracies can make this number negative
 					event = std::min(event, std::max(dik - scalar_prod * t, 0.0f) );
 				}
 				events[event_count++] = event;
@@ -88,7 +89,7 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Poly
 					if (t > 1 || t < 0) {
 					  continue;
 					}
-					events[event_count++] = diu + t * (2* scalar_product(polyline.get_point(i), polyline.get_point(j), polyline.get_point(u)) + t * dij);
+					events[event_count++] = std::max(diu + t * (2* scalar_product(polyline.get_point(i), polyline.get_point(j), polyline.get_point(u)) + t * dij), 0.0f);
 				}
 			}
 		}
