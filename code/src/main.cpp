@@ -24,7 +24,7 @@ static inline void _flag_action_simplify(po::variables_map &map, char const *fla
 
 	const auto &args = map[flag].as<std::vector<std::string>>();
 	if (args.size() != 2) {
-		throw po::error("Flag requires exactly two inputs, file and epsilon!");
+		throw po::error("Flag requires exactly two inputs: file and epsilon!");
 	}
 	std::string const &poly_line_file_name = args[0];
 	float const epsilon = std::stof(args[1]);
@@ -65,7 +65,6 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 
   po::options_description description("Allowed options");
   std::string poly_line_file_name;
-  float epsilon;
 
   auto options = description.add_options();
 
@@ -103,7 +102,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 					"for Euclidean distance. Simple version (n^4 space consumption).");
 
   options("qe", 
-					po::value<float>(&epsilon)->value_name("epsilon"),
+					po::value<std::vector<std::string>>()->multitoken(),
 					"Queries for a simplification given a file to the saved datastructure and an epsilon.");
 
   po::variables_map map;
@@ -120,9 +119,25 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 
   po::notify(map);
 
-	if(map.count("bes")){
-		auto polyline = DataStructures::Polyline::from_file(std::filesystem::path(poly_line_file_name));
+	if(map.count("bes")) {
+		auto path = std::filesystem::path(poly_line_file_name);
+		auto polyline = DataStructures::Polyline::from_file(path);
 		auto ds = build_querier_simple(*polyline);
+		auto file_name = path.filename().string();
+		std::filesystem::path save_path = std::filesystem::path("datastructures") / file_name;
+		ds->save_datastructure_to_file(save_path);
+	} else if(map.count("qe")) {
+		const auto &args = map["qe"].as<std::vector<std::string>>();
+		if (args.size() != 2) {
+			throw po::error("Flag requires exactly two inputs: file and epsilon!");
+		}
+		std::string const &file_name = args[0];
+		float const epsilon = std::stof(args[1]);
+		auto querier = SimplificationQuerier::from_file(file_name);
+		// querier->print();
+
+
+	
 	} else if (map.count("se")) {
     _flag_action_simplify<Simplification::simplification_naive_euclidean,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>(

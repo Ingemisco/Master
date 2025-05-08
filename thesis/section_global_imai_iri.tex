@@ -1,0 +1,88 @@
+\section{Adapting Imai and Iri to the Global Fréchet Distance}
+
+Throughout this section we fix \(\varepsilon > 0\) and a distance \(\delta\). Further, let \(P\) be a polyline of length \(n\).
+
+In this section we try to adapt the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} for the global Fréchet distance. 
+
+We recall how the algorithm works for local simplifications. As a first step a shortcut graph is constructed where the nodes are the points of the polyline and a directed edge is added between two points if the subpolyline between has Fréchet distance within \(\varepsilon\) from the line segment between the two points. In a second step a shortest path search from the first to the last point of the polyline is performed. This corresponds directly to the simplification.
+
+In the global case the structure of these shortcuts is more complicated necessitating a more sophisticated approach. To confront this problem we store for each shortcut the set of all subpolylines for which it is a valid shortcut. 
+
+\begin{definition}
+  For a shortcut \(e = \overline{P(i')P(i)}\) we say that \((t', t) \in [0, n]^2\) with \(t' \leq t\) is \emph{\(e\)-admissible} if and only if \(\delta^F(P[t' \dots t], e) \leq \varepsilon\). We denote \(\mathcal{A}_e = \set{(t', t) \mid (t', t) \textrm{ is } e\textrm{-admissible}}\) as the set of \(e\)-admissible subpolylines.
+\end{definition}
+
+With this, we can formulate a first version of the global Imai and Iri algorithm: Construct the shortcut graph and compute with each edge \(e\) the set \(\mathcal{A}_e\). A global simplification of size \(k\) corresponds to a sequence \(e_1, \dots, e_k\) with \(e_1 = (0, i')\) and \(e_k = (i, n)\) for suitable \(i'\) and \(i\) such that there are \(x_0, x_1, \dots, x_{k-1}, x_k\) with \((x_{i-1}, x_{i}) \in \mathcal{A}_{e_i}\) for \(i \in \set{1, \dots, k}\) and \(x_0 = 0\) and \(x_k = n\).
+
+For an implementation we need to find an efficient way to store and compute the \(e\)-admissible subpolylines as well as a way to find the \(x_i\) quickly. 
+
+\begin{definition}
+	For sets \(A\) and \(B\) we define \(A \times_{\leq} B\) to be 
+		\[A \times_{\leq} B = \set{(a, b) \in A \times B \mid a \leq b}.\]
+\end{definition}
+
+\begin{lemma}\label{lem:admissible-rep}
+	There are closed intervals \(I_1, \dots, I_k\) and \(J_1, \dots, J_l\) with \(k + l \in \O(n)\) and 
+	\[\mathcal{A}_e =  \bigcup_{i=1}^h I_{a_i} \times_{\leq} J_{b_i}\] 
+	where \(h \in \O(n^2)\) and \(a_i\) and \(b_i\) are suitable integers.
+\end{lemma}
+
+\begin{proof}
+	Fix any \(e\)-admissible subpolyline \((t', t)\) then it holds trivially that \(\delta(P(i'), P(t')) \leq \varepsilon\) and \(\delta(P(i), P(t)) \leq \varepsilon\) where \(e = \overline{P(i')P(i)}\). Find the unique maximal closed intervals \(I\) and \(J\) such that \(t' \in I\), \(t \in J\) and \(\delta(P(x'), P(i')) \leq \varepsilon\) and \(\delta(P(x), P(i)) \leq \varepsilon\) for all \(x' \in I\) and \(x \in J\), i.e., the boundaries of these intervals are either \(0\), \(n\) are a point on the polyline that has distance exactly \(\varepsilon\) from \(P(i')\) (in the case of \(I\)) or \(P(i)\) (in the case of \(J\)).
+
+	Trivially, it holds that \((t', t) \in I \times_{\leq} J\) and that there are only \(\O(n)\) many such intervals for both \(I\) and \(J\) resulting in at most \(\O(n^2)\) many such combinations. Now we only need to show that all pairs in \(I \times_{\leq} J\) are \(e\)-admissible. Pick any pair \((s', s) \in I \times_{\leq} J\). We need to show that \(\delta^F(P[s' \dots s], e) \leq \varepsilon\). This follows by applying \cref{lem:ag-neq} once to get a sequence of suitable \(x_i\) for the subpolyline \((t', t)\), extending or trimming it to fit \((s', s)\) and using Property 4 from \cref{lem:distance_properties} for the beginning and end.
+\end{proof}
+
+This gives us a representation of the \(e\)-admissible subpolylines but for efficiency we want a linear representation. The main problem that causes quadratically many intervals is that multiple intervals \(I\) can be paired with multiple intervals \(J\) causing a quadratic number of pairs. 
+
+\begin{lemma}\label{lem:admissible-rep-1}
+	Let \(I_1, \dots, I_k\) and \(J_1, \dots, J_l\) be the intervals from \cref{lem:admissible-rep}. Then 
+	\begin{enumerate}
+		\item The \(I_i\) intervals are pairwise disjoint 
+		\item The \(J_j\) intervals are pairwise disjoint 
+		\item There are numbers \(a_i, b_i\) such that 
+			\[\mathcal{A}_e = \bigcup_{i=1}^k \bigcup_{j=a_i}^{b_i} I_i \times_\leq J_j,\]	
+			or alternatively, there are numbers \(c_i, d_i\) such that 
+			\[\mathcal{A}_e = \bigcup_{j=1}^l \bigcup_{i=c_i}^{d_i} I_i \times_\leq J_j,\]	
+		where both sets of intervals are sorted by their left boundary (or equivalently by 1. and 2. by their right boundary)
+	\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+  \begin{enumerate}
+		\item If they are not, the intervals are not maximal and can be merged. Correctness follows from the proof of \cref{lem:admissible-rep}
+		\item Same as 1.
+		\item Fix an interval \(I_i\). We need to show that the \(J_j\) intervals with which it must be paired via \(\times_\leq\) are all consecutive with none missing inbetween. Let \(I_i \times_\leq J_x\) and \(I_i \times_\leq J_y\) be nonempty and subsets of \(\mathcal{A}_e\) and \(x \leq z \leq y\). We show that \(I_i \times_\leq J_z \subseteq \mathcal{A}_e\).
+
+			Pick \((t', t) \in I_i \times_\leq J_z\). TODO: Complete proof, but follows trivially by looking at free space diagram. Becomes basically instance of cell reachability.
+  \end{enumerate}
+\end{proof}
+
+\begin{definition}[Global Shortcut Graph]
+	For a polyline \(P = \angl{v_0, \dots, v_n}\) and \(\varepsilon > 0\) we define the global shortcut graph as the directed acyclic graph \(G = (V, E)\) with \(V = \set{v_0, \dots, v_n}\) and \(E = \set{(v_i, v_j) \mid i < j, e = \overline{v_iv_j}, \mathcal{A}_e \neq \emptyset}\).
+
+	We define a labelling function on the edges 
+	\[S(e) = ((I_1, \dots, I_k), (J_1, \dots, J_l), ((a_1, b_1), \dots, (a_k, b_k)), ((c_1, d_1), \dots, (c_l, d_l)))\] 
+	where \(I_i\) and \(J_j\) are the intervals from which we can construct \(\mathcal{A}_e\) and \(a_i, b_i, c_j, d_j\) are the boundaries of intervals that need to be paired as in \cref{lem:admissible-rep-1}.
+\end{definition}
+
+Any global simplification corresponds to a path through the graph from \(0\) to \(n\) using the edges \(e_1, \dots, e_r\) such that there are \(I_i \times_\leq J_i \subseteq \mathcal{A}_{e_i}\) such that \(J_i \cap I_{i+1} \neq \emptyset\) for all \(i\) and \(0 \in I_1\) and \(n \in J_r\).
+
+\begin{lemma}
+	\(Q=\angl{v_{i_0}, \dots, v_{i_k}}\) is a simplification of \(P=\angl{v_0, \dots, v_n}\) if and only if 
+	\begin{itemize}
+		\item \(v_{i_0} = 0 \) and \(v_{i_k} = n\)
+		\item There are \(x_0 \leq x_1 \leq \cdots \leq x_k\) such that \(x_0 = 0\), \(x_k = n\) and \((x_{j-1}, x_j) \in \mathcal{A}_e\) with \(e = \overline{v_{i_{j-1}}v_{i_j}}\) for \(j = 1, \dots, k\).
+	\end{itemize}
+\end{lemma}
+
+\begin{proof}
+	Let \(\delta^F(P, Q) \leq \varepsilon\). By definition it must hold \(v_{i_0} = 0\) and \(v_{i_k} = n\). To find the sequence of \(x_i\) set \(x_i =\)
+\end{proof}
+
+
+
+
+
+
+

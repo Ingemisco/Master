@@ -4,7 +4,11 @@
 #include "simplification.h"
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <string>
 
 using DataStructures::Point, DataStructures::unnormalized_euclidean_distance;
 
@@ -115,9 +119,8 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Poly
 			datastructure->simplifications[index++] = std::move(temp_datastructure.simplifications[i]);
 		}
 	}
-	datastructure->simplification_count = index;
 
-	for (size_t i = 0; i < datastructure->simplification_count; i++) {
+	for (size_t i = 0; i < index; i++) {
 		std::cout << "simplification size: " << datastructure->simplifications[i]->size() << ", epsilon: " << datastructure->epsilons[i] << ", Simplification: ";
 		for (auto v: *datastructure->simplifications[i]) {
 			std::cout << v << ", ";
@@ -128,20 +131,73 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Poly
 	return datastructure;
 }
 
+void SimplificationQuerier::save_datastructure_to_file(std::filesystem::path path) {
+  std::ofstream output;
+  output.open(path);
+  if (!output.is_open()) {
+    std::cerr << "Could not write to file " << path << std::endl;
+    exit(1);
+  }
+
+	for (size_t i = 0; i < this->epsilons.size(); i++) {
+		output << epsilons[i] << " " << simplifications[i]->size();
+		for (auto v: *simplifications[i]) {
+			output << " " << v;
+		}
+		output << '\n';
+	}
+
+	output.close();
+}
 
 
+std::unique_ptr<SimplificationQuerier> SimplificationQuerier::from_file(std::filesystem::path path) {
+  std::ifstream input(path);
+  if (!input) {
+    throw std::runtime_error("Failed to open file: " + path.string());
+  }
 
+  auto ds = std::make_unique<SimplificationQuerier>();
+	std::string line;
+	float epsilon;
+	size_t simplification_size;
+	size_t point;
+	while (std::getline(input, line)) {
+		std::istringstream line_stream(line);
+		line_stream >> epsilon >> simplification_size;
+		auto polyline = std::make_unique<std::vector<size_t>>();
 
-
-
-
-
-
-
-
-
-
+		polyline->reserve(simplification_size);
+		while ((line_stream >> point)) {
+			polyline->push_back(point);
+		}
+		
+		ds->simplifications.push_back(std::move(polyline));
+		ds->epsilons.push_back(epsilon);
+	}
+	return ds;
+}
 
 
 
 std::unique_ptr<SimplificationQuerier> build_querier(DataStructures::Polyline &);
+
+
+
+
+
+
+
+
+
+
+
+void SimplificationQuerier::print() {
+	for (unsigned int i = 0; i < epsilons.size(); i++) {
+		std::cout << epsilons[i] << ": ";
+		for (auto &v : *simplifications[i]) {
+			std::cout << v << " ";
+		}
+		std::cout << std::endl;
+	}
+}
