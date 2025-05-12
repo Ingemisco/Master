@@ -282,25 +282,20 @@ struct DPImplicitTable final {
 		return restriction[k * dim1 + i * dim2 + j];
 	}
 
+	inline size_t &dp_point_ref_i(size_t k, size_t i, size_t j) {
+		return point_reference_i[k * dim1 + i * dim2 + j];
+	}
+
+	inline size_t &dp_point_ref_j(size_t k, size_t i, size_t j) {
+		return point_reference_j[k * dim1 + i * dim2 + j];
+	}
 };
-
-static inline size_t &dp_point_ref_i(DPImplicitTable &table, size_t k, size_t i,
-                                     size_t j, size_t dim1, size_t dim2) {
-  return table.point_reference_i[k * dim1 + i * dim2 + j];
-}
-
-static inline size_t &dp_point_ref_j(DPImplicitTable &table, size_t k, size_t i,
-                                     size_t j, size_t dim1, size_t dim2) {
-  return table.point_reference_j[k * dim1 + i * dim2 + j];
-}
 
 Simplification
 simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
                                         float epsilon) {
   size_t const point_count = polyline.point_count;
   DPImplicitTable table(point_count);
-  size_t const dim2 = point_count - 1;
-  size_t const dim1 = dim2 * point_count;
   float const epsilon2 = epsilon * epsilon;
 
   // initialization
@@ -380,8 +375,8 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
           }
         }
 
-        dp_point_ref_i(table, k, i, j, dim1, dim2) = ref_i;
-        dp_point_ref_j(table, k, i, j, dim1, dim2) = ref_j;
+        table.dp_point_ref_i(k, i, j) = ref_i;
+        table.dp_point_ref_j(k, i, j) = ref_j;
         table.dp_restriction(k, i, j) = new_restriction;
       }
     }
@@ -395,8 +390,8 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
             size_t v = table.dp_restriction(a, b, c);
             if (v < DataStructures::IMPLICIT_NEVER_REACHABLE &&
                 (a == 0 || table.dp_restriction(a - 1, b, c) != v)) {
-              size_t i_ = dp_point_ref_i(table, a, b, c, dim1, dim2);
-              size_t j_ = dp_point_ref_j(table, a, b, c, dim1, dim2);
+              size_t i_ = table.dp_point_ref_i(a, b, c);
+              size_t j_ = table.dp_point_ref_j(a, b, c);
               log.add_use(
                   VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
             }
@@ -405,15 +400,14 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
       }
       log.emit();
 #endif
-
       Simplification result = std::make_unique<std::vector<size_t>>(k + 1);
       auto &p = *result;
       size_t i_ = point_count - 1;
       size_t j_ = point_count - 2;
       while (i_ > 0) {
         p[k] = i_;
-        size_t const i_new = dp_point_ref_i(table, k, i_, j_, dim1, dim2);
-        size_t const j_new = dp_point_ref_j(table, k, i_, j_, dim1, dim2);
+        size_t const i_new = table.dp_point_ref_i(k, i_, j_);
+        size_t const j_new = table.dp_point_ref_j(k, i_, j_);
         k--;
         i_ = i_new;
         j_ = j_new;
