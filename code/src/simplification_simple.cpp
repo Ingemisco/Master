@@ -14,22 +14,23 @@
 namespace Simplification {
 
 // dynamic programming table used in the algorithm
+template <typename F, typename T, F UNREACHABLE_POINT>
 struct DPTable final {
-  float *const reachable_points;
+  F *const reachable_points;
   size_t *const point_reference_i;
   size_t *const point_reference_j;
 
+	size_t const dim2;
+	size_t const dim1;
+
   DPTable(size_t point_count)
-      : reachable_points(
-            new float[point_count * point_count * (point_count - 1)]),
-        point_reference_i(
-            new size_t[point_count * point_count * (point_count - 1)]),
-        point_reference_j(
-            new size_t[point_count * point_count * (point_count - 1)]) {
+      : reachable_points( new F[point_count * point_count * (point_count - 1)]), 
+				point_reference_i( new size_t[point_count * point_count * (point_count - 1)]),
+        point_reference_j( new size_t[point_count * point_count * (point_count - 1)]),
+				dim2(point_count - 1), dim1(dim2 * point_count) {
     // set first layer to be unreachable, needs to be updated accordingly. All
     // other layers will be tested individually
-    std::fill_n(reachable_points, point_count * (point_count - 1),
-                DataStructures::EXPLICIT_UNREACHABLE);
+    std::fill_n(reachable_points, point_count * (point_count - 1), UNREACHABLE_POINT);
   }
 
   ~DPTable() {
@@ -37,44 +38,36 @@ struct DPTable final {
     delete[] point_reference_i;
     delete[] point_reference_j;
   }
+
+	inline F &first_reachable(size_t k, size_t i, size_t j) {
+		return reachable_points[k * dim1 + i * dim2 + j];
+	}
+
+	inline size_t &dp_point_ref_i(size_t k, size_t i, size_t j) {
+		return point_reference_i[k * dim1 + i * dim2 + j];
+	}
+
+	inline size_t &dp_point_ref_j(size_t k, size_t i, size_t j) {
+		return point_reference_j[k * dim1 + i * dim2 + j];
+	}
 };
 
-// dim1 and dim2 should be precomputed constants with dim2 = point_count - 1,
-// dim1 =  dim2 * point_count, k and i are between 0 (inclusive) and point_count
-// (exclusive), j is between 0 and point_count -1
-static inline float &dp_first_reachable(DPTable &table, size_t k, size_t i,
-                                        size_t j, size_t dim1, size_t dim2) {
-  return table.reachable_points[k * dim1 + i * dim2 + j];
-}
-
-static inline size_t &dp_point_ref_i(DPTable &table, size_t k, size_t i,
-                                     size_t j, size_t dim1, size_t dim2) {
-  return table.point_reference_i[k * dim1 + i * dim2 + j];
-}
-
-static inline size_t &dp_point_ref_j(DPTable &table, size_t k, size_t i,
-                                     size_t j, size_t dim1, size_t dim2) {
-  return table.point_reference_j[k * dim1 + i * dim2 + j];
-}
+typedef DPTable<float, float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
 
 template <DataStructures::Distance _distance>
 static inline void
 _simplification_initialization(DataStructures::Polyline &polyline,
-                               float epsilon, size_t point_count, size_t dim1,
-                               size_t dim2, DPTable &table
+                               float epsilon, size_t point_count, DPExplicit &table
 #if DEBUG
-                               ,
-                               VisualizationLog::VisualizationLogger &log
+                               , VisualizationLog::VisualizationLogger &log
 #endif
-
 ) {
   DataStructures::Point const origin = polyline.get_point(0);
 
-  dp_first_reachable(table, 0, 0, 0, dim1, dim2) = 0;
+  table.first_reachable(0, 0, 0) = 0;
   unsigned int j = 1;
-  for (; j < point_count - 1 &&
-         _distance(origin, polyline.get_point(j)) < epsilon; j++) {
-    dp_first_reachable(table, 0, 0, j, dim1, dim2) = 0;
+  for (; j < point_count - 1 && _distance(origin, polyline.get_point(j)) < epsilon; j++) {
+    table.first_reachable(0, 0, j) = 0;
   }
 
 #if DEBUG
@@ -85,10 +78,9 @@ _simplification_initialization(DataStructures::Polyline &polyline,
 template <DataStructures::Solver _solver, DataStructures::AltGodau _alt_godau>
 static inline Simplification
 _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
-                     float epsilon, DPTable &table, size_t dim1, size_t dim2
+                     float epsilon, DPExplicit &table
 #if DEBUG
-                     ,
-                     VisualizationLog::VisualizationLogger &log
+                     , VisualizationLog::VisualizationLogger &log
 #endif
 
 ) {
@@ -100,18 +92,17 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
             _solver(polyline.get_point(j), polyline.get_point(j + 1),
                     polyline.get_point(i), epsilon);
         if (range.first == DataStructures::EXPLICIT_UNREACHABLE) {
-          dp_first_reachable(table, k, i, j, dim1, dim2) =
-              DataStructures::EXPLICIT_UNREACHABLE;
+          table.first_reachable(k, i, j) = DataStructures::EXPLICIT_UNREACHABLE;
           // optimization 2: reachability
           continue;
         }
 
-        if (range.first == dp_first_reachable(table, k - 1, i, j, dim1, dim2)) {
+        if (range.first == table.first_reachable(k - 1, i, j)) {
           // optimization 1: global minimality
           // already found best, cannot be reference (would be referenced
           // earlier because of minimality) so the i, j it references dont need
           // to be set
-          dp_first_reachable(table, k, i, j, dim1, dim2) = range.first;
+          table.first_reachable(k, i, j) = range.first;
           continue;
         }
 
@@ -121,8 +112,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
         size_t ref_j = DataStructures::IMPLICIT_UNREACHABLE;
         for (unsigned int i_ = k - 1; i_ < i; i_++) {
           for (unsigned int j_ = 0; j_ <= j; j_++) {
-            float const val =
-                dp_first_reachable(table, k - 1, i_, j_, dim1, dim2);
+            float const val = table.first_reachable(k - 1, i_, j_);
             if (val == DataStructures::EXPLICIT_UNREACHABLE) {
               continue;
             }
@@ -148,31 +138,27 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
         }
 
         if (first_reachable != 2) {
-          dp_point_ref_i(table, k, i, j, dim1, dim2) = ref_i;
-          dp_point_ref_j(table, k, i, j, dim1, dim2) = ref_j;
-          dp_first_reachable(table, k, i, j, dim1, dim2) = first_reachable;
+          table.dp_point_ref_i(k, i, j) = ref_i;
+          table.dp_point_ref_j(k, i, j) = ref_j;
+          table.first_reachable(k, i, j) = first_reachable;
         } else {
-          dp_first_reachable(table, k, i, j, dim1, dim2) =
-              DataStructures::EXPLICIT_UNREACHABLE;
+          table.first_reachable(k, i, j) = DataStructures::EXPLICIT_UNREACHABLE;
         }
       }
     }
 
-    if (dp_first_reachable(table, k, point_count - 1, point_count - 2, dim1,
-                           dim2) != DataStructures::EXPLICIT_UNREACHABLE) {
+    if (table.first_reachable(k, point_count - 1, point_count - 2) != DataStructures::EXPLICIT_UNREACHABLE) {
 #if DEBUG
       // print whole table (relevant entries)
       for (unsigned int a = 1; a <= k; a++) {
         for (unsigned int b = a; b < point_count; b++) {
           for (unsigned int c = 0; c < point_count - 1; c++) {
-            float v = dp_first_reachable(table, a, b, c, dim1, dim2);
+            float v = table.first_reachable(a, b, c);
             if (v != DataStructures::EXPLICIT_UNREACHABLE &&
-                (a == 0 ||
-                 dp_first_reachable(table, a - 1, b, c, dim1, dim2) != v)) {
-              size_t i_ = dp_point_ref_i(table, a, b, c, dim1, dim2);
-              size_t j_ = dp_point_ref_j(table, a, b, c, dim1, dim2);
-              log.add_use(
-                  VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
+                (a == 0 || table.first_reachable(a - 1, b, c) != v)) {
+              size_t i_ = table.dp_point_ref_i(a, b, c);
+              size_t j_ = table.dp_point_ref_j(a, b, c);
+              log.add_use( VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
             }
           }
         }
@@ -186,8 +172,8 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
       size_t j_ = point_count - 2;
       while (i_ > 0) {
         p[k] = i_;
-        size_t const i_new = dp_point_ref_i(table, k, i_, j_, dim1, dim2);
-        size_t const j_new = dp_point_ref_j(table, k, i_, j_, dim1, dim2);
+        size_t const i_new = table.dp_point_ref_i(k, i_, j_);
+        size_t const j_new = table.dp_point_ref_j(k, i_, j_);
         k--;
         i_ = i_new;
         j_ = j_new;
@@ -203,9 +189,7 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
                                float epsilon) {
   size_t const point_count = polyline.point_count;
 
-  DPTable table(point_count);
-  size_t const dim2 = point_count - 1;
-  size_t const dim1 = dim2 * point_count;
+  DPExplicit table(point_count);
   float const epsilon2 = epsilon * epsilon;
 
 #if DEBUG
@@ -213,17 +197,17 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
       polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN);
   _simplification_initialization<
       DataStructures::unnormalized_euclidean_distance>(
-      polyline, epsilon2, point_count, dim1, dim2, table, log);
+      polyline, epsilon2, point_count, table, log);
   return _simplification_main<DataStructures::solve_euclidean,
                               DataStructures::alt_godau_euclidean>(
-      polyline, point_count, epsilon, table, dim1, dim2, log);
+      polyline, point_count, epsilon, table, log);
 #else
   _simplification_initialization<
       DataStructures::unnormalized_euclidean_distance>(
-      polyline, epsilon2, point_count, dim1, dim2, table);
+      polyline, epsilon2, point_count, table);
   return _simplification_main<DataStructures::solve_euclidean,
                               DataStructures::alt_godau_euclidean>(
-      polyline, point_count, epsilon, table, dim1, dim2);
+      polyline, point_count, epsilon, table);
 #endif
 }
 
@@ -231,25 +215,22 @@ Simplification
 simplification_naive_manhattan(DataStructures::Polyline &polyline,
                                float epsilon) {
   size_t const point_count = polyline.point_count;
-
-  DPTable table(point_count);
-  size_t const dim2 = point_count - 1;
-  size_t const dim1 = dim2 * point_count;
+  DPExplicit table(point_count);
 
 #if DEBUG
   VisualizationLog::VisualizationLogger log(
       polyline, epsilon, VisualizationLog::Distance::MANHATTAN);
   _simplification_initialization<DataStructures::manhattan_distance>(
-      polyline, epsilon, point_count, dim1, dim2, table, log);
+      polyline, epsilon, point_count, table, log);
   return _simplification_main<DataStructures::solve_manhattan,
                               DataStructures::alt_godau_manhattan>(
-      polyline, point_count, epsilon, table, dim1, dim2, log);
+      polyline, point_count, epsilon, table, log);
 #else
   _simplification_initialization<DataStructures::manhattan_distance>(
-      polyline, epsilon, point_count, dim1, dim2, table);
+      polyline, epsilon, point_count, table);
   return _simplification_main<DataStructures::solve_manhattan,
                               DataStructures::alt_godau_manhattan>(
-      polyline, point_count, epsilon, table, dim1, dim2);
+      polyline, point_count, epsilon, table);
 #endif
 }
 
@@ -257,25 +238,22 @@ Simplification
 simplification_naive_chebyshev(DataStructures::Polyline &polyline,
                                float epsilon) {
   size_t const point_count = polyline.point_count;
-
-  DPTable table(point_count);
-  size_t const dim2 = point_count - 1;
-  size_t const dim1 = dim2 * point_count;
+  DPExplicit table(point_count);
 
 #if DEBUG
   VisualizationLog::VisualizationLogger log(
       polyline, epsilon, VisualizationLog::Distance::CHEBYSHEV);
   _simplification_initialization<DataStructures::chebyshev_distance>(
-      polyline, epsilon, point_count, dim1, dim2, table, log);
+      polyline, epsilon, point_count, table, log);
   return _simplification_main<DataStructures::solve_chebyshev,
                               DataStructures::alt_godau_chebyshev>(
-      polyline, point_count, epsilon, table, dim1, dim2, log);
+      polyline, point_count, epsilon, table, log);
 #else
   _simplification_initialization<DataStructures::chebyshev_distance>(
-      polyline, epsilon, point_count, dim1, dim2, table);
+      polyline, epsilon, point_count, table);
   return _simplification_main<DataStructures::solve_chebyshev,
                               DataStructures::alt_godau_chebyshev>(
-      polyline, point_count, epsilon, table, dim1, dim2);
+      polyline, point_count, epsilon, table);
 #endif
 }
 
@@ -285,24 +263,26 @@ struct DPImplicitTable final {
   size_t *const point_reference_i;
   size_t *const point_reference_j;
 
+	size_t const dim2;
+	size_t const dim1;
+
   DPImplicitTable(size_t point_count)
       : restriction(new size_t[point_count * point_count * (point_count - 1)]),
-        point_reference_i(
-            new size_t[point_count * point_count * (point_count - 1)]),
-        point_reference_j(
-            new size_t[point_count * point_count * (point_count - 1)]) { }
+        point_reference_i(new size_t[point_count * point_count * (point_count - 1)]),
+        point_reference_j(new size_t[point_count * point_count * (point_count - 1)]),
+				dim2(point_count - 1), dim1(dim2 * point_count) { }
 
   ~DPImplicitTable() {
     delete[] restriction;
     delete[] point_reference_i;
     delete[] point_reference_j;
   }
-};
 
-static inline size_t &dp_restriction(DPImplicitTable &table, size_t k, size_t i,
-                                     size_t j, size_t dim1, size_t dim2) {
-  return table.restriction[k * dim1 + i * dim2 + j];
-}
+	inline size_t &dp_restriction(size_t k, size_t i, size_t j) {
+		return restriction[k * dim1 + i * dim2 + j];
+	}
+
+};
 
 static inline size_t &dp_point_ref_i(DPImplicitTable &table, size_t k, size_t i,
                                      size_t j, size_t dim1, size_t dim2) {
@@ -325,12 +305,11 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
 
   // initialization
   auto const origin = polyline.get_point(0);
-  dp_restriction(table, 0, 0, 0, dim1, dim2) = 0;
+  table.dp_restriction(0, 0, 0) = 0;
   unsigned int j = 1;
   for (; j < point_count - 1 && DataStructures::unnormalized_euclidean_distance(
-                                origin, polyline.get_point(j)) < epsilon2;
-       j++) {
-    dp_restriction(table, 0, 0, j, dim1, dim2) = 0;
+                                origin, polyline.get_point(j)) < epsilon2; j++) {
+    table.dp_restriction(0, 0, j) = 0;
   }
 
 #if DEBUG
@@ -341,26 +320,24 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
   for (unsigned int i = 0; i < point_count; i++) {
 		for (; j < point_count - 1; j++) {
 			if (DataStructures::is_line_reachable_euclidean(DataStructures::LineSegment(polyline.get_point(j), polyline.get_point(j + 1)), polyline.get_point(i), epsilon2)) {
-				dp_restriction(table, 0, i, j, dim1, dim2) = DataStructures::IMPLICIT_UNREACHABLE;
+				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_UNREACHABLE;
 			} else {
-				dp_restriction(table, 0, i, j, dim1, dim2) = DataStructures::IMPLICIT_NEVER_REACHABLE;
+				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
 			}
 		}
 		j = 0;
 	}
 
-	std::cout << "Test" << std::endl;
-
   for (unsigned int k = 1; true; k++) {
 #pragma omp parallel for collapse(2) schedule(dynamic, 32)
     for (size_t i = k; i < point_count; i++) {
       for (size_t j = 0; j < point_count - 1; j++) {
-        if (dp_restriction(table, k - 1, i, j, dim1, dim2) == i) {
+        if (table.dp_restriction(k - 1, i, j) == i) {
           // optimization 1: global minimality
-          dp_restriction(table, k, i, j, dim1, dim2) = i;
+          table.dp_restriction(k, i, j) = i;
           continue;
-        } else if (dp_restriction(table, k - 1, i, j, dim1, dim2) == DataStructures::IMPLICIT_NEVER_REACHABLE) {
-          dp_restriction(table, k, i, j, dim1, dim2) = DataStructures::IMPLICIT_NEVER_REACHABLE;
+        } else if (table.dp_restriction(k - 1, i, j) == DataStructures::IMPLICIT_NEVER_REACHABLE) {
+          table.dp_restriction(k, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
           continue;
         }
 
@@ -369,7 +346,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
         size_t ref_j = DataStructures::IMPLICIT_UNREACHABLE;
         for (size_t i_ = k - 1; i_ < i; i_++) {
           for (size_t j_ = 0; j_ <= j; j_++) {
-            size_t const val = dp_restriction(table, k - 1, i_, j_, dim1, dim2);
+            size_t const val = table.dp_restriction(k - 1, i_, j_);
 
             if (val >= DataStructures::IMPLICIT_NEVER_REACHABLE) {
               continue;
@@ -405,22 +382,19 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
 
         dp_point_ref_i(table, k, i, j, dim1, dim2) = ref_i;
         dp_point_ref_j(table, k, i, j, dim1, dim2) = ref_j;
-        dp_restriction(table, k, i, j, dim1, dim2) = new_restriction;
+        table.dp_restriction(k, i, j) = new_restriction;
       }
     }
 
-    if (dp_restriction(table, k, point_count - 1, point_count - 2, dim1,
-                       dim2) != DataStructures::IMPLICIT_UNREACHABLE) {
+    if (table.dp_restriction(k, point_count - 1, point_count - 2) != DataStructures::IMPLICIT_UNREACHABLE) {
 #if DEBUG
       // print whole table (relevant entries)
       for (unsigned int a = 1; a <= k; a++) {
         for (unsigned int b = a; b < point_count; b++) {
           for (unsigned int c = 0; c < point_count - 1; c++) {
-            size_t v = dp_restriction(table, a, b, c, dim1, dim2);
+            size_t v = table.dp_restriction(a, b, c);
             if (v < DataStructures::IMPLICIT_NEVER_REACHABLE &&
-                (a == 0 ||
-                 dp_restriction(table, a - 1, b, c, dim1, dim2) != v)) {
-
+                (a == 0 || table.dp_restriction(a - 1, b, c) != v)) {
               size_t i_ = dp_point_ref_i(table, a, b, c, dim1, dim2);
               size_t j_ = dp_point_ref_j(table, a, b, c, dim1, dim2);
               log.add_use(
