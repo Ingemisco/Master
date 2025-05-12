@@ -163,8 +163,7 @@ std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
   return os;
 }
 
-PolylineRange::PolylineRange(Polyline &polyline, size_t start_point,
-                             size_t end_point, float start_offset)
+SubPolyline::SubPolyline(Polyline &polyline, size_t start_point, size_t end_point, float start_offset)
     : polyline(polyline), start_point_index(start_point),
       end_point_index(end_point), start_point_offset(start_offset) {}
 

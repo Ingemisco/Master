@@ -54,13 +54,13 @@ struct Polyline final {
 
 // only used as logical grouping for Alt and Godau Algorithm and Polyline
 // Simplification algorithms
-struct PolylineRange final {
+struct SubPolyline final {
   Polyline &polyline;
   size_t const start_point_index;
   size_t const end_point_index;
   float const start_point_offset;
 
-  PolylineRange(Polyline &, size_t, size_t, float);
+  SubPolyline(Polyline &, size_t, size_t, float);
 };
 
 void assert_compatible_points(Point const &, Point const &);

@@ -21,7 +21,7 @@ namespace DataStructures {
 
 template <ReachabilityData _solver(Point const &, Point const &, Point const &,
                                    float)>
-static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
+static inline float _alt_godau_main(SubPolyline &polyline, LineSegment &line,
                                     float epsilon) {
   if (polyline.start_point_index + 1 == polyline.end_point_index) {
     auto data = _solver(polyline.polyline.get_point(polyline.start_point_index),
@@ -55,7 +55,7 @@ static inline float _alt_godau_main(PolylineRange &polyline, LineSegment &line,
   return data.first;
 }
 
-float alt_godau_manhattan(PolylineRange polyline, LineSegment line,
+float alt_godau_manhattan(SubPolyline polyline, LineSegment line,
                           float epsilon) {
 #if DEBUG
   assert_compatible_points(polyline.polyline.get_point(0), line.start);
@@ -81,8 +81,7 @@ float alt_godau_manhattan(PolylineRange polyline, LineSegment line,
   return _alt_godau_main<solve_manhattan>(polyline, line, epsilon);
 }
 
-float alt_godau_euclidean(PolylineRange polyline, LineSegment line,
-                          float epsilon) {
+float alt_godau_euclidean(SubPolyline polyline, LineSegment line, float epsilon) {
 #if DEBUG
   assert_compatible_points(polyline.polyline.get_point(0), line.start);
 #endif
@@ -172,8 +171,7 @@ size_t solve_implicit_euclidean_in(LineSegment line, Point const &restriction,
   assert_compatible_points(line.start, restriction);
   assert_compatible_points(line.start, point);
 #endif
-  float const restriction_dist =
-      unnormalized_euclidean_distance(restriction, line.start);
+  float const restriction_dist = unnormalized_euclidean_distance(restriction, line.start);
 
   float const point_dist = unnormalized_euclidean_distance(point, line.start);
   float const a0_1 = restriction_dist - epsilon2;
@@ -243,8 +241,7 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_,
   return IMPLICIT_UNREACHABLE;
 }
 
-float alt_godau_chebyshev(PolylineRange polyline, LineSegment line,
-                          float epsilon) {
+float alt_godau_chebyshev(SubPolyline polyline, LineSegment line, float epsilon) {
 #if DEBUG
   assert_compatible_points(polyline.polyline.get_point(0), line.start);
 #endif

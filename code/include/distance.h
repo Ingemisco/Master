@@ -16,7 +16,7 @@ typedef float Distance(Point const &, Point const &);
 typedef ReachabilityData Solver(Point const &, Point const &, Point const &,
                                 float);
 
-typedef float AltGodau(PolylineRange, LineSegment, float);
+typedef float AltGodau(SubPolyline, LineSegment, float);
 
 // used to designate that no point on a line segment is reachable.
 // in ReachabilityData first and last will be set to this in this case
@@ -27,7 +27,6 @@ size_t constexpr INDEX_UNREACHABLE = (size_t)-1;
 size_t constexpr IMPLICIT_NEVER_REACHABLE = (size_t)-2;
 
 std::pair<float const, float const> constexpr EMPTY_INTERVAL_EXPLICIT = std::pair<float const, float const>(EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE);
-
 
 float integer_exponentiation(float, int);
 int integer_exponentiation(int, int);
@@ -41,27 +40,21 @@ float euclidean_distance(Point const &, Point const &);
 float chebyshev_distance(Point const &, Point const &);
 float manhattan_distance(Point const &, Point const &);
 
-float alt_godau_manhattan(PolylineRange, LineSegment, float);
-float alt_godau_euclidean(PolylineRange, LineSegment, float);
+float alt_godau_manhattan(SubPolyline, LineSegment, float);
+float alt_godau_euclidean(SubPolyline, LineSegment, float);
 
-size_t alt_godau_euclidean_implicit(Polyline const &, size_t _, size_t, size_t,
-                                    size_t, size_t, float);
+size_t alt_godau_euclidean_implicit(Polyline const &, size_t _, size_t, size_t, size_t, size_t, float);
 
-float alt_godau_chebyshev(PolylineRange, LineSegment, float);
-size_t alt_godau_minkowski_implicit(Polyline const &, Point const &,
-                                    Point const &, float, unsigned int);
+float alt_godau_chebyshev(SubPolyline, LineSegment, float);
+size_t alt_godau_minkowski_implicit(Polyline const &, Point const &, Point const &, float, unsigned int);
 
-ReachabilityData solve_manhattan(Point const &, Point const &, Point const &,
-                                 float);
-ReachabilityData solve_chebyshev(Point const &, Point const &, Point const &,
-                                 float);
-ReachabilityData solve_euclidean(Point const &, Point const &, Point const &,
-                                 float);
+ReachabilityData solve_manhattan(Point const &, Point const &, Point const &, float);
+ReachabilityData solve_chebyshev(Point const &, Point const &, Point const &, float);
+ReachabilityData solve_euclidean(Point const &, Point const &, Point const &, float);
 
 bool solve_implicit_euclidean(LineSegment, Point const &, Point const &, float);
 
-size_t solve_implicit_euclidean_in(LineSegment, Point const &, Point const &,
-                                   float);
+size_t solve_implicit_euclidean_in(LineSegment, Point const &, Point const &, float);
 
 bool is_line_reachable_euclidean(LineSegment, Point const &, float);
 

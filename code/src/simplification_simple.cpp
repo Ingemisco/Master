@@ -117,7 +117,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
               continue;
             }
             float const reachable = _alt_godau(
-                DataStructures::PolylineRange(polyline, j_, j + 1, val),
+                DataStructures::SubPolyline(polyline, j_, j + 1, val),
                 DataStructures::LineSegment(polyline.get_point(i_),
                                             polyline.get_point(i)),
                 epsilon);

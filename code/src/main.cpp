@@ -171,7 +171,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
         //  std::cout << res << std::endl;
 
         //  auto expl = DataStructures::alt_godau_euclidean(
-        //      DataStructures::PolylineRange(p, 154, 159 + 1, 0.7),
+        //      DataStructures::SubPolyline(p, 154, 159 + 1, 0.7),
         //      DataStructures::LineSegment(p.get_point(155), p.get_point(160)),
         //      epsilon);
         //  std::cout << "explicit" << std::endl << expl << std::endl;
