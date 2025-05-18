@@ -10,26 +10,25 @@
 #include <memory>
 #include <string>
 
-using DataStructures::Point, DataStructures::unnormalized_euclidean_distance;
+using DataStructures::Polyline, DataStructures::unnormalized_euclidean_distance;
 
 Simplification::Simplification &simplify_query(SimplificationQuerier &, float);
 
 // computes the product <v - u | w - u>
 static inline float
-scalar_product(Point const &u, Point const &v, Point const &w) {
+scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w) {
   float dot_product = 0;
-  for (unsigned int i = 0; i < u.dimension; i++) {
-    dot_product += (v[i] - u[i]) * (w[i] - u[i]);
+  for (unsigned int i = 0; i < polyline.dimension; i++) {
+    dot_product += (polyline[v, i] - polyline[u, i]) * (polyline[w, i] - polyline[u, i]);
   }
   return dot_product;
 }
 
 // computes the product <u - v | w - x>
-static inline float
-scalar_product(Point const &u, Point const &v, Point const &w, Point const &x) {
+static inline float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w, size_t x) {
   float dot_product = 0;
-  for (unsigned int i = 0; i < u.dimension; i++) {
-    dot_product += (u[i] - v[i]) * (w[i] - x[i]);
+  for (unsigned int i = 0; i < polyline.dimension; i++) {
+    dot_product += (polyline[u, i] - polyline[v, i]) * (polyline[w, i] - polyline[x, i]);
   }
   return dot_product;
 }
@@ -67,12 +66,12 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Poly
 	size_t event_count = 0;
 	for (size_t i = 0; i < n - 1; i++) {
 		for (size_t j = i + 1; j < n; j++) {
-			float const dij = unnormalized_euclidean_distance(polyline.get_point(i), polyline.get_point(j));
+			float const dij = unnormalized_euclidean_distance(polyline, i, j);
 			for (size_t k=0; k < n; k++) {
-				float const dik = unnormalized_euclidean_distance(polyline.get_point(i), polyline.get_point(k));
+				float const dik = unnormalized_euclidean_distance(polyline, i, k);
 				float event = dik;
-				event = std::min(unnormalized_euclidean_distance(polyline.get_point(j), polyline.get_point(k)), event);
-				float const scalar_prod = scalar_product(polyline.get_point(i), polyline.get_point(j), polyline.get_point(k)); 
+				event = std::min(unnormalized_euclidean_distance(polyline, j, k), event);
+				float const scalar_prod = scalar_product(polyline, i, j, k); 
 				float const t = scalar_prod / dij;
 				if (0 <= t && t <= 1) {
 					// float inaccuracies can make this number negative
@@ -83,17 +82,17 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Poly
 
 			for (size_t u = 0; u < n - 1; u++) {
 				for (size_t v = i + 1; v < n; v++) {   
-					float const scalar_prod = scalar_product(polyline.get_point(u), polyline.get_point(v), polyline.get_point(j), polyline.get_point(i));
+					float const scalar_prod = scalar_product(polyline, u, v, j, i);
 					if (scalar_prod == 0) {
 					  continue;
 					}
-					float const diu = unnormalized_euclidean_distance(polyline.get_point(i), polyline.get_point(u));
-					float const div = unnormalized_euclidean_distance(polyline.get_point(i), polyline.get_point(v));
+					float const diu = unnormalized_euclidean_distance(polyline, i, u);
+					float const div = unnormalized_euclidean_distance(polyline, i, v);
 					float const t = (diu - div) / (2 * scalar_prod);
 					if (t > 1 || t < 0) {
 					  continue;
 					}
-					events[event_count++] = std::max(diu + t * (2* scalar_product(polyline.get_point(i), polyline.get_point(j), polyline.get_point(u)) + t * dij), 0.0f);
+					events[event_count++] = std::max(diu + t * (2 * scalar_product(polyline, i, j, u) + t * dij), 0.0f);
 				}
 			}
 		}

@@ -2,21 +2,38 @@
 #define INCLUDE_INCLUDE_DISTANCE_H_
 
 #include "datastructures.h"
+#include <utility>
 
 namespace DataStructures {
 #define NO_POINT_REACHABLE -1
 
-typedef float Distance(Point const &, Point const &);
-typedef std::pair<float, float> ReachabilityData;
+typedef float Distance(Polyline const &, size_t, size_t);
 
-typedef float Distance(Point const &, Point const &);
+struct LRValue final {
+	float a; 
+	float d;
+
+	bool operator==(LRValue const &) const;
+};
+
+struct FRValue final {
+	float a; 
+	float d;
+
+	bool operator<=(FRValue const &) const;
+	bool operator==(FRValue const &) const;
+	bool operator<(FRValue const &) const;
+	bool operator<=(LRValue const &) const;
+};
+
+typedef std::pair<float, float> ReachabilityData;
+typedef std::pair<FRValue, LRValue> SEReachabilityData; // for semiexplicit euclidean
 
 // first two points form a line segment and must not be the same, third point is
 // the point from which we solve the equation
-typedef ReachabilityData Solver(Point const &, Point const &, Point const &,
-                                float);
+typedef ReachabilityData Solver(Polyline const &, size_t, size_t, size_t, float);
 
-typedef float AltGodau(SubPolyline, LineSegment, float);
+typedef float AltGodau(Polyline const &, size_t, size_t, float, size_t, size_t, float);
 
 // used to designate that no point on a line segment is reachable.
 // in ReachabilityData first and last will be set to this in this case
@@ -26,37 +43,41 @@ size_t constexpr IMPLICIT_UNREACHABLE = (size_t)-1;
 size_t constexpr INDEX_UNREACHABLE = (size_t)-1;
 size_t constexpr IMPLICIT_NEVER_REACHABLE = (size_t)-2;
 
+FRValue constexpr SEMIEXPLICIT_UNREACHABLE = FRValue(0, -1);
+
 std::pair<float const, float const> constexpr EMPTY_INTERVAL_EXPLICIT = std::pair<float const, float const>(EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE);
+std::pair<FRValue const, LRValue const> constexpr EMPTY_INTERVAL_SEMIEXPLICIT = std::pair<FRValue const, LRValue const>({0, -1}, {0, -1});
 
 float integer_exponentiation(float, int);
 int integer_exponentiation(int, int);
 
-float unnormalized_minkowski_distance(Point const &, Point const &, int);
-float minkowski_distance(Point const &, Point const &, int);
+float unnormalized_minkowski_distance(Polyline const &, size_t, size_t, int);
+float minkowski_distance(Polyline const &, size_t, size_t, int);
 
-float unnormalized_euclidean_distance(Point const &, Point const &);
-float euclidean_distance(Point const &, Point const &);
+float unnormalized_euclidean_distance(Polyline const &, size_t, size_t);
+float euclidean_distance(Polyline const &, size_t, size_t);
 
-float chebyshev_distance(Point const &, Point const &);
-float manhattan_distance(Point const &, Point const &);
+float chebyshev_distance(Polyline const &, size_t, size_t);
+float manhattan_distance(Polyline const &, size_t, size_t);
 
-float alt_godau_manhattan(SubPolyline, LineSegment, float);
-float alt_godau_euclidean(SubPolyline, LineSegment, float);
+float alt_godau_manhattan(Polyline const &, size_t, size_t, float, size_t, size_t, float);
+float alt_godau_euclidean(Polyline const &, size_t, size_t, float, size_t, size_t, float);
 
 size_t alt_godau_euclidean_implicit(Polyline const &, size_t _, size_t, size_t, size_t, size_t, float);
 
-float alt_godau_chebyshev(SubPolyline, LineSegment, float);
-size_t alt_godau_minkowski_implicit(Polyline const &, Point const &, Point const &, float, unsigned int);
+float alt_godau_chebyshev(Polyline const &, size_t, size_t, float, size_t, size_t, float);
+size_t alt_godau_minkowski_implicit(Polyline const &, size_t, size_t, float, unsigned int);
 
-ReachabilityData solve_manhattan(Point const &, Point const &, Point const &, float);
-ReachabilityData solve_chebyshev(Point const &, Point const &, Point const &, float);
-ReachabilityData solve_euclidean(Point const &, Point const &, Point const &, float);
+ReachabilityData solve_manhattan(Polyline const &, size_t, size_t, size_t, float);
+ReachabilityData solve_chebyshev(Polyline const &, size_t, size_t, size_t, float);
+ReachabilityData solve_euclidean(Polyline const &, size_t, size_t, size_t, float);
 
-bool solve_implicit_euclidean(LineSegment, Point const &, Point const &, float);
+bool solve_implicit_euclidean(Polyline const &, size_t, size_t, size_t, size_t, float);
 
-size_t solve_implicit_euclidean_in(LineSegment, Point const &, Point const &, float);
+size_t solve_implicit_euclidean_in(Polyline const &, size_t, size_t, size_t, size_t, float);
+SEReachabilityData solve_euclidean_se(Polyline const &, size_t, size_t, size_t, float);
 
-bool is_line_reachable_euclidean(LineSegment, Point const &, float);
+bool is_line_reachable_euclidean(Polyline const &, size_t, size_t, size_t, float);
 
 } // namespace DataStructures
 #endif // INCLUDE_INCLUDE_DISTANCE_H_

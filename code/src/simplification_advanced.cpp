@@ -8,7 +8,7 @@
 #include <tuple>
 #include <vector>
 
-using DataStructures::Point, DataStructures::Polyline;
+using DataStructures::Polyline;
 
 
 template<typename T>
@@ -144,7 +144,7 @@ struct KappaData final {
 };
 
 // EMPTY_INTERVAL must satisfy that its first component is the value to be used for invalid entries, so it should not be a valid entry
-template <typename T, std::pair<T, T> eq_solver(Point const &, Point const &, Point const &, float),
+template <typename T, std::pair<T, T> eq_solver(Polyline const &, size_t, size_t, size_t, float),
 	std::pair<T, T> NON_EMPTY_INTERVAL, std::pair<T, T> EMPTY_INTERVAL>
 struct Simplifier final {
 	Polyline const &polyline;
@@ -190,7 +190,7 @@ struct Simplifier final {
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < n; i++) {
 			for (unsigned int j = 0; j < n - 1; j++) {
-				this->reachability_data[index++] = eq_solver(polyline.get_point(j), polyline.get_point(j+1), polyline.get_point(i), epsilon);
+				this->reachability_data[index++] = eq_solver(polyline, j, j+1, i, epsilon);
 			}
 		}
 
@@ -245,7 +245,7 @@ struct Simplifier final {
 		// size_t temp = 0;
 		for (size_t i_ = 0; i_ < i; i_++) {
 			for (size_t j = 0; j < n - 1; j++) {
-				this->intervals[j] = eq_solver(polyline.get_point(i_), polyline.get_point(i), polyline.get_point(j+1), epsilon);
+				this->intervals[j] = eq_solver(polyline, i_, i, j+1, epsilon);
 
 				auto const k = kappa[j + (n-1) * i_].smallest_k;
 				this->entry_costs[j] = DataStructures::INDEX_UNREACHABLE;

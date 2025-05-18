@@ -53,20 +53,17 @@ struct DPTable final {
 };
 
 typedef DPTable<float, float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
+typedef DPTable<DataStructures::FRValue, DataStructures::LRValue, DataStructures::SEMIEXPLICIT_UNREACHABLE> DPSemiExplicit;
 
 template <DataStructures::Distance _distance>
-static inline void
-_simplification_initialization(DataStructures::Polyline &polyline,
-                               float epsilon, size_t point_count, DPExplicit &table
+static inline void _simplification_initialization(DataStructures::Polyline &polyline, float epsilon, size_t point_count, DPExplicit &table
 #if DEBUG
                                , VisualizationLog::VisualizationLogger &log
 #endif
 ) {
-  DataStructures::Point const origin = polyline.get_point(0);
-
   table.first_reachable(0, 0, 0) = 0;
   unsigned int j = 1;
-  for (; j < point_count - 1 && _distance(origin, polyline.get_point(j)) < epsilon; j++) {
+  for (; j < point_count - 1 && _distance(polyline, 0, j) < epsilon; j++) {
     table.first_reachable(0, 0, j) = 0;
   }
 
@@ -88,9 +85,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
 #pragma omp parallel for collapse(2) schedule(dynamic, 32)
     for (unsigned int i = k; i < point_count; i++) {
       for (unsigned int j = 0; j < point_count - 1; j++) {
-        auto const range =
-            _solver(polyline.get_point(j), polyline.get_point(j + 1),
-                    polyline.get_point(i), epsilon);
+        auto const range = _solver(polyline, j, j + 1, i, epsilon);
         if (range.first == DataStructures::EXPLICIT_UNREACHABLE) {
           table.first_reachable(k, i, j) = DataStructures::EXPLICIT_UNREACHABLE;
           // optimization 2: reachability
@@ -116,11 +111,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
             if (val == DataStructures::EXPLICIT_UNREACHABLE) {
               continue;
             }
-            float const reachable = _alt_godau(
-                DataStructures::SubPolyline(polyline, j_, j + 1, val),
-                DataStructures::LineSegment(polyline.get_point(i_),
-                                            polyline.get_point(i)),
-                epsilon);
+            float const reachable = _alt_godau(polyline, j_, j + 1, val, i_, i, epsilon);
             if (reachable == DataStructures::EXPLICIT_UNREACHABLE) {
               continue;
             } else if (reachable < first_reachable) {
@@ -184,9 +175,7 @@ _simplification_main(DataStructures::Polyline &polyline, size_t point_count,
   }
 }
 
-Simplification
-simplification_naive_euclidean(DataStructures::Polyline &polyline,
-                               float epsilon) {
+Simplification simplification_naive_euclidean(DataStructures::Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
 
   DPExplicit table(point_count);
@@ -211,9 +200,7 @@ simplification_naive_euclidean(DataStructures::Polyline &polyline,
 #endif
 }
 
-Simplification
-simplification_naive_manhattan(DataStructures::Polyline &polyline,
-                               float epsilon) {
+Simplification simplification_naive_manhattan(DataStructures::Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPExplicit table(point_count);
 
@@ -234,9 +221,7 @@ simplification_naive_manhattan(DataStructures::Polyline &polyline,
 #endif
 }
 
-Simplification
-simplification_naive_chebyshev(DataStructures::Polyline &polyline,
-                               float epsilon) {
+Simplification simplification_naive_chebyshev(DataStructures::Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPExplicit table(point_count);
 
@@ -291,19 +276,15 @@ struct DPImplicitTable final {
 	}
 };
 
-Simplification
-simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
-                                        float epsilon) {
+Simplification simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPImplicitTable table(point_count);
   float const epsilon2 = epsilon * epsilon;
 
   // initialization
-  auto const origin = polyline.get_point(0);
   table.dp_restriction(0, 0, 0) = 0;
   unsigned int j = 1;
-  for (; j < point_count - 1 && DataStructures::unnormalized_euclidean_distance(
-                                origin, polyline.get_point(j)) < epsilon2; j++) {
+  for (; j < point_count - 1 && DataStructures::unnormalized_euclidean_distance(polyline, 0, j) < epsilon2; j++) {
     table.dp_restriction(0, 0, j) = 0;
   }
 
@@ -314,7 +295,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
 #endif
   for (unsigned int i = 0; i < point_count; i++) {
 		for (; j < point_count - 1; j++) {
-			if (DataStructures::is_line_reachable_euclidean(DataStructures::LineSegment(polyline.get_point(j), polyline.get_point(j + 1)), polyline.get_point(i), epsilon2)) {
+			if (DataStructures::is_line_reachable_euclidean(polyline, j, j + 1, i, epsilon2)) {
 				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_UNREACHABLE;
 			} else {
 				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
@@ -361,13 +342,7 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
               j_ = j + 1;
               i_ = i;
             } else if (new_restriction == DataStructures::IMPLICIT_UNREACHABLE ||
-                       !DataStructures::solve_implicit_euclidean(
-                           DataStructures::LineSegment(
-                               polyline.get_point(j),
-                               polyline.get_point(j + 1)),
-                           polyline.get_point(new_restriction),
-                           polyline.get_point(computed_restriction),
-                           epsilon2)) {
+								 !DataStructures::solve_implicit_euclidean(polyline, j, j + 1, new_restriction, computed_restriction, epsilon2)) {
               new_restriction = computed_restriction;
               ref_i = i_;
               ref_j = j_;
@@ -418,5 +393,36 @@ simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline,
     }
   }
 }
+
+
+
+
+
+
+
+
+// epsilon is squared
+Simplification simplification_naive_euclidean_semiexplicit(DataStructures::Polyline &polyline, float epsilon2) {
+  size_t const point_count = polyline.point_count;
+
+  DPExplicit table(point_count);
+
+#if DEBUG
+  VisualizationLog::VisualizationLogger log( polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN);
+  _simplification_initialization< DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table, log);
+  return _simplification_main<DataStructures::solve_euclidean, DataStructures::alt_godau_euclidean>( polyline, point_count, epsilon, table, log);
+#else
+  _simplification_initialization<
+      DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table);
+  return _simplification_main<DataStructures::solve_euclidean, DataStructures::alt_godau_euclidean>(polyline, point_count, epsilon2, table);
+#endif
+}
+
+
+
+
+
+
+
 
 } // namespace Simplification

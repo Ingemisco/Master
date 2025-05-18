@@ -98,9 +98,7 @@ void PerformanceLogger::emit() {
 
   std::ofstream out(filename);
   auto minmax = std::ranges::minmax_element(this->times);
-  auto avg =
-      std::accumulate(this->times.begin(), this->times.end(), Time(0.0)) /
-      this->times.size();
+  auto avg = std::accumulate(this->times.begin(), this->times.end(), Time(0.0)) / this->times.size();
 
   out << "{\n";
   out << "  \"title\": \"" << this->header << "\",\n";
