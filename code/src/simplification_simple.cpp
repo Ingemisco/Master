@@ -408,9 +408,9 @@ Simplification simplification_naive_euclidean_semiexplicit(DataStructures::Polyl
   DPExplicit table(point_count);
 
 #if DEBUG
-  VisualizationLog::VisualizationLogger log( polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN);
+  VisualizationLog::VisualizationLogger log( polyline, epsilon2, VisualizationLog::Distance::EUCLIDEAN);
   _simplification_initialization< DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table, log);
-  return _simplification_main<DataStructures::solve_euclidean, DataStructures::alt_godau_euclidean>( polyline, point_count, epsilon, table, log);
+  return _simplification_main<DataStructures::solve_euclidean, DataStructures::alt_godau_euclidean>( polyline, point_count, epsilon2, table, log);
 #else
   _simplification_initialization<
       DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table);
