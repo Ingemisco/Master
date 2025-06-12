@@ -98,15 +98,15 @@ static inline bool _alt_godau_euclidean_implicit_init(Polyline const &polyline, 
   }
 
   float const ar0 = r0dist - epsilon2;
-  float const ar1 = 2 * scalar_product(polyline, j_0, j_1, r);
+  float const ar1 = scalar_product(polyline, j_0, j_1, r);
 
   float const ai0 = i_0dist - epsilon2;
-  float const ai1 = 2 * scalar_product(polyline, j_0, j_1, i_);
+  float const ai1 = scalar_product(polyline, j_0, j_1, i_);
 
   float const a2 = unnormalized_euclidean_distance(polyline, j_0, j_1);
 
-  float const dr = ar1 * ar1 - 4 * ar0 * a2;
-  float const di = ai1 * ai1 - 4 * ai0 * a2;
+  float const dr = ar1 * ar1 - ar0 * a2;
+  float const di = ai1 * ai1 - ai0 * a2;
 
   float const x = ai1 - ar1;
   float const y = dr + di - x * x;
