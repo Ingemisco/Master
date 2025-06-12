@@ -1,0 +1,71 @@
+\section{Polyline Simplification}\label{sec:polyline-simplification}
+In this section, we discuss and illustrate different types of simplification objectives that have been studied. 
+This yields valuable insights for the rest of this work as well as highlights differences between most of the previously studied
+types and the global (vertex-restricted) simplification under the Fréchet distance that we mainly focus on.
+
+We mainly use the classification of \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} as a basis. 
+
+There are two aspects in which the types of simplification differ from each other:
+\begin{enumerate}
+  \item The set from which to choose the points of the simplification and 
+	\item The distance function between polylines that is used to measure the quality of the simplification. 
+\end{enumerate}
+
+These two aspects are not completely independent of each other.
+
+In \cref{sec:preliminaries} we have already defined one distance function between polylines which is the \emph{Fréchet distance}. The other commonly used function is the \emph{Hausdorff distance}
+
+\begin{definition}[Hausdorff Distance]
+  Let \(P\) and \(Q\) be polylines of length \(p\) and \(q\) respectively in \(d\)-dimensions. Let \(\delta\) be a distance function on points. 
+
+	\begin{itemize}
+		\item The \emph{directed Hausdorff distance} \(\delta^{dH}(P, Q)\) from \(P\) to \(Q\) is defined as 
+		\[\delta^{dH}(P, Q) = \max_{s \in [0, p]}\min_{t \in [0, q]} \delta(P(s), Q(t))\].
+		\item The \emph{(undirected) Hausdorff distance} \(\delta^{H}(P, Q)\) of \(P\) and \(Q\) is defined as 
+		\[\delta^{H}(P, Q) = \max(\delta^{dH}(P, Q), \delta^{dH}(Q, P))\].
+	\end{itemize}
+
+	Note that the directed Hausdorff distance is not symmetric while the undirected Hausdorff distance is.
+\end{definition}
+
+Both the directed and undirected Hausdorff distance as well as the Fréchet distance can be used with different types of point distances, with the most commonly used being the Euclidean distance, the Manhattan distance, and the Chebyshev distance.
+
+These distances are used to measure the simplification against the original polyline. In the case of the directed Hausdorff distance there are two different ways: From the simplification to the polyline or the other way around. 
+Further, for both the Hausdorff and the Fréchet distance, a common alternative way is to compare the simplification only \emph{locally}.
+
+To understand local simplifications, we need to define which points are allowed to be used in the simplification. \citeauthor{global_curve_simplification} distinguish three types:
+\begin{itemize}
+  \item \emph{Vertex-restricted}: Only the points that define the polyline are allowed, i.e., for a polyline \(P = \angl{u_0, \dots, u_n}\) a simplification is only allowed to contain a subsequence of \(u_0, \dots, u_n\) without changing the order.
+	\item \emph{Curve-restricted}: Only points that lie on the polyline are allowed, i.e., for a polyline \(P\) of length \(p\) any point \(P(t)\) for \(t \in [0, p]\) is allowed. This sequence of \(t\) used must be increasing.
+	\item \emph{Non-restricted}: Any point in the ambient space is valid 
+\end{itemize}
+
+Local simplifications is mainly used in the vertex-restricted setting but also works for the curve-restricted one. There we apply the distance function not between the simplification \(Q\) and the original \(P\) but instead apply it between the line segment of \(Q\) and the respective subpolyline in \(P\) and take the maximum over all of these. More specifically, for a polyline distance function \(\delta^P\) we measure the distance the local distance \(\delta^{LP}\) as 
+\[\delta^{LP}(P, Q) = \max_{i \in \set{1,\dots, q}} \delta^P(P[k_{i-1}\dots k_i], Q[i-1 \dots i]),\]
+where \(P = \angl{u_0, \dots, u_p}\) and \(Q = \angl{u_{k_0}, \dots, u_{k_q}}\).
+
+In contrast to the local setting, there is also the \emph{global} one which we study for the Fréchet distance in this work. In this setting the non-restricted cases can also be studied.
+
+In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet setting. For more information on other types of global setting we refer to \citeauthor{global_curve_simplification}.
+
+\subsection{Global Hausdorff}
+We start with the global Hausdorff setting because it can be argued to be the least useful setting. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that it is NP-hard to find such simplifications~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which is less than ideal when it comes to practically applicable algorithms. Fortunately, of the four discussed variants it is the only NP-hard one.
+
+Further, it does not really capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications.
+
+% TODO: Hausdorff image for dense stupidity
+% TODO: Global Hausdorff simplification 
+
+\subsection{Local Hausdorff}
+Whereas the global Hausdorff variant is the hardest to solve, the local Hausdorff setting seems to be the simplest. Currently, it  is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\). Further, unlike its global counterpart, this variant captures more fittingly our understanding of similar polylines as the locality constraint force a coarse order on the simplification.
+
+% TODO: More + Images or smth
+
+\subsection{Local Fréchet}
+
+\subsection{Global Fréchet}
+
+
+
+
+

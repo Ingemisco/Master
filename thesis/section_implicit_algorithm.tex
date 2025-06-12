@@ -2,6 +2,11 @@
 In this section, we review the polyline simplification algorithm and all of its dependencies in order to avoid explicitly computing the solutions of distance equations. We abstract the instances which need explicit solutions to these equations in \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification and the required Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} to a small set of decision problems. 
 We show how these decision problems can be solved for the Euclidean distance without square roots or even divisions, meaning, only addition, subtraction, and multiplication are required. Correctness for the implicit algorithms follows directly from the correctness of the explicit version as only the comparison is abstracted while the actual logic is unaffected. 
 
+\subsection{Related Works}
+To our knowledge, all existing algorithms that make use of the Fréchet distance use the real RAM \cite{computational_geometry_shamos} as their computational model which enables storing real numbers and operating on them with the operations addition, subtraction, multiplication, and division in constant time. Further, for the Euclidean distance, it is assumed that square roots can be performed in constant time and when extending results to arbitrary distance functions, it is assumed that the necessary equations can be solved. \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves}, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, and \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} all present their algorithms in this model as well as many more.
+
+We review the structure of these equation solutions and observe that arbitrary real numbers are not necessary. The implicit approach is the one that requires the least powerful computational model in theory by abstracting the equation solving away to the necessary comparisons. Using fitting representations for the involved numbers allows to assume the regular RAM at least for the Euclidean, Manhattan, and Chebyshev distance. Wether this suffices for arbtirary Minkowski distances remains an open problem.
+
 \subsection{Decision Problems}
 We introduce three decision problems, each based on a relation. 
 \begin{definition}[Implicit Decision Relations]\label{def:implicit_relations}
@@ -144,7 +149,7 @@ This already concludes the necessary modifications to the algorithm. As a final 
 \end{algorithm}
 
 
-\subsection{Euclidean Implementation}
+\subsection{Euclidean Implementation}\label{ssec:euclidean-impl}
 Having seen how we can use these decision problems to implement the algorithms, we make use of them in the Euclidean case. By avoiding the explicit computation of solutions of \cref{eq:eq_solve_main} we can avoid computing square roots and even avoid divisions leading us to the following results. 
 
 \begin{theorem}
@@ -207,7 +212,9 @@ As for the other two relations, it may be possible to use methods from real alge
 As a final note on the Minkowski distances we want to note that the absolute values for odd \(\ell\) can be dealt with similarly as with the Manhattan distance by sorting the inner linear terms according to their zero and partitioning the real numbers into intervals for which all absolute values can be simplified. There are at most two intervals in which the root of the polynomial can lie in and those can be found by evaluating the polynomials at the interval bounds. If any interval has a positive and negative bound there must be exactly one zero in that interval by the intermediate value theorem. Otherwise all interval bounds are positive. If there are solutions they must be in the interval with the smallest bounds. This leaves \(\O(d\log d)\) preprocessing to determine a constant amount of candidate intervals and thus a constant amount of polynomials to test. Alternatively, the linear runtime approach from the Manhattan distance can also be adapted to find the appropriate interval. 
 
 \subsection{Semiexplit Decisions}
-As a final point of our discussion of implicit simplification we present a method that uses aspects from both explicit computations and implicit decisions which we call semiexplicit. 
+As a final point of our discussion of implicit simplification we present a method that uses aspects from both explicit computations and implicit decisions which we call semiexplicit. More specifically, we store some precomputed data like in the explicit case but like the implicit case we don't compute the solutions explicitly. We present two practical use cases, one for the Euclidean case and one for general distances. 
+
+\subsubsection{General Distances}
 
 The idea is to implement the implicit decisions with an estimation of the roots. To test if \(u \overset e\rightarrow v\) we use a bisection approach. we test for both \(u\) and \(v\) if they have distance at most \(\varepsilon\) from any of the end points of \(e\). If \(\delta(u, e_1) \leq \varepsilon\) we can say that \(u \overset e\rightarrow v\). Otherwise if \(\delta(v, e_1) \leq \varepsilon\) this is false (but \(v \overset e\rightarrow u\) would be true). Otherwise suppose they both have solutions on the line segment. 
 
@@ -221,10 +228,42 @@ The semiexplicit approach seems like a worse version of both the explicit approa
 
 It can also be optimized by storing the resulting intervals into the dynamic programming table as a substitute for the earliest reachable point in the explicit approach. The respective restriction point is still required just like in the implicit approach because the interval may need to be improved when comparing agains another one. This allows fewer computations in total while still keeping the advantage of lazy computations with which we mean that the solution is only approximated to a precision that is sufficient allowing fast decisions for sufficiently well behaved polylines.
 
-\subsection{Open Problems}
-To conclude this discussion on implicit polyline simplification we want to list some questions, mostly of theoretical nature. 
+\subsubsection{Euclidean Distance}
 
-The first and simplest, but also broadest, question is to which current algorithms this approach extends. We have shown that it works for the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} as well as the algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}. We suspect that it also extends to the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} and will investigate this in a future thesis. For other algorithms, especially for local polyline simplification there are no results. We are optimistic that it extends to most other current, as well as future algorithms, albeit possibly by introducing more decision problems. This process of reanalyzing the algorithms is tedious but technically simple. 
+In the case of the Euclidean distance, we have seen that the implicit algorithm only makes comparisons of the form \(a - \sqrt{b} \leq c \pm \sqrt{d}\) which is mostly the same as the respective comparison in the explicit case but the denominators cancel each other out. 
 
-Another open question is whether the decision problems can be fully answered for general \(\ell\)-Minkowski distances with \(\ell \in \N\). We have already proposed a method to decide the \(\leftrightarrow\) relation using simple methods from real algebraic geometry but failed to solve the other two relations. This requires a more sophisticated approach and will likely involve more properties of the distance polynomials, e.g., that they have at most two roots, or that they are the sum of linear terms to the power \(\ell\). These results will likely be only of theoretical interest as they simplify the required computational model but do not lead to practical algorithms. 
+In the implicit case, we always needed to recompute the values \(a, b, c\), and \(d\) in this expression as we only have methods to compare the respective points. To reduce computations, we do not provide methods to compare the points with respect to a line segment but instead to compare expressions like these directly. To do so, we modify the explicit algorithms to store pairs of the form \((a, b)\) instead of the value \(a - \sqrt{b}\) (ignoring the division) and defining comparison operators on them. 
+
+We have already seen how to solve comparison decisions like these in \cref{ssec:euclidean-impl}. In programming languages which allow to overload the comparison operators such as \(\leq\), the resulting semiexplicit version and explicit version only differ in the datatype of the stored solutions and thus are parametrically polymorphic variants of the same algorithm. 
+
+Note again, that solutions are always of the form \(a - \sqrt{b}\) never \(a + \sqrt{b}\). The second version is only ever used to compare if a solution is in an interval which is defined by \([a - \sqrt{b}, a + \sqrt{b}]\) (again, ignoring the common denominator for all involved expressions).
+
+This approch for the Euclidean variant translates more easily to other simplification algorithms than the implicit approach but maintains the same advantages. It acts basically as an implicit version which caches as much of the computations as possible.
+
+\subsection{Conclusion}
+We have seen how to rewrite algorithms to their implicit and semiexplicit version. \cref{tab:explicit-implicit-translation} summarizes how to replace each operation in an explicit algorithm to obtain an implicit version.
+
+\begin{table}[htb]
+  \centering
+	\begin{tabular}{|lll|}
+		\hline
+		Explicit operation & Implicit operation & Comment\\
+		\(t \gets \hat t_0'(e, u)\) & \(r \gets u\) & The restriction \(r\) replaces the solution \(t\)\\
+		\(t_0 \leq t_1\) & \(r_0 \overset e\rightarrow r_1\) & \(t_0, t_1\) are solutions on \(e\), \\
+		& & and \(r_0, r_1\) the respective restrictions\\
+		\(t \gets \min(t_0, t_1)\) & if \(r_0 \overset{e}\rightarrow r_1\) then \(r \gets r_0\) else \(r \gets r_1\) & \(t, t_0, t_1\) are solutions on \(e\) \\
+		& & and \(t, r_0, r_1\) the respective restrictions\\
+		\(t \gets \max(t_0, t_1)\) & if \(r_0 \overset{e}\rightarrow r_1\) then \(r \gets r_1\) else \(r \gets r_0\) & \(t, t_0, t_1\) are solutions on \(e\) \\
+		& & and \(t, r_0, r_1\) the respective restrictions\\
+		\(\hat t_0'(e, u) \leq t \leq \hat t_1'(e, u)\) & \(r \overset e\leftarrow u\) & \(r\) is the restrictions for \(t\)\\
+		\(\hat t_0'(e, u)\) exists & \(u \leftrightarrow e\) & \\
+		\hline
+	\end{tabular}
+	\caption{Explicit-Implicit Translation table}
+	\label{tab:explicit-implicit-translation}
+\end{table}
+
+We conclude this discussion of the implicit approach with the following open question: Can the decision problems be fully answered for general \(\ell\)-Minkowski distances with \(\ell \in \N\) in the regular RAM model? We have already proposed a method to decide the \(\leftrightarrow\) relation using simple methods from real algebraic geometry but failed to solve the other two relations. This requires a more sophisticated approach and will likely involve more properties of the distance polynomials, e.g., that they have at most two roots, or that they are the sum of linear terms to the power \(\ell\). These results will likely be only of theoretical interest as they simplify the required computational model but do not lead to practical algorithms. 
+
+Another research question is whether there are good semiexplicit representations for \(\ell\)-Minkowski distances other than the Euclidean distance.
 

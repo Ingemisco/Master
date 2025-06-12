@@ -220,7 +220,7 @@ To find the solutions, we can use the \(\O(d \log d)\) algorithm described in \c
 \subsection{Conclusion and Relevant Implementation Details}
 We conclude with a summary of the results of this section. 
 \begin{theorem}\label{thm:query-ds}
-	Given a polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is 
+	Given a polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time with both the local Fréchet and global Fréchet distance. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is 
 	\begin{itemize}
 		\item \(\O(d n^4 \log n)\) using the Euclidean distance, 
 		\item \(\O(d^5 n^4 \log(nd)\log(d))\) using the Manhattan or Chebyshev distance, 
@@ -233,11 +233,20 @@ We conclude with a summary of the results of this section.
 	For the Euclidean distance, no square root computations are necessary.
 \end{theorem}
 
+\begin{proof}
+  The global case is what we have extensively analyzed. By substituting the simplification algorithm for a local one, the same algorithm works for the local Fréchet distance. It can be seen that both variants have the exact same events by, e.g., using the Imai and Iri algorithm as it also only uses the Fréchet distance decision problem that the global version uses. 
+\end{proof}
+
 \begin{corollary}
-	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
+	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time for both the local and global Fréchet distance. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
 \end{corollary}
 
-We also note that to achieve \(\O(\log d)\) query time the query search is only allowed to return a reference to a precomputed simplification and not the simplification itself as it may have \(\O(d)\) many points.
+In the local case, both Fréchet and Hausdorff, the algorithm can also be improved as there are, in fact, only quadratically many events which are exactly the distances of the shortcuts to the respective subpolyline. This is independent of the distance used and only quadratically many shortcuts can exist. This improves the search through the events to a runtime of \(\O(f(n)n\log n)\) where \(\O(f(n))\) is the runtime for a local simplification. In total, this allows also for runtimes of \(\O(n^3\log n)\) or \(\O(n^3\log^2 n)\) for the Euclidean, Chebyshev, and Manhattan distance for two dimensions, or even constant dimensions.
+
+% TODO: Compare in table 
+
+
+We also note that to achieve \(\O(\log d)\) query time the query search is only allowed to return a reference to a precomputed simplification and not the simplification itself as it may have \(\O(d)\) many points. 
 
 To implement the algorithms presented, one needs to consider a few critical details. 
 \begin{itemize}

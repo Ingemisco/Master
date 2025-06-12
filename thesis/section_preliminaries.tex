@@ -49,7 +49,7 @@ We distinguish between distances between points and distances between polylines.
 The Euclidean distance (\(\ell = 2\)) is the most widely used metric. The Manhattan distance (\(\ell = 1\)) and Chebyshev distance (\(\ell = \infty\)) are computationally simpler, as they avoid roots. 
 Other Minkowski distances are less common due to numerical instability and lack of geometric interpretation. The unnormalized variants will later allow us to avoid explicit root computations in algorithms. 
 
-\begin{definition}[Fréchet Distance]
+\begin{definition}[Fréchet Distance]\label{def:frechet}
   Let \(\delta\) be a normalized distance. The \emph{Fréchet distance} \(\delta^F\) between two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\), respectively, is 
 	\[\delta^F(P, Q) = \inf_{\substack{f \in \mathcal{C}([0,1], [0, p]) \\ g \in \mathcal{C}([0,1], [0, q])}} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
 	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, monotone functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) \(f(b) = d\).

@@ -7,20 +7,22 @@
 As the main step to achieve cubic runtime, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} introduce the \emph{cell reachability} problem and show how to solve it efficiently. We introduce a slightly generalized version of the problem and a modified version of the algorithm. 
 
 \begin{definition}[Cell Reachability Problem]
-	In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in (0, \infty]\), as well as intervals \(I_1, \dots, I_{n-1} \subseteq [0, 1]\). 
+	Let \(X\) and \(Y\) be sets and \(\leq\) be a relation on \(X \times (X \cup Y)\) such that it is a total preorder on \(X\), i.e., \(\leq\) is reflexive and transitive and any two elements are comparable but \(\leq\) is not necessarily antisymmetric. Let \(0\in X\) be a minimal element and \(1\in Y\) be a maximal element (both of which must exist). Further, \(\leq\) must be transitive in the sense that if \(x_1 \leq x_2 \leq y\) for \(x_1, x_2 \in X\) and \(y \in Y\) then also \(x_1 \leq y\).
+
+	In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in (0, \infty]\), as well as intervals \(I_1, \dots, I_{n-1}\) which are written as pairs \([a_i, b_i]\) with \(a_i \in X, b_i \in Y\). 
 
 	\begin{itemize}
-		\item We write write \(I_i = [a_i, b_i]\) for the boundaries of the interval \(I_i\) for \(i \in \set{1, \dots, n - 1}\). If \(I_i = \emptyset\) we write \(a_i = \infty\) and \(b_i = -\infty\).
+		\item As with regular intervals, we say \(x \in [a, b]\) if and only if \(a \leq x \leq b\) for \(x \in X\). The interval is empty  if \(\lnot (a \leq b)\). 
 	  
 		\item We define a relation \(\prec\) on \(\set{1, \dots, n}\) such that \(i \prec j\) holds if and only if \(i < j\) and there are \(x_i \in I_i, \dots, x_{j-1} \in I_{j-1}\) with \(x_i \leq \dots \leq x_{j - 1}\).
 
-		\item The goal of cell reachability is to find the sequence of minimal \emph{exit-costs} \(\angl{\mu_1, \dots, \mu_n}\) where \(\mu_i \coloneq \min \set{ \lambda_j \mid j \prec i}\). We define \(\min \emptyset = \infty\).
+		\item The goal of cell reachability is to find the sequence of minimal \emph{exit-costs} \(\angl{\mu_1, \dots, \mu_n}\) where \(\mu_i \coloneq \min \set{ \lambda_j \mid j \prec i}\) wher we define \(\min \emptyset = \infty\).
 	\end{itemize}
 \end{definition}
 
 This is to be interpreted as a set of \(n\) consecutive square cells arranged in a line. Each has an assigned entry-cost and an exit-cost to be computed. The intervals are passages between neighboring cells. See \cref{fig:ex_cell_reachability_statement} for an example instance with solution.
 
-This definition only differs from the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in that we allow positive real or infinite entry-costs \(\lambda \in (0, \infty]\) instead of integral ones and that we allow empty intervals. The first modification can also be solved with their original algorithm but only integral costs (including infinite costs) are used for the simplification algorithm. Empty intervals can occur but they handle them by performing cell reachability multiple times.  This makes their cell reachability algorithm simpler but forces the caller to know how to handle this case.
+This definition only differs from the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in that we allow positive real or infinite entry-costs \(\lambda \in (0, \infty]\) instead of integral ones and that we allow empty intervals. The first modification can also be solved with their original algorithm but only integral costs (including infinite costs) are used for the simplification algorithm. Empty intervals can occur but they handle them by performing cell reachability multiple times.  This makes their cell reachability algorithm simpler but forces the caller to know how to handle this case. The final generalization we make is the use of preordered sets instead of just \(X = Y = [0, 1]\) because it will be useful for the semiexplicit setting. 
 
 \begin{figure}[htb]
   \centering
@@ -67,17 +69,7 @@ As a practical note, we mention that the two early returns in line 7,8 and 28, 2
   \BlankLine
 	\(last\_interval \gets \emptyset\) \;
 	\For{\(j=0 \dots n - 1\)} {
-		\If{\(last\_interval = \emptyset\)}{
-			\(queue.reset()\) \;
-			\SetKwRepeat{Do}{do}{while}
-			\Do{\(I_{j-1} = \emptyset\)}{
-				\(\mu_j = \infty\)\;
-				\If{\(j = n-1\)}{\Return}
-				\(j \gets j + 1\)
-			}
-			\(last\_interval \gets I_{j-1}\)
-		}
-
+		HandleEmptyIntervals\;
 		\(k_{left} \gets \lambda_{j-1}\)\;
 		\While{\(\lnot queue.empty()\)}{
 			\((k, t) \gets queue.peek\_front()\)\;
@@ -100,6 +92,25 @@ As a practical note, we mention that the two early returns in line 7,8 and 28, 2
 	\caption{CellReachability(\(\lambda_0, \dots, \lambda_{n-1}, I_0, \dots, I_{n-2}\))}
   \label{algo:cell_reachability}
 \end{algorithm}
+
+\begin{algorithm}[htb]
+  \DontPrintSemicolon
+	\KwResult{Handles the empty intervals and sets respective \(\mu_j\), updates data as necessary}
+  \BlankLine
+	\If{\(last\_interval = \emptyset\)}{
+		\(queue.reset()\) \;
+		\SetKwRepeat{Do}{do}{while}
+		\Do{\(I_{j-1} = \emptyset\)}{
+			\(\mu_j = \infty\)\;
+			\If{\(j = n-1\)}{\Return}
+			\(j \gets j + 1\)
+		}
+		\(last\_interval \gets I_{j-1}\)
+	}
+	\caption{HandleEmptyIntervals}
+  \label{algo:cell_reachability_empty}
+\end{algorithm}
+
 
 \subsection{Cell Reachability Example}
 \label{ssec:cell_reachability_ex}
@@ -252,7 +263,7 @@ Thus, we can find for fixed \(i'\) and \(i\) the least \(k\) for all \(j\) in li
 
 Note that we need to restructure the algorithm: The outermost iteration is now over \(i\) and the innermost over \(k\) because of the data requirements of the just outlined procedure. 
 
-One might ask, if it is possible to achieve a runtime of \(k^*n^2\), i.e., an algorithm that gains massive speedup for small simplifications. This is likely not the case. \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} gave conditional lower bounds showing that in high dimensions for all \(\delta_\ell\) with \(\ell \in [1, \infty)\), \(\ell \neq 2\) no subcubic algorithm exists. Their reduction constructs a polyline that always has a constant size simplification so it is not even possible to construct a general \(\O(f(k^*)n^{3-\varepsilon})\) algorithm for any function \(f\) and \(\varepsilon > 0\).
+One might ask, if it is possible to achieve a runtime of \(\O(k^*n^2)\), i.e., an algorithm that gains massive speedup for small simplifications. This is likely not the case. \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} gave conditional lower bounds showing that in high dimensions for all \(\delta_\ell\) with \(\ell \in [1, \infty)\), \(\ell \neq 2\) no subcubic algorithm exists. Their reduction constructs a polyline that always has a constant size simplification so it is not even possible to construct a general \(\O(f(k^*)n^{3-\varepsilon})\) algorithm for any function \(f\) and \(\varepsilon > 0\).
 
 
 

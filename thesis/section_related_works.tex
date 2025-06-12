@@ -1,3 +1,16 @@
 \section{Related Work}
 \label{sec:related_work}
 
+In this section we cover previous work in the topic of polyline simplification and how we extend it. Here, we only discuss those works that apply to the whole thesis. In the following sections, we discuss more specific ones that delve deeper into the respective area.
+
+The topic of polyline simplification has been studied abundantly due to its many use cases with one of the oldest algorithms being the Douglas-Peucker algorithm \cite{algorithms_reduction_number_points_caricature} which has been proposed over fifty years ago and is fast to compute but comes with no optimality guarantees. To formulize an optimization objective, distances between polylines have been studied with the most widely used being the Hausdorff and the Fréchet distance. Both of which can be applied in numerous ways. 
+
+\citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves} have shown how to compute the Fréchet distance between two polylines as well as how to solve the respective decision problem. They also state the problem of polyline simplification, which they call curve approximation, but do not show how to solve it. The version they state is the minimization with regards to the global Fréchet distance. With that, this type of polyline simplification is at least 30 years old but has gained little attention.
+
+The related local version, on the other hand, has been discussed in more detail. One of the most well known (locally) optimal algorithms is the Imai and Iri algorithm \cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} which has been studied and improved in numerous further works for different use cases. 
+% TODO: local stuff...
+
+The global version has only recently been studied. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that the simplification with the global Fréchet distance can be solved in polynomial time as well that simplification with the global Hausdorff distance is NP-hard. Their algorithm however has quintic runtime in the best case and sextic in the worst case which albeit polynomial is infeasible in practice and has to our knowledge not been implemented before. In \cref{sec:algorithm_implementation} we discuss this algorithm as well as optimzations, practical considerations and parallelization that make it usable in practice. 
+
+\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} improve \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm and achieve cubic runtime. They further give a conditional lower bound based on the \(\forall\forall\exists\)-Orthogonal Vector Hypothesis that rule out subcubic runtime for various cases in large dimensions. For this algorithm, we also provide detailed explanations and and practical optimizations to improve its performance in \cref{sec:cubic_algo}.
+
