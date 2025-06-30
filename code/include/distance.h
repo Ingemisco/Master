@@ -64,6 +64,7 @@ float alt_godau_manhattan(Polyline const &, size_t, size_t, float, size_t, size_
 float alt_godau_euclidean(Polyline const &, size_t, size_t, float, size_t, size_t, float);
 
 size_t alt_godau_euclidean_implicit(Polyline const &, size_t _, size_t, size_t, size_t, size_t, float);
+FRValue alt_godau_euclidean_semiexplicit(Polyline const &, size_t, size_t, FRValue, size_t, size_t, float);
 
 float alt_godau_chebyshev(Polyline const &, size_t, size_t, float, size_t, size_t, float);
 size_t alt_godau_minkowski_implicit(Polyline const &, size_t, size_t, float, unsigned int);

@@ -81,6 +81,12 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "a distance of at most epsilon using Euclidean distance. Does not "
           "explicitly compute zeros but only implicitly compare them.");
 
+  options("ses",
+					po::value<std::vector<std::string>>()->multitoken(),
+          "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Euclidean distance. Uses "
+					"Semiepxlicit computations. The epsilon is squared");
+
   options("sm",
 					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
@@ -131,9 +137,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 		if (args.size() != 2) {
 			throw po::error("Flag requires exactly two inputs: file and epsilon!");
 		}
-		std::string const &file_name = args[0];
-		float const epsilon = std::stof(args[1]);
-		auto querier = SimplificationQuerier::from_file(file_name);
+		// std::string const &file_name = args[0];
+		// float const epsilon = std::stof(args[1]);
+		// auto querier = SimplificationQuerier::from_file(file_name);
 		// querier->print();
 
 
@@ -147,6 +153,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
         Simplification::simplification_naive_euclidean_implicit,
         Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>(
         map, "sei");
+  } else if (map.count("ses")) {
+    _flag_action_simplify<
+        Simplification::simplification_naive_euclidean_semiexplicit,
+        Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN>(
+        map, "ses");
   } else if (map.count("sm")) {
     _flag_action_simplify<Simplification::simplification_naive_manhattan,
                           Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>(
