@@ -31,17 +31,13 @@ static inline void _flag_action_simplify(po::variables_map &map, char const *fla
   Log::PerformanceLogger log(_algorithm, poly_line_file_name);
   if (std::filesystem::is_directory(poly_line_file_name)) {
     Log::measurement_directory = poly_line_file_name;
-    for (auto const &entry :
-         std::filesystem::directory_iterator(poly_line_file_name)) {
-      auto polyline =
-          DataStructures::Polyline::from_file(std::filesystem::path(entry));
+    for (auto const &entry : std::filesystem::directory_iterator(poly_line_file_name)) {
+      auto polyline = DataStructures::Polyline::from_file(std::filesystem::path(entry));
 
       auto start = std::chrono::high_resolution_clock::now();
-      auto simplification_vertices =
-          _simplification_algorithm(*polyline, epsilon);
+      auto simplification_vertices = _simplification_algorithm(*polyline, epsilon);
       auto end = std::chrono::high_resolution_clock::now();
-      log.add_data(*polyline, simplification_vertices, end - start,
-                   entry.path().filename().string());
+      log.add_data(*polyline, simplification_vertices, end - start, entry.path().filename().string());
     }
 
   } else {
@@ -49,11 +45,9 @@ static inline void _flag_action_simplify(po::variables_map &map, char const *fla
     auto polyline = DataStructures::Polyline::from_file(polypath);
 
     auto start = std::chrono::high_resolution_clock::now();
-    auto simplification_vertices =
-        _simplification_algorithm(*polyline, epsilon);
+    auto simplification_vertices = _simplification_algorithm(*polyline, epsilon);
     auto end = std::chrono::high_resolution_clock::now();
-    log.add_data(*polyline, simplification_vertices, end - start,
-                 polypath.filename().string());
+    log.add_data(*polyline, simplification_vertices, end - start, polypath.filename().string());
 		std::cout << "size: " << simplification_vertices->size() << std::endl;
   }
   log.emit();
@@ -84,8 +78,8 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   options("ses",
 					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
-          "a distance of at most epsilon using Euclidean distance. Uses "
-					"Semiepxlicit computations. The epsilon is squared");
+          "a distance of at most epsilon using Euclidean distance. "
+					"Uses Semiepxlicit computations.");
 
   options("sm",
 					po::value<std::vector<std::string>>()->multitoken(),
@@ -146,26 +140,21 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	
 	} else if (map.count("se")) {
     _flag_action_simplify<Simplification::simplification_naive_euclidean,
-                          Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>(
-        map, "se");
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>( map, "se");
   } else if (map.count("sei")) {
     _flag_action_simplify<
         Simplification::simplification_naive_euclidean_implicit,
-        Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>(
-        map, "sei");
+        Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>( map, "sei");
   } else if (map.count("ses")) {
     _flag_action_simplify<
         Simplification::simplification_naive_euclidean_semiexplicit,
-        Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN>(
-        map, "ses");
+        Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN>( map, "ses");
   } else if (map.count("sm")) {
     _flag_action_simplify<Simplification::simplification_naive_manhattan,
-                          Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>(
-        map, "sm");
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>( map, "sm");
   } else if (map.count("sc")) {
     _flag_action_simplify<Simplification::simplification_naive_chebyshev,
-                          Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>(
-        map, "sc");
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>( map, "sc");
 	}	else if (map.count("ae")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_explicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>( map, "ae");
