@@ -217,8 +217,9 @@ float alt_godau_chebyshev(Polyline const &polyline, size_t i_, size_t i, float t
 
 size_t alt_godau_minkowski_implicit(Polyline const &polyline, size_t line_start, size_t line_end, float epsilon);
 
-FRValue alt_godau_euclidean_semiexplicit(Polyline const &polyline, size_t i_, size_t i, FRValue t, size_t line_start, size_t line_end, float epsilon) {
-  return _alt_godau_main<FRValue, LRValue, solve_euclidean_se, EMPTY_INTERVAL_SEMIEXPLICIT, SEMIEXPLICIT_UNREACHABLE, FRValue(0,0)>(polyline, i_, i, t, line_start, line_end, epsilon);
+// epsilon must be squared
+FRValue alt_godau_euclidean_semiexplicit(Polyline const &polyline, size_t i_, size_t i, FRValue t, size_t line_start, size_t line_end, float epsilon2) {
+  return _alt_godau_main<FRValue, LRValue, solve_euclidean_se, EMPTY_INTERVAL_SEMIEXPLICIT, SEMIEXPLICIT_UNREACHABLE, FRValue(0,0)>(polyline, i_, i, t, line_start, line_end, epsilon2);
 }
 
 } // namespace DataStructures

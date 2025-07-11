@@ -79,7 +79,8 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 					po::value<std::vector<std::string>>()->multitoken(),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance. "
-					"Uses Semiepxlicit computations.");
+					"Uses Semiepxlicit computations. The second input is not epsilon but"
+					"epsilon squared!");
 
   options("sm",
 					po::value<std::vector<std::string>>()->multitoken(),
