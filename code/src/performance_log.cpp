@@ -36,6 +36,8 @@ static std::string algorithm_name(Algorithm algorithm) {
     return "Euclidean Simplification (Simple)";
   case Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN:
     return "Euclidean Simplification (Simple, Implicit)";
+  case Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN:
+    return "Euclidean Simplification (Simple, Semiexplicit)";
   case Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV:
     return "Chebyshev Simplification (Simple)";
   case Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_MINKOWSKI:
@@ -47,6 +49,8 @@ static std::string algorithm_name(Algorithm algorithm) {
     return "Euclidean Simplification (Advanced)";
   case Algorithm::SIMPLIFICATION_ADVANCED_IMPLICIT_EUCLIDEAN:
     return "Euclidean Simplification (Advanced, Implicit)";
+  case Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN:
+    return "Euclidean Simplification (Advanced, Semiexplicit)";
   case Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV:
     return "Chebyshev Simplification (Advanced)";
   case Algorithm::SIMPLIFICATION_ADVANCED_IMPLICIT_MINKOWSKI:
