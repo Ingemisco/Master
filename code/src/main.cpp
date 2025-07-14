@@ -97,6 +97,12 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Bringmann et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
+  options("aes",
+					po::value<std::vector<std::string>>()->multitoken(),
+          "Uses the Bringmann et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Euclidean distance. " 
+					"Uses semiexplicit computations.");
+
   options("bes",
 					po::value<std::string>(&poly_line_file_name)->value_name("filename"),
           "Builds the datastructure to allow fast simplification queries"
@@ -159,6 +165,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	}	else if (map.count("ae")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_explicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>( map, "ae");
+	}	else if (map.count("aes")) {
+    _flag_action_simplify<Simplification::simplification_advanced_euclidean_semiexplicit,
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>( map, "aes");
   }
 
 // 	auto polyline = DataStructures::Polyline::from_file(

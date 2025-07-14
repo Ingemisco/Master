@@ -15,7 +15,7 @@
 namespace Simplification {
 
 // dynamic programming table used in the algorithm
-template <typename F, typename T, F UNREACHABLE_POINT>
+template <typename F, F UNREACHABLE_POINT>
 struct DPTable final {
   F *const reachable_points;
   size_t *const point_reference_i;
@@ -53,11 +53,11 @@ struct DPTable final {
 	}
 };
 
-typedef DPTable<float, float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
-typedef DPTable<DataStructures::FRValue, DataStructures::LRValue, DataStructures::SEMIEXPLICIT_UNREACHABLE> DPSemiExplicit;
+typedef DPTable<float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
+typedef DPTable<DataStructures::FRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT.first> DPSemiExplicit;
 
 template <typename F, typename L, std::pair<F, L> empty_interval, F start, DataStructures::Distance _distance>
-static inline void _simplification_initialization(DataStructures::Polyline &polyline, float epsilon, size_t point_count, DPTable<F, L, empty_interval.first> &table
+static inline void _simplification_initialization(DataStructures::Polyline &polyline, float epsilon, size_t point_count, DPTable<F, empty_interval.first> &table
 #if DEBUG
                                , VisualizationLog::VisualizationLogger &log
 #endif
@@ -77,7 +77,7 @@ template <typename F, typename L, std::pair<F, L> empty_interval,
 	std::pair<F, L> _solver(DataStructures::Polyline const &, size_t, size_t, size_t, float),
 	F _alt_godau(DataStructures::Polyline const &, size_t, size_t, F, size_t, size_t, float)>
 static inline Simplification
-_simplification_main(DataStructures::Polyline &polyline, size_t point_count, float epsilon, DPTable<F, L, empty_interval.first> &table
+_simplification_main(DataStructures::Polyline &polyline, size_t point_count, float epsilon, DPTable<F, empty_interval.first> &table
 #if DEBUG
                      , VisualizationLog::VisualizationLogger &log
 #endif

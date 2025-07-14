@@ -3,12 +3,34 @@
 #include "simplification.h"
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <tuple>
 #include <vector>
 
 using DataStructures::Polyline;
+
+template<typename Tuple, std::size_t... Is>
+void print_tuple(std::ostream &os, const Tuple &t, std::index_sequence<Is...>) {
+    ((os << (Is == 0 ? "" : ", ") << std::get<Is>(t)), ...);
+}
+
+// Generalized operator<< for any tuple
+template<typename... Args>
+std::ostream &operator<<(std::ostream &os, const std::tuple<Args...> &t) {
+    os << "(";
+    print_tuple(os, t, std::index_sequence_for<Args...>{});
+    os << ")";
+    return os;
+}
+
+template<typename A, typename B>
+std::ostream &operator<<(std::ostream &os, const std::pair<A, B> &t) {
+	os << "(" << t.first << ", " << t.second <<")";
+	return os;
+}
+
 
 
 template<typename T>
@@ -87,9 +109,9 @@ struct CRDataSemiExplicit final {
 // The last entry must not contain -1 as first component, Just set it to [0, 1] for simplicity
 //
 // first component of exit_costs is value, second is the index of entry_costs it came from (only if the exit_cost is not INDEX_UNREACHABLE)
-template <typename T, std::pair<T, T> EMPTY_INTERVAL>
-static void cell_reachability_explicit(size_t const *entry_costs, std::pair<T, T> const *intervals,
-																			 std::pair<size_t, size_t > *exit_costs, Queue<std::tuple<T, size_t, size_t>> &queue) {
+template <typename F, typename L, std::pair<F, L> EMPTY_INTERVAL>
+static void cell_reachability_explicit(size_t const *entry_costs, std::pair<F, L> const *intervals,
+																			 std::pair<size_t, size_t> *exit_costs, Queue<std::tuple<F, size_t, size_t>> &queue) {
 	size_t const n = queue.capacity;
 	auto last_interval = EMPTY_INTERVAL;
 	for (size_t j = 0; j < n; j++) {
@@ -108,17 +130,17 @@ static void cell_reachability_explicit(size_t const *entry_costs, std::pair<T, T
 		size_t ref = j - 1;
 		while(!queue.is_empty()) {
 			auto const [t, k, ref_index] = queue.peek_front();
-			if (k < lambda_j && t > last_interval.first) break;
+			if (k < lambda_j && last_interval.first < t) break;
 			if (k < k_left) {
 				k_left = k;
 				ref = ref_index;
 			}
 			queue.pop_front();
 		}
-		queue.push_front(std::tuple<T, size_t, size_t>(last_interval.first, k_left, ref));
+		queue.push_front(std::tuple<F, size_t, size_t>(last_interval.first, k_left, ref));
 
 		while(!queue.is_empty()) {
-			T const t = std::get<0>(queue.peek_back());
+			F const t = std::get<0>(queue.peek_back());
 			if(t <= last_interval.second) break;
 			queue.pop_back();
 		}
@@ -144,20 +166,21 @@ struct KappaData final {
 };
 
 // EMPTY_INTERVAL must satisfy that its first component is the value to be used for invalid entries, so it should not be a valid entry
-template <typename T, std::pair<T, T> eq_solver(Polyline const &, size_t, size_t, size_t, float),
-	std::pair<T, T> NON_EMPTY_INTERVAL, std::pair<T, T> EMPTY_INTERVAL>
+// NON_EMPTY_INTERVAL must be a non empty interval whose first point is something equivalent to 0 (i.e. start of the line segment)
+template <typename F, typename L, std::pair<F, L> eq_solver(Polyline const &, size_t, size_t, size_t, float),
+	std::pair<F, L> NON_EMPTY_INTERVAL, std::pair<F, L> EMPTY_INTERVAL>
 struct Simplifier final {
 	Polyline const &polyline;
-	_DP1Data<T> *dp1;
+	_DP1Data<F> *dp1;
 	KappaData *kappa;
 	KappaData *kappa2;
 
 
-	std::pair<T, T> *reachability_data;
-	std::pair<T, T> *intervals;
+	std::pair<F, L> *reachability_data;
+	std::pair<F, L> *intervals;
 	size_t *entry_costs;
 	std::pair<size_t, size_t> *exit_costs;
-	Queue<std::tuple<T, size_t, size_t>> queue;
+	Queue<std::tuple<F, size_t, size_t>> queue;
 	float const epsilon;
 	size_t const n;
 
@@ -165,13 +188,16 @@ struct Simplifier final {
 	// NOTE: first coordinate is now i, second j, third k
 	Simplifier(Polyline const &polyline, float epsilon) 
 		: polyline(polyline), queue(polyline.point_count), epsilon(epsilon), n(polyline.point_count) {
-		this->reachability_data = new std::pair<T, T>[n * (n - 1)];
+		
+		this->reachability_data = new std::pair<F, L>[n * (n - 1)];
 		this->entry_costs = new size_t[n];
 		this->exit_costs = new std::pair<size_t, size_t>[n];
-		this->intervals = new std::pair<T, T>[n];
-		this->dp1 = new _DP1Data<T>[n * (n - 1) * n];
+		this->intervals = new std::pair<F, L>[n];
+		this->dp1 = new _DP1Data<F>[n * (n - 1) * n];
 		this->kappa = new KappaData[n * (n - 1)];
 		this->kappa2 = new KappaData[n * (n - 1)];
+
+		
 	}
 
 	~Simplifier() {
@@ -195,7 +221,7 @@ struct Simplifier final {
 		}
 
 		size_t j = 1;
-		for(; j < n - 1 && reachability_data[j].first == 0; j++);
+		for(; j < n - 1 && reachability_data[j].first == NON_EMPTY_INTERVAL.first; j++);
 		for (size_t j_ = 0; j_ < j; j_++) {
 			for (size_t k = 0; k < n; k++) {
 				dp1[k + n * j_].first_reachable_point = NON_EMPTY_INTERVAL.first;
@@ -225,16 +251,16 @@ struct Simplifier final {
 		}
 	}
 
-	inline T dp(size_t k, size_t i, size_t j) {
-		if (k == 0 && i > 0) {
+	inline F dp(size_t k, size_t i, size_t j) {
+		if (k == 0 && 0 < i) {
 			return EMPTY_INTERVAL.first;
 		}
 		size_t const pos = (n - 1) * i + j;
 		auto const range = reachability_data[pos];
-		if (k >= kappa2[pos].smallest_k) {
+		if (kappa2[pos].smallest_k <= k) {
 			return range.first;
 		} 
-		float const t = dp1[pos * n +  k].first_reachable_point;
+		F const t = dp1[pos * n +  k].first_reachable_point;
 		if (t != EMPTY_INTERVAL.first && t <= range.second) {
 			return std::max(t, range.first);
 		}
@@ -242,7 +268,6 @@ struct Simplifier final {
 	}
 
 	inline void kappa2_subroutine(size_t i) {
-		// size_t temp = 0;
 		for (size_t i_ = 0; i_ < i; i_++) {
 			for (size_t j = 0; j < n - 1; j++) {
 				this->intervals[j] = eq_solver(polyline, i_, i, j+1, epsilon);
@@ -260,8 +285,8 @@ struct Simplifier final {
 			// 	this->entry_costs[n-1] = k + 1;
 			// }
 
-			cell_reachability_explicit<T, EMPTY_INTERVAL>(const_cast<size_t const *>(entry_costs), 
-																								 const_cast<std::pair<T, T> const *>(intervals), exit_costs, queue);
+			cell_reachability_explicit<F, L, EMPTY_INTERVAL>(const_cast<size_t const *>(entry_costs), 
+																								 const_cast<std::pair<F, L> const *>(intervals), exit_costs, queue);
 			size_t temp2 = i * (n - 1);
 			for (size_t j = 0; j < n - 1; j++) {
 				auto const exit = this->exit_costs[j];
@@ -292,7 +317,7 @@ struct Simplifier final {
 					if (v2 == EMPTY_INTERVAL.first) {
 						dp1[pos].first_reachable_point = v1.first_reachable_point;
 						dp1[pos].i_ = v1.i_;
-					} else if(v1.first_reachable_point == EMPTY_INTERVAL.first || v1.first_reachable_point > v2) {
+					} else if(v1.first_reachable_point == EMPTY_INTERVAL.first || v2 < v1.first_reachable_point) {
 						dp1[pos].first_reachable_point = v2;
 						dp1[pos].i_ = i - 1;
 					} else {
@@ -325,13 +350,18 @@ struct Simplifier final {
 			}
 		}
 
+// ignore the warning because it is guaranteed by polyline construction that the size is >= 0 (because n > 1)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 		size_t k = kappa[(n-1)*n - 1].smallest_k;
+#pragma GCC diagnostic pop 
+
 		Simplification::Simplification result = std::make_unique<std::vector<size_t>>(1 + k);
 		auto &p = *result;
 		size_t i_ = n - 1;
 		size_t j_ = n - 2;
 
-		while (i_ > 0) {
+		while (0 < i_) {
 			p[k] = i_;
 			auto const temp = kappa2[i_ * (n-1) + j_];
 			if (temp.smallest_k <= k) {
@@ -352,7 +382,34 @@ struct Simplifier final {
 
 Simplification::Simplification 
 Simplification::simplification_advanced_euclidean_explicit(DataStructures::Polyline &polyline, float epsilon) {
-	Simplifier<float, DataStructures::solve_euclidean, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> 
-		simplifier(polyline, epsilon);
+	Simplifier<float, float, DataStructures::solve_euclidean, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
 	return simplifier.simplify();
 }
+
+
+Simplification::Simplification 
+Simplification::simplification_advanced_euclidean_semiexplicit(DataStructures::Polyline &polyline, float epsilon) {
+	Simplifier<DataStructures::FRValue, DataStructures::LRValue, DataStructures::solve_euclidean_se, DataStructures::NONEMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT> simplifier(polyline, epsilon);
+	return simplifier.simplify();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

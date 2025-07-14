@@ -2,6 +2,8 @@
 #define INCLUDE_INCLUDE_DISTANCE_H_
 
 #include "datastructures.h"
+#include <cmath>
+#include <ostream>
 #include <utility>
 
 namespace DataStructures {
@@ -23,8 +25,19 @@ struct FRValue final {
 	bool operator<=(FRValue const &) const;
 	bool operator==(FRValue const &) const;
 	bool operator<(FRValue const &) const;
+
 	bool operator<=(LRValue const &) const;
 };
+
+inline std::ostream &operator<<(std::ostream &os, FRValue const &val) {
+	os << "(" << val.a << ", " << val.d << ")";
+	return os;
+}
+
+inline std::ostream &operator<<(std::ostream &os, LRValue const &val) {
+	os << "(" << val.a << ", " << val.d << ")";
+	return os;
+}
 
 typedef std::pair<float, float> ReachabilityData;
 typedef std::pair<FRValue, LRValue> SEReachabilityData; // for semiexplicit euclidean
@@ -43,10 +56,12 @@ size_t constexpr IMPLICIT_UNREACHABLE = (size_t)-1;
 size_t constexpr INDEX_UNREACHABLE = (size_t)-1;
 size_t constexpr IMPLICIT_NEVER_REACHABLE = (size_t)-2;
 
-FRValue constexpr SEMIEXPLICIT_UNREACHABLE = FRValue(0, -1);
 
-std::pair<float const, float const> constexpr EMPTY_INTERVAL_EXPLICIT = std::pair<float const, float const>(EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE);
-std::pair<FRValue const, LRValue const> constexpr EMPTY_INTERVAL_SEMIEXPLICIT = std::pair<FRValue const, LRValue const>({0, -1}, {0, -1});
+std::pair<float const, float const> constexpr EMPTY_INTERVAL_EXPLICIT(EXPLICIT_UNREACHABLE, EXPLICIT_UNREACHABLE);
+std::pair<FRValue const, LRValue const> constexpr EMPTY_INTERVAL_SEMIEXPLICIT(FRValue(-1,-1), LRValue(-1,-1));
+std::pair<FRValue const, LRValue const> constexpr NONEMPTY_INTERVAL_SEMIEXPLICIT(FRValue(0.0f, 0.0f), LRValue(0.0f, -1.0f));
+
+FRValue constexpr SEMIEXPLICIT_UNREACHABLE = EMPTY_INTERVAL_SEMIEXPLICIT.first;
 
 float integer_exponentiation(float, int);
 int integer_exponentiation(int, int);

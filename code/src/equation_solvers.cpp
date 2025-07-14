@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <utility>
@@ -323,6 +324,10 @@ bool FRValue::operator<(FRValue const &other) const {
 }
 
 bool FRValue::operator<=(LRValue const &other) const {
+	if (other == NONEMPTY_INTERVAL_SEMIEXPLICIT.second) { // cannot compare against 1 for right boundary because of missing normalization so use this workaround
+		return true;
+	}
+
 	float const x = other.a - this->a;
 	float const y = other.d + this->d - x * x;
 	float const dprod = 4 * this->d * other.d;
@@ -355,7 +360,7 @@ SEReachabilityData solve_euclidean_se(Polyline const &polyline, size_t point1, s
   if ((a12 < 0 && discriminant < a12*a12 ) || (discriminant < a1*a1 && a1 > 0) ) return EMPTY_INTERVAL_SEMIEXPLICIT;
   
   return SEReachabilityData(a1 >= 0 || a1 * a1 <= discriminant  ? FRValue(0, 0) : FRValue(-a1, discriminant), 
-														a12 < 0 || discriminant > a12*a12 ? LRValue(1, 0) : LRValue(-a1, discriminant));
+														a12 < 0 || discriminant > a12*a12 ? NONEMPTY_INTERVAL_SEMIEXPLICIT.second : LRValue(-a1, discriminant));
 }
 
 } // namespace DataStructures
