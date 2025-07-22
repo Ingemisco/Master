@@ -65,43 +65,53 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   options("help,h", "Show help message");
 
   options("se",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
   options("sei",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance. Does not "
           "explicitly compute zeros but only implicitly compare them.");
 
   options("ses",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance. "
 					"Uses Semiepxlicit computations. The second input is not epsilon but"
 					"epsilon squared!");
 
   options("sm",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Manhattan distance.");
 
   options("sc",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Chebyshev distance.");
 
   options("ae",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Bringmann et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
   options("aes",
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Bringmann et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance. " 
 					"Uses semiexplicit computations.");
+
+  options("am",
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
+          "Uses the Bringmann et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Manhattan distance.");
+
+  options("ac",
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
+          "Uses the Bringmann et al. algorithm to simplify the polyline with "
+          "a distance of at most epsilon using Chebyshev distance.");
 
   options("bes",
 					po::value<std::string>(&poly_line_file_name)->value_name("filename"),
@@ -109,7 +119,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 					"for Euclidean distance. Simple version (n^4 space consumption).");
 
   options("qe", 
-					po::value<std::vector<std::string>>()->multitoken(),
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
 					"Queries for a simplification given a file to the saved datastructure and an epsilon.");
 
   po::variables_map map;
@@ -165,22 +175,16 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	}	else if (map.count("ae")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_explicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>( map, "ae");
+	}	else if (map.count("am")) {
+    _flag_action_simplify<Simplification::simplification_advanced_manhattan_explicit,
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_MANHATTAN>( map, "am");
+	}	else if (map.count("ac")) {
+    _flag_action_simplify<Simplification::simplification_advanced_chebyshev_explicit,
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV>( map, "ac");
 	}	else if (map.count("aes")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_semiexplicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>( map, "aes");
   }
-
-// 	auto polyline = DataStructures::Polyline::from_file(
-// 		 std::filesystem::path(poly_line_file_name));
-// 	auto &p = *polyline;
-// 	build_querier_simple(p);
-        //  auto res = DataStructures::alt_godau_euclidean_implicit(p, 65, 66,
-        //  66, 68, 66,
-        //                                                          epsilon *
-        //                                                          epsilon);
-        //  std::cout << res << std::endl;
-
-        //  std::cout << "explicit" << std::endl << expl << std::endl;
 }
 
 int main(int argc, char *argv[]) {

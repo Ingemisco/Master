@@ -14,6 +14,8 @@
 
 namespace Simplification {
 
+using DataStructures::Polyline;
+
 // dynamic programming table used in the algorithm
 template <typename F, F UNREACHABLE_POINT>
 struct DPTable final {
@@ -57,7 +59,7 @@ typedef DPTable<float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
 typedef DPTable<DataStructures::FRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT.first> DPSemiExplicit;
 
 template <typename F, typename L, std::pair<F, L> empty_interval, F start, DataStructures::Distance _distance>
-static inline void _simplification_initialization(DataStructures::Polyline &polyline, float epsilon, size_t point_count, DPTable<F, empty_interval.first> &table
+static inline void _simplification_initialization(Polyline &polyline, float epsilon, size_t point_count, DPTable<F, empty_interval.first> &table
 #if DEBUG
                                , VisualizationLog::VisualizationLogger &log
 #endif
@@ -74,10 +76,10 @@ static inline void _simplification_initialization(DataStructures::Polyline &poly
 }
 
 template <typename F, typename L, std::pair<F, L> empty_interval, 
-	std::pair<F, L> _solver(DataStructures::Polyline const &, size_t, size_t, size_t, float),
-	F _alt_godau(DataStructures::Polyline const &, size_t, size_t, F, size_t, size_t, float)>
+	std::pair<F, L> _solver(Polyline const &, size_t, size_t, size_t, float),
+	F _alt_godau(Polyline const &, size_t, size_t, F, size_t, size_t, float)>
 static inline Simplification
-_simplification_main(DataStructures::Polyline &polyline, size_t point_count, float epsilon, DPTable<F, empty_interval.first> &table
+_simplification_main(Polyline &polyline, size_t point_count, float epsilon, DPTable<F, empty_interval.first> &table
 #if DEBUG
                      , VisualizationLog::VisualizationLogger &log
 #endif
@@ -143,8 +145,8 @@ local_minimality_skip:
       for (unsigned int a = 1; a <= k; a++) {
         for (unsigned int b = a; b < point_count; b++) {
           for (unsigned int c = 0; c < point_count - 1; c++) {
-            float v = table.first_reachable(a, b, c);
-            if (v != DataStructures::EXPLICIT_UNREACHABLE &&
+            F v = table.first_reachable(a, b, c);
+            if (v != empty_interval.first &&
                 (a == 0 || table.first_reachable(a - 1, b, c) != v)) {
               size_t i_ = table.dp_point_ref_i(a, b, c);
               size_t j_ = table.dp_point_ref_j(a, b, c);
@@ -174,7 +176,7 @@ local_minimality_skip:
   }
 }
 
-Simplification simplification_naive_euclidean(DataStructures::Polyline &polyline, float epsilon) {
+Simplification simplification_naive_euclidean(Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
 
   DPExplicit table(point_count);
@@ -183,7 +185,7 @@ Simplification simplification_naive_euclidean(DataStructures::Polyline &polyline
 #if DEBUG
   VisualizationLog::VisualizationLogger log(
       polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN);
-  _simplification_initialization<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT,
+  _simplification_initialization<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT, 0.0f,
       DataStructures::unnormalized_euclidean_distance>(
       polyline, epsilon2, point_count, table, log);
   return _simplification_main<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT, DataStructures::solve_euclidean,
@@ -199,14 +201,14 @@ Simplification simplification_naive_euclidean(DataStructures::Polyline &polyline
 #endif
 }
 
-Simplification simplification_naive_manhattan(DataStructures::Polyline &polyline, float epsilon) {
+Simplification simplification_naive_manhattan(Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPExplicit table(point_count);
 
 #if DEBUG
   VisualizationLog::VisualizationLogger log(
       polyline, epsilon, VisualizationLog::Distance::MANHATTAN);
-  _simplification_initialization<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT,
+  _simplification_initialization<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT, 0.0f,
 DataStructures::manhattan_distance>(
       polyline, epsilon, point_count, table, log);
   return _simplification_main<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT, DataStructures::solve_manhattan,
@@ -222,14 +224,14 @@ DataStructures::manhattan_distance>(
 #endif
 }
 
-Simplification simplification_naive_chebyshev(DataStructures::Polyline &polyline, float epsilon) {
+Simplification simplification_naive_chebyshev(Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPExplicit table(point_count);
 
 #if DEBUG
   VisualizationLog::VisualizationLogger log(
       polyline, epsilon, VisualizationLog::Distance::CHEBYSHEV);
-  _simplification_initialization<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT,
+  _simplification_initialization<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT, 0.0f,
 DataStructures::chebyshev_distance>(polyline, epsilon, point_count, table, log);
   return _simplification_main<float, float, DataStructures::EMPTY_INTERVAL_EXPLICIT, DataStructures::solve_chebyshev,
                               DataStructures::alt_godau_chebyshev>(polyline, point_count, epsilon, table, log);
@@ -275,7 +277,7 @@ struct DPImplicitTable final {
 	}
 };
 
-Simplification simplification_naive_euclidean_implicit(DataStructures::Polyline &polyline, float epsilon) {
+Simplification simplification_naive_euclidean_implicit(Polyline &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPImplicitTable table(point_count);
   float const epsilon2 = epsilon * epsilon;
@@ -398,19 +400,21 @@ local_minimality_skip:
 
 
 
+using DataStructures::FRValue, DataStructures::LRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT;
+
 
 // epsilon must be squared
-Simplification simplification_naive_euclidean_semiexplicit(DataStructures::Polyline &polyline, float epsilon2) {
+Simplification simplification_naive_euclidean_semiexplicit(Polyline &polyline, float epsilon2) {
   size_t const point_count = polyline.point_count;
 
   DPSemiExplicit table(point_count);
 
 #if DEBUG
-  VisualizationLog::VisualizationLogger log(polyline, epsilon2, VisualizationLog::Distance::EUCLIDEAN);
-  _simplification_initialization<DataStructures::FRValue, DataStructures::LRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table, log);
-  return _simplification_main<FRValue, LRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::solve_euclidean, DataStructures::alt_godau_euclidean>( polyline, point_count, epsilon2, table, log);
+  VisualizationLog::VisualizationLogger log(polyline, epsilon2, VisualizationLog::Distance::EUCLIDEAN_SEMIEXPLICIT);
+  _simplification_initialization<FRValue, LRValue, EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::FRValue(0,0), DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table, log);
+  return _simplification_main<FRValue, LRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::solve_euclidean_se, DataStructures::alt_godau_euclidean_semiexplicit>(polyline, point_count, epsilon2, table, log);
 #else
-  _simplification_initialization<DataStructures::FRValue, DataStructures::LRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::FRValue(0,0), DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table);
+  _simplification_initialization<FRValue, LRValue, EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::FRValue(0,0), DataStructures::unnormalized_euclidean_distance>(polyline, epsilon2, point_count, table);
   return _simplification_main<DataStructures::FRValue, DataStructures::LRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::solve_euclidean_se, DataStructures::alt_godau_euclidean_semiexplicit>(polyline, point_count, epsilon2, table);
 #endif
 }
