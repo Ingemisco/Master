@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(IntegerExponentiation) {
 }
 
 BOOST_AUTO_TEST_CASE(PointDistances) {
-	auto p = Polyline::from_file("../test_data/p0");
+	auto p = Polyline::from_file("test_data/p0");
 	auto &polyline = *p;
 
 	BOOST_CHECK_CLOSE(unnormalized_euclidean_distance(polyline, 0, 1), 5, 0);
