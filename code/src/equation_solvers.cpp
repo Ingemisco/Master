@@ -4,8 +4,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <queue>
 #include <stdexcept>
 #include <utility>
@@ -132,6 +134,7 @@ struct ChebyshevQueueElement final {
 
 #define LINE_REMOVED -1
 
+#ifdef temp
 ReachabilityData solve_chebyshev(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon) {
   bool const first_reachable = chebyshev_distance(polyline, point1, point3) < epsilon;
   bool const last_reachable = chebyshev_distance(polyline, point2, point3) < epsilon;
@@ -232,6 +235,39 @@ ReachabilityData solve_chebyshev(Polyline const &polyline, size_t point1, size_t
   delete[] list;
   return {first_sol, last_sol};
 }
+#else
+// linear time algorithm
+ReachabilityData solve_chebyshev(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon) {
+	float left_boundary = 0;
+	float right_boundary = 1;
+
+	for (auto i = 0u; i < polyline.dimension; i++) {
+		float ai = polyline[point1, i] - polyline[point3, i];
+		float bi = polyline[point2, i] - polyline[point1, i];
+		if (bi < 0) {
+			ai *= -1;
+			bi *= -1;
+		}
+		// TODO: maybe use some threshold instead of comparing to 0
+		if (bi == 0) {
+			if (std::abs(ai) > epsilon) {
+				return EMPTY_INTERVAL_EXPLICIT;
+			} 
+			continue;
+		}
+
+		left_boundary = std::max(left_boundary, (-epsilon - ai) / bi);
+		right_boundary = std::min(right_boundary, (epsilon - ai) / bi);
+	}
+
+	if (left_boundary > right_boundary) {
+		return EMPTY_INTERVAL_EXPLICIT;
+	} 
+	return {left_boundary, right_boundary};
+}
+
+#endif
+
 
 // computes the product <v - u | u - w>
 static inline float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w) {

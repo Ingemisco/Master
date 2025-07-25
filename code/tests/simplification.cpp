@@ -76,8 +76,7 @@ static inline void compare_sizes(std::filesystem::path polyline_file_path, float
 	BOOST_CHECK_EQUAL(chebyshev_size_advanced, chebyshev_size_naive);
 
 	BOOST_CHECK_LE(euclidean_size_advanced, manhattan_size_advanced);
-	// BOOST_CHECK_LE(chebyshev_size_advanced, euclidean_size_advanced);
-	// TODO: fix test above, currently chebyshev does not seem to work correctly. Probably in equation solver
+	BOOST_CHECK_LE(chebyshev_size_advanced, euclidean_size_advanced);
 }
 
 
