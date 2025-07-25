@@ -59,7 +59,7 @@ typedef DPTable<float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
 typedef DPTable<DataStructures::FRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT.first> DPSemiExplicit;
 
 template <typename F, typename L, std::pair<F, L> empty_interval, F start, DataStructures::Distance _distance>
-static inline void _simplification_initialization(Polyline &polyline, float epsilon, size_t point_count, DPTable<F, empty_interval.first> &table
+static inline void _simplification_initialization(Polyline const &polyline, float epsilon, size_t point_count, DPTable<F, empty_interval.first> &table
 #if DEBUG
                                , VisualizationLog::VisualizationLogger &log
 #endif
@@ -79,7 +79,7 @@ template <typename F, typename L, std::pair<F, L> empty_interval,
 	std::pair<F, L> _solver(Polyline const &, size_t, size_t, size_t, float),
 	F _alt_godau(Polyline const &, size_t, size_t, F, size_t, size_t, float)>
 static inline Simplification
-_simplification_main(Polyline &polyline, size_t point_count, float epsilon, DPTable<F, empty_interval.first> &table
+_simplification_main(Polyline const &polyline, size_t point_count, float epsilon, DPTable<F, empty_interval.first> &table
 #if DEBUG
                      , VisualizationLog::VisualizationLogger &log
 #endif
@@ -176,7 +176,7 @@ local_minimality_skip:
   }
 }
 
-Simplification simplification_naive_euclidean(Polyline &polyline, float epsilon) {
+Simplification simplification_naive_euclidean(Polyline const &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
 
   DPExplicit table(point_count);
@@ -201,7 +201,7 @@ Simplification simplification_naive_euclidean(Polyline &polyline, float epsilon)
 #endif
 }
 
-Simplification simplification_naive_manhattan(Polyline &polyline, float epsilon) {
+Simplification simplification_naive_manhattan(Polyline const &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPExplicit table(point_count);
 
@@ -224,7 +224,7 @@ DataStructures::manhattan_distance>(
 #endif
 }
 
-Simplification simplification_naive_chebyshev(Polyline &polyline, float epsilon) {
+Simplification simplification_naive_chebyshev(Polyline const &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPExplicit table(point_count);
 
@@ -277,7 +277,7 @@ struct DPImplicitTable final {
 	}
 };
 
-Simplification simplification_naive_euclidean_implicit(Polyline &polyline, float epsilon) {
+Simplification simplification_naive_euclidean_implicit(Polyline const &polyline, float epsilon) {
   size_t const point_count = polyline.point_count;
   DPImplicitTable table(point_count);
   float const epsilon2 = epsilon * epsilon;
@@ -404,7 +404,7 @@ using DataStructures::FRValue, DataStructures::LRValue, DataStructures::EMPTY_IN
 
 
 // epsilon must be squared
-Simplification simplification_naive_euclidean_semiexplicit(Polyline &polyline, float epsilon2) {
+Simplification simplification_naive_euclidean_semiexplicit(Polyline const &polyline, float epsilon2) {
   size_t const point_count = polyline.point_count;
 
   DPSemiExplicit table(point_count);

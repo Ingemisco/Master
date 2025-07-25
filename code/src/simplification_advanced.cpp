@@ -293,26 +293,26 @@ struct Simplifier final {
 
 
 
-Simplification::Simplification Simplification::simplification_advanced_euclidean_explicit(DataStructures::Polyline &polyline, float epsilon) {
+Simplification::Simplification Simplification::simplification_advanced_euclidean_explicit(DataStructures::Polyline const &polyline, float epsilon) {
 	Simplifier<float, float, DataStructures::solve_euclidean, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
 	return simplifier.simplify();
 }
 
 
 
-Simplification::Simplification Simplification::simplification_advanced_manhattan_explicit(DataStructures::Polyline &polyline, float epsilon) {
+Simplification::Simplification Simplification::simplification_advanced_manhattan_explicit(DataStructures::Polyline const &polyline, float epsilon) {
 	Simplifier<float, float, DataStructures::solve_manhattan, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
 	return simplifier.simplify();
 }
 
-Simplification::Simplification Simplification::simplification_advanced_chebyshev_explicit(DataStructures::Polyline &polyline, float epsilon) {
+Simplification::Simplification Simplification::simplification_advanced_chebyshev_explicit(DataStructures::Polyline const &polyline, float epsilon) {
 	Simplifier<float, float, DataStructures::solve_chebyshev, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
 	return simplifier.simplify();
 }
 
 
 
-Simplification::Simplification Simplification::simplification_advanced_euclidean_semiexplicit(DataStructures::Polyline &polyline, float epsilon) {
+Simplification::Simplification Simplification::simplification_advanced_euclidean_semiexplicit(DataStructures::Polyline const &polyline, float epsilon) {
 	Simplifier<DataStructures::FRValue, DataStructures::LRValue, DataStructures::solve_euclidean_se, DataStructures::NONEMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT> simplifier(polyline, epsilon);
 	return simplifier.simplify();
 }

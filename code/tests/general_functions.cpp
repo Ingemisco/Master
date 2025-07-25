@@ -1,15 +1,16 @@
-#include <cmath>
 #define BOOST_TEST_MODULE GeneralTests
 
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/test/unit_test.hpp>
+#include <cmath>
 
 #include "distance.h"
 #include "datastructures.h"
 
-using DataStructures::integer_exponentiation;
 using DataStructures::Polyline;
+
+using DataStructures::integer_exponentiation;
 using DataStructures::unnormalized_euclidean_distance;
 using DataStructures::euclidean_distance;
 using DataStructures::manhattan_distance;
@@ -37,4 +38,9 @@ BOOST_AUTO_TEST_CASE(PointDistances) {
 
 	BOOST_CHECK_CLOSE(minkowski_distance(polyline, 0, 1, 2), sqrt(5), 1e-2);
 	BOOST_CHECK_CLOSE(minkowski_distance(polyline, 0, 1, 4), std::pow(17, 0.25), 1e-2);
+
+	auto [f, l] = DataStructures::solve_chebyshev(polyline, 0, 1, 2, 3);
+	BOOST_CHECK_CLOSE(f, 0.5f, 1e-2);
+	BOOST_CHECK_CLOSE(l, 1.0f, 1e-2);
 }
+
