@@ -49,36 +49,10 @@ static inline F _alt_godau_main(Polyline const &polyline, size_t i_, size_t i, F
 }
 
 float alt_godau_manhattan(Polyline const &polyline, size_t i_, size_t i, float t, size_t line_start, size_t line_end, float epsilon) {
-  // compute distance of first point on polyline (p[start] + t(p[start + 1] -
-  // p[start])) to first point of line segment and compare if distance greater
-  // then epsilon, if so, the line segment is too far away
-  float initial_dist = 0;
-  for (unsigned int j = 0; j < polyline.dimension; j++) {
-    float const coord = polyline[i_, j] + t * (polyline[i_ + 1, j] - polyline[i_, j]) - polyline[line_start, j];
-    initial_dist += std::abs(coord);
-  }
-  if (initial_dist > epsilon) {
-    return EXPLICIT_UNREACHABLE;
-  }
-
   return _alt_godau_main<float, float, solve_manhattan, EMPTY_INTERVAL_EXPLICIT, EXPLICIT_UNREACHABLE, 0.0f>(polyline, i_, i, t, line_start, line_end, epsilon);
 }
 
 float alt_godau_euclidean(Polyline const &polyline, size_t i_, size_t i, float t, size_t line_start, size_t line_end, float epsilon) {
-  // compute distance of first point on polyline (p[start] + t(p[start + 1] -
-  // p[start])) to first point of line segment and compare if distance greater
-  // then epsilon, if so, the line segment is too far away
-	// ALL of this is not required???
-  // float initial_dist = 0;
-  // for (unsigned int j = 0; j < polyline.dimension; j++) {
-  //   float const coord =
-  //       polyline[i_, j] + t * (polyline[i_ + 1, j] - polyline[i_, j]) - polyline[line_start, j];
-  //   initial_dist += coord * coord;
-  // }
-  // if (initial_dist > epsilon * epsilon) {
-  //   return EXPLICIT_UNREACHABLE;
-  // }
-
   return _alt_godau_main<float, float, solve_euclidean, EMPTY_INTERVAL_EXPLICIT, EXPLICIT_UNREACHABLE, 0.0f>(polyline, i_, i, t, line_start, line_end, epsilon);
 }
 
@@ -115,14 +89,11 @@ static inline bool _alt_godau_euclidean_implicit_init(Polyline const &polyline, 
   float const dprod = 4 * di * dr;
 
   float const i_1dist = unnormalized_euclidean_distance(polyline, j_1, i_);
-  bool const first_condition =
-      i_0dist <= epsilon2 ||
-      (di >= 0 &&
-       ((dr <= di && x >= 0) || (dr <= di && x < 0 && y >= 0 && y2 >= dprod) ||
+  bool const first_condition = i_0dist <= epsilon2 || 
+		(di >= 0 && ((dr <= di && x >= 0) || (dr <= di && x < 0 && y >= 0 && y2 >= dprod) ||
         (dr > di && x >= 0 && (y <= 0 || y2 <= dprod))));
 
-  bool const second_condition =
-      i_1dist <= epsilon2 || (x <= 0 || y >= 0 || y2 <= dprod);
+  bool const second_condition = i_1dist <= epsilon2 || (x <= 0 || y >= 0 || y2 <= dprod);
 
   return first_condition && second_condition;
 }
@@ -174,9 +145,11 @@ size_t solve_implicit_euclidean_in(Polyline const &polyline, size_t line_start, 
 
 // input epsilon squared
 size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_, size_t j, size_t i_, size_t i, size_t restriction, float epsilon2) {
-  if (!_alt_godau_euclidean_implicit_init(polyline, j_, j_ + 1, restriction, i_, epsilon2)) {
-    return IMPLICIT_UNREACHABLE;
-  } else if (j_ == j) {
+	
+  // if (!_alt_godau_euclidean_implicit_init(polyline, j_, j_ + 1, restriction, i_, epsilon2)) {
+  //  return IMPLICIT_UNREACHABLE;
+  //} else 
+	if (j_ == j) {
     auto const res = solve_implicit_euclidean_in(polyline, j, j + 1, restriction, i, epsilon2);
     size_t const results[3] = {(size_t)-1, restriction, i};
     return results[res];
@@ -199,19 +172,6 @@ size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_, size_t 
 }
 
 float alt_godau_chebyshev(Polyline const &polyline, size_t i_, size_t i, float t, size_t line_start, size_t line_end, float epsilon) {
-  // compute distance of first point on polyline (p[start] + t(p[start + 1] -
-  // p[start])) to first point of line segment and compare if distance greater
-  // then epsilon, if so, the line segment is too far away
-  float initial_dist = 0;
-  for (unsigned int j = 0; j < polyline.dimension; j++) {
-    float const coord =
-        polyline[i_, j] + t * (polyline[i_ + 1, j] - polyline[i_, j]) - polyline[line_start, j];
-    initial_dist = std::max(initial_dist, std::abs(coord));
-  }
-  if (initial_dist > epsilon) {
-    return EXPLICIT_UNREACHABLE;
-  }
-
   return _alt_godau_main<float, float, solve_chebyshev, EMPTY_INTERVAL_EXPLICIT, EXPLICIT_UNREACHABLE, 0.0f>(polyline, i_, i, t, line_start, line_end, epsilon);
 }
 

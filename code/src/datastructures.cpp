@@ -13,7 +13,7 @@ using DataStructures::Polyline;
 
 namespace DataStructures {
 
-Polyline::Polyline(size_t point_count, size_t dimension)
+Polyline::Polyline(PointCount point_count, Dimension dimension)
     : data(new float[point_count * dimension]), point_count(point_count),
       dimension(dimension) {
 #if DEBUG
@@ -28,7 +28,7 @@ Polyline::Polyline(size_t point_count, size_t dimension)
 
 Polyline::~Polyline() { delete[] this->data; }
 
-float &Polyline::operator[](size_t point, size_t coordinate) {
+float &Polyline::operator[](PointIndex point, Coordinate coordinate) {
 #if DEBUG
   if (point >= this->point_count || coordinate >= this->dimension) {
     throw std::runtime_error("Accessed coordinate is not in bounds. Accessed " +
@@ -42,7 +42,7 @@ float &Polyline::operator[](size_t point, size_t coordinate) {
   return this->data[point * dimension + coordinate];
 }
 
-float Polyline::operator[](size_t point, size_t coordinate) const {
+float Polyline::operator[](PointIndex point, Coordinate coordinate) const {
 #if DEBUG
   if (point >= this->point_count || coordinate >= this->dimension) {
     throw std::runtime_error("Accessed coordinate is not in bounds. Accessed " +
@@ -71,8 +71,8 @@ std::unique_ptr<Polyline> Polyline::from_file(std::filesystem::path path) {
     }
   }
 
-  size_t point_count;
-  size_t dimension;
+  PointCount point_count;
+  Dimension dimension;
   std::istringstream first_line_stream(line);
 
   if (!(first_line_stream >> point_count >> dimension)) {
@@ -80,8 +80,8 @@ std::unique_ptr<Polyline> Polyline::from_file(std::filesystem::path path) {
   }
 
   auto polyline = std::make_unique<Polyline>(point_count, dimension);
-  for (unsigned int point = 0; point < point_count; point++) {
-    for (unsigned int coordinate = 0; coordinate < dimension; coordinate++) {
+  for (PointIndex point = 0; point < point_count; point++) {
+    for (Coordinate coordinate = 0; coordinate < dimension; coordinate++) {
       if (!(input >> (*polyline)[point, coordinate])) {
         throw std::runtime_error("Invalid file format: Not enough floats.");
       }
@@ -93,9 +93,9 @@ std::unique_ptr<Polyline> Polyline::from_file(std::filesystem::path path) {
 
 std::ostream &operator<<(std::ostream &os, Polyline &polyline) {
   os << "[";
-  for (unsigned int point = 0; point < polyline.point_count; point++) {
+  for (PointIndex point = 0; point < polyline.point_count; point++) {
     os << ",\n  (";
-		for (unsigned int i = 0; i < polyline.dimension; i++) {
+		for (Coordinate i = 0; i < polyline.dimension; i++) {
 			os << polyline[point, i] << ", ";
 		}
 		os << ")";

@@ -4,16 +4,17 @@
 #include <cstddef>
 #include <filesystem>
 #include <iostream>
+#include "global.h"
 
 namespace DataStructures {
 
 struct Polyline final {
   // matrix containing all points
   float *const data;
-  size_t const point_count;
-  size_t const dimension;
+  PointCount const point_count;
+  Dimension const dimension;
 
-  Polyline(size_t, size_t);
+  Polyline(PointCount, Dimension);
   ~Polyline();
 
   Polyline(Polyline const &) = delete;
@@ -21,8 +22,8 @@ struct Polyline final {
   Polyline operator=(Polyline const &) = delete;
   Polyline operator=(Polyline &&) = delete;
 
-  float &operator[](size_t, size_t);
-  float operator[](size_t, size_t) const;
+  float &operator[](PointIndex, Coordinate);
+  float operator[](PointIndex, Coordinate) const;
 
   static std::unique_ptr<Polyline> from_file(std::filesystem::path);
 

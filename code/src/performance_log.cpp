@@ -1,7 +1,6 @@
-#include "datastructures.h"
+#include "global.h"
 #include "log.h"
 #include <algorithm>
-#include <cfloat>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
@@ -13,19 +12,11 @@
 namespace Log {
 std::string measurement_directory = "";
 
-PerformanceLogger::PerformanceLogger(Algorithm algorithm, std::string header)
-    : header(header), algorithm(algorithm) {}
-
-void PerformanceLogger::add_data(DataStructures::Polyline &polyline,
-                                 Simplification::Simplification &simplification,
-                                 std::chrono::duration<double> elapsed_time,
-                                 std::string name) {
-
-  this->times.push_back(elapsed_time);
-  this->simplification_sizes.push_back(simplification->size());
-  this->dimension = std::max(this->dimension, polyline.dimension);
-  this->point_count = std::max(this->point_count, polyline.point_count);
-  this->case_names.push_back(name);
+void PerformanceLogger::add_data(size_t simplification_size, std::chrono::duration<double> elapsed_time, std::string name) {
+	auto &data_set = this->data_sets.back();
+  data_set.times.push_back(elapsed_time);
+  data_set.simplification_sizes.push_back(simplification_size);
+  data_set.case_names.push_back(name);
 }
 
 static std::string algorithm_name(Algorithm algorithm) {
@@ -61,8 +52,20 @@ static std::string algorithm_name(Algorithm algorithm) {
   }
 }
 
+void PerformanceLogger::begin_data_set(Algorithm algorithm, Dimension dimension, PointCount point_count, std::string name) {
+	this->data_sets.push_back({
+		.header = name,
+		.algorithm = algorithm,
+		.dimension = dimension,
+		.point_count = point_count,
+		.times = {},
+		.simplification_sizes = {},
+		.case_names = {},
+	});
+}
+
 void PerformanceLogger::emit() {
-  if (this->times.size() == 0) {
+  if (this->data_sets.size() == 0) {
     throw std::runtime_error("No data has been entered.");
   }
   if (!std::filesystem::exists("measurements")) {
@@ -99,36 +102,54 @@ void PerformanceLogger::emit() {
   std::uniform_int_distribution<> dis(0, 10000000);
   oss << std::put_time(&now_tm, "%Y-%m-%d-%H-%M-%S-") << dis(gen);
   auto filename = dir + "/log-" + oss.str() + ".json";
+	std::ofstream out(filename);
 
-  std::ofstream out(filename);
-  auto minmax = std::ranges::minmax_element(this->times);
-  auto avg = std::accumulate(this->times.begin(), this->times.end(), Time(0.0)) / this->times.size();
 
-  out << "{\n";
-  out << "  \"title\": \"" << this->header << "\",\n";
-  out << "  \"algorithm\": \"" << algorithm_name(this->algorithm) << "\",\n";
-  out << "  \"min\": " << minmax.min->count() << ",\n";
-  out << "  \"max\": " << minmax.max->count() << ",\n";
-  out << "  \"avg\": " << avg.count() << ",\n";
-  out << "  \"dimension\": " << this->dimension << ",\n";
-  out << "  \"point_count\": " << this->point_count << ",\n";
+	bool start = true;
 
-  out << "  \"data\": [\n";
-  for (unsigned int i = 0; i < this->case_names.size(); i++) {
-    out << "    { \"file\": \"" << this->case_names[i]
-        << "\", \"time\": " << this->times[i].count()
-        << ", \"simplification_size\": " << this->simplification_sizes[i]
-        << " }";
-    if (i < this->case_names.size() - 1) {
-      out << ",";
-    }
+	out << "{\n";
+	for (auto const &data_set : this->data_sets) {
+		if (!start) {
+			out << ", ";
+		} else {
+			start = false;
+			out << "  ";
+		}
 
-    out << "\n";
-  }
-  out << "  ]\n";
+		auto minmax = std::ranges::minmax_element(data_set.times);
+		auto avg = std::accumulate(data_set.times.begin(), data_set.times.end(), Time(0.0)) / data_set.times.size();
 
-  out << "}";
+		out << "{\n";
+		out << "    \"title\": \"" << data_set.header << "\",\n";
+		out << "    \"algorithm\": \"" << algorithm_name(data_set.algorithm) << "\",\n";
+		out << "    \"min\": " << minmax.min->count() << ",\n";
+		out << "    \"max\": " << minmax.max->count() << ",\n";
+		out << "    \"avg\": " << avg.count() << ",\n";
+		out << "    \"dimension\": " << data_set.dimension << ",\n";
+		out << "    \"point_count\": " << data_set.point_count << ",\n";
+
+		out << "    \"data\": [\n";
+		for (unsigned int i = 0; i < data_set.case_names.size(); i++) {
+			out << "      { \"file\": \"" << data_set.case_names[i]
+					<< "\", \"time\": " << data_set.times[i].count()
+					<< ", \"simplification_size\": " << data_set.simplification_sizes[i]
+					<< " }";
+			if (i < data_set.case_names.size() - 1) {
+				out << ",";
+			}
+
+			out << "\n";
+		}
+		out << "    ]\n";
+
+		out << "  }";
+
+	}
+
+	out << "}";
   out.close();
+
+	this->data_sets.clear();
 }
 
 } // namespace Log

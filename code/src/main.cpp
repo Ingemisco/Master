@@ -1,5 +1,6 @@
 #include "datastructures.h"
 #include "distance.h"
+#include "global.h"
 #include "log.h"
 #include "queries.h"
 #include "simplification.h"
@@ -14,13 +15,14 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace po = boost::program_options;
 
-template <Simplification::Simplification _simplification_algorithm(DataStructures::Polyline &, float),
+template <Simplification::Simplification _simplification_algorithm(DataStructures::Polyline const &, float, AlgorithmConfiguration &config),
           Log::Algorithm _algorithm>
-static inline void _flag_action_simplify(po::variables_map &map, char const *flag) {
+static inline void _flag_action_simplify(po::variables_map &map, char const *flag, AlgorithmConfiguration &config) {
 
 	const auto &args = map[flag].as<std::vector<std::string>>();
 	if (args.size() != 2) {
@@ -28,29 +30,30 @@ static inline void _flag_action_simplify(po::variables_map &map, char const *fla
 	}
 	std::string const &poly_line_file_name = args[0];
 	float const epsilon = std::stof(args[1]);
-  Log::PerformanceLogger log(_algorithm, poly_line_file_name);
   if (std::filesystem::is_directory(poly_line_file_name)) {
     Log::measurement_directory = poly_line_file_name;
+
+		bool need_to_init_logger = config.logger.has_value();
     for (auto const &entry : std::filesystem::directory_iterator(poly_line_file_name)) {
       auto polyline = DataStructures::Polyline::from_file(std::filesystem::path(entry));
+			if (need_to_init_logger) {
+				config.logger.value().begin_data_set(_algorithm, polyline->dimension, polyline->point_count, poly_line_file_name);
+				need_to_init_logger = false;
+			}
 
-      auto start = std::chrono::high_resolution_clock::now();
-      auto simplification_vertices = _simplification_algorithm(*polyline, epsilon);
-      auto end = std::chrono::high_resolution_clock::now();
-      log.add_data(*polyline, simplification_vertices, end - start, entry.path().filename().string());
+      auto simplification_vertices = _simplification_algorithm(*polyline, epsilon, config);
     }
 
   } else {
     auto polypath = std::filesystem::path(poly_line_file_name);
     auto polyline = DataStructures::Polyline::from_file(polypath);
+		if (config.logger.has_value()) {
+			config.logger.value().begin_data_set(_algorithm, polyline->dimension, polyline->point_count, poly_line_file_name);
+		}
 
-    auto start = std::chrono::high_resolution_clock::now();
-    auto simplification_vertices = _simplification_algorithm(*polyline, epsilon);
-    auto end = std::chrono::high_resolution_clock::now();
-    log.add_data(*polyline, simplification_vertices, end - start, polypath.filename().string());
+    auto simplification_vertices = _simplification_algorithm(*polyline, epsilon, config);
 		std::cout << "size: " << simplification_vertices->size() << std::endl;
   }
-  log.emit();
 }
 
 static inline void handle_command_line_arguments(int argc, char *argv[]) {
@@ -60,9 +63,17 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   po::options_description description("Allowed options");
   std::string poly_line_file_name;
 
+	Log::AlgorithmConfiguration config = {
+		.output_visualization = false,
+		.logger = std::nullopt,
+	};
+
   auto options = description.add_options();
 
   options("help,h", "Show help message");
+
+	options("performance-measure,p", "Measures the performance of the algorithms and outputs it as a file.");
+	options("visualize,v", "Outputs visualization files for the algorithms used.");
 
   options("se",
 					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
@@ -132,7 +143,16 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   if (map.count("help")) {
     std::cout << description;
     exit(0);
-  }  
+  } 
+
+	if (map.count("performance-measure")) {
+		config.logger = std::optional<Log::PerformanceLogger>(Log::PerformanceLogger());
+		std::cout << "test\n";
+	}
+
+	if (map.count("visualize")) {
+		config.output_visualization = true;
+	}
 
   po::notify(map);
 
@@ -157,34 +177,38 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	
 	} else if (map.count("se")) {
     _flag_action_simplify<Simplification::simplification_naive_euclidean,
-                          Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>( map, "se");
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN>(map, "se", config);
   } else if (map.count("sei")) {
     _flag_action_simplify<
         Simplification::simplification_naive_euclidean_implicit,
-        Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>( map, "sei");
+        Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN>(map, "sei", config);
   } else if (map.count("ses")) {
     _flag_action_simplify<
         Simplification::simplification_naive_euclidean_semiexplicit,
-        Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN>( map, "ses");
+        Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN>(map, "ses", config);
   } else if (map.count("sm")) {
     _flag_action_simplify<Simplification::simplification_naive_manhattan,
-                          Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>( map, "sm");
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN>(map, "sm", config);
   } else if (map.count("sc")) {
     _flag_action_simplify<Simplification::simplification_naive_chebyshev,
-                          Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>( map, "sc");
+                          Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV>(map, "sc", config);
 	}	else if (map.count("ae")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_explicit,
-                          Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>( map, "ae");
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN>(map, "ae", config);
 	}	else if (map.count("am")) {
     _flag_action_simplify<Simplification::simplification_advanced_manhattan_explicit,
-                          Log::Algorithm::SIMPLIFICATION_ADVANCED_MANHATTAN>( map, "am");
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_MANHATTAN>(map, "am", config);
 	}	else if (map.count("ac")) {
     _flag_action_simplify<Simplification::simplification_advanced_chebyshev_explicit,
-                          Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV>( map, "ac");
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV>(map, "ac", config);
 	}	else if (map.count("aes")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_semiexplicit,
-                          Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>( map, "aes");
+                          Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>(map, "aes", config);
   }
+
+	if (config.logger.has_value()) {
+		config.logger.value().emit();
+	}
 }
 
 int main(int argc, char *argv[]) {

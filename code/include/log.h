@@ -1,11 +1,15 @@
 #ifndef INCLUDE_INCLUDE_LOG_H_
 #define INCLUDE_INCLUDE_LOG_H_
 
-#include "datastructures.h"
-#include "simplification.h"
 #include <chrono>
 #include <string>
 #include <vector>
+#include "global.h"
+
+namespace DataStructures {
+	struct Polyline;	
+};
+
 
 namespace Log {
 
@@ -29,23 +33,34 @@ enum class Algorithm {
 
 typedef std::chrono::duration<double> Time;
 
-class PerformanceLogger final {
-private:
+struct DataSet final {
   std::string const header;
   Algorithm const algorithm;
+  Dimension const dimension;
+  PointCount const point_count;
   std::vector<Time> times;
   std::vector<size_t> simplification_sizes;
   std::vector<std::string> case_names;
-  size_t dimension = 0;
-  size_t point_count = 0;
+};
+
+
+class PerformanceLogger final {
+private:
+	std::vector<DataSet> data_sets;
 
 public:
-  PerformanceLogger(Algorithm, std::string);
+	void begin_data_set(Algorithm, Dimension, PointCount, std::string);
 
-  void add_data(DataStructures::Polyline &, Simplification::Simplification &,
-                std::chrono::duration<double>, std::string);
+  void add_data(PointCount, std::chrono::duration<double>, std::string);
   void emit();
+
 };
+
+struct AlgorithmConfiguration final {
+	bool output_visualization;
+	std::optional<PerformanceLogger> logger;
+};
+
 
 } // namespace Log
 #endif // INCLUDE_INCLUDE_LOG_H_

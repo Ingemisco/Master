@@ -2,17 +2,24 @@
 #include "datastructures.h"
 #include "distance.h"
 #include "simplification.h"
+#include "log.h"
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string>
 
 using DataStructures::Polyline, DataStructures::unnormalized_euclidean_distance;
 
 Simplification::Simplification &simplify_query(SimplificationQuerier &, float);
+AlgorithmConfiguration empty_config = {
+		.output_visualization = false,
+		.logger = std::nullopt,
+};
+
 
 // computes the product <v - u | w - u>
 static inline float
@@ -43,7 +50,7 @@ void static _binary_search_build_ds(DataStructures::Polyline &polyline, float *e
 
 	size_t mid_index = event_count / 2;
 	float const epsilon = std::sqrt(events[mid_index]); // events are all squared
-	auto simplification = Simplification::simplification_advanced_euclidean_explicit(polyline, epsilon + 1e-7);
+	auto simplification = Simplification::simplification_advanced_euclidean_explicit(polyline, epsilon + 1e-7, empty_config);
 	// this "-1" is to get the size of the simplification, i.e., the amount of line segments instead of amount of points 
 	size_t const simplification_size = simplification->size() - 1;
 
