@@ -1,6 +1,7 @@
 #include "datastructures.h"
 #include "distance.h"
 #include "simplification.h"
+#include "log.h"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -9,6 +10,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+
 
 using DataStructures::Polyline, DataStructures::Queue;
 
@@ -115,8 +117,6 @@ struct Simplifier final {
 		this->dp1           = new _DP1Data<F>[n * (n - 1) * n];
 		this->kappa         = new KappaData[n * (n - 1)];
 		this->kappa2        = new KappaData[n * (n - 1)];
-
-		
 	}
 
 	~Simplifier() {
@@ -294,28 +294,73 @@ struct Simplifier final {
 
 
 Simplification::Simplification Simplification::simplification_advanced_euclidean_explicit(DataStructures::Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
+	auto time_start = std::chrono::high_resolution_clock::now();
 	Simplifier<float, float, DataStructures::solve_euclidean, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
-	return simplifier.simplify();
+
+	auto simplification = simplifier.simplify();
+
+	// assumes test case was started before calling this function
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(simplification->size(), end - time_start, "");
+		}
+	}
+
+	return simplification;
 }
 
 
 
 Simplification::Simplification Simplification::simplification_advanced_manhattan_explicit(DataStructures::Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
+	auto time_start = std::chrono::high_resolution_clock::now();
 	Simplifier<float, float, DataStructures::solve_manhattan, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
-	return simplifier.simplify();
+	auto simplification = simplifier.simplify();
+
+	// assumes test case was started before calling this function
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(simplification->size(), end - time_start, "");
+		}
+	}
+
+	return simplification;
 }
 
 Simplification::Simplification Simplification::simplification_advanced_chebyshev_explicit(DataStructures::Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
+	auto time_start = std::chrono::high_resolution_clock::now();
 	Simplifier<float, float, DataStructures::solve_chebyshev, std::pair<float, float>(0, 1), DataStructures::EMPTY_INTERVAL_EXPLICIT> simplifier(polyline, epsilon);
-	return simplifier.simplify();
+	auto simplification = simplifier.simplify();
+
+	// assumes test case was started before calling this function
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(simplification->size(), end - time_start, "");
+		}
+	}
+
+	return simplification;
 }
 
 
 
 Simplification::Simplification Simplification::simplification_advanced_euclidean_semiexplicit(DataStructures::Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
+	auto time_start = std::chrono::high_resolution_clock::now();
 
 	Simplifier<DataStructures::FRValue, DataStructures::LRValue, DataStructures::solve_euclidean_se, DataStructures::NONEMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT> simplifier(polyline, epsilon);
-	return simplifier.simplify();
+	auto simplification = simplifier.simplify();
+
+	// assumes test case was started before calling this function
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(simplification->size(), end - time_start, "");
+		}
+	}
+
+	return simplification;
 }
 
 

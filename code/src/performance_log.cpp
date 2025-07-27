@@ -19,7 +19,7 @@ void PerformanceLogger::add_data(size_t simplification_size, std::chrono::durati
   data_set.case_names.push_back(name);
 }
 
-static std::string algorithm_name(Algorithm algorithm) {
+std::string algorithm_name(Algorithm algorithm) {
   switch (algorithm) {
   case Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN:
     return "Manhattan Simplification (Simple)";

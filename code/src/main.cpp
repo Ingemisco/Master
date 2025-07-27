@@ -59,6 +59,7 @@ static inline void _flag_action_simplify(po::variables_map &map, char const *fla
 static inline void handle_command_line_arguments(int argc, char *argv[]) {
   po::positional_options_description positional_options;
   positional_options.add("file", 1);
+	std::string suite_dir;
 
   po::options_description description("Allowed options");
   std::string poly_line_file_name;
@@ -85,6 +86,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance. Does not "
           "explicitly compute zeros but only implicitly compare them.");
+
+  options("measure-suite,s",
+					po::value<std::string>(&suite_dir)->value_name("directory"),
+					"Perfomes measurments for all algorithms on the data in a directory."
+					"The directory must have a specific structure.");
 
   options("ses",
 					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
@@ -143,7 +149,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   if (map.count("help")) {
     std::cout << description;
     exit(0);
-  } 
+  }
 
 	if (map.count("performance-measure")) {
 		config.logger = std::optional<Log::PerformanceLogger>(Log::PerformanceLogger());
@@ -155,6 +161,12 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	}
 
   po::notify(map);
+
+	if (map.count("measure-suite")) {
+		Log::measure_suite(suite_dir);
+		exit(0);
+	}
+
 
 	if(map.count("bes")) {
 		auto path = std::filesystem::path(poly_line_file_name);

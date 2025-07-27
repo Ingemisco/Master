@@ -2,6 +2,7 @@
 #define INCLUDE_INCLUDE_LOG_H_
 
 #include <chrono>
+#include <filesystem>
 #include <string>
 #include <vector>
 #include "global.h"
@@ -30,6 +31,8 @@ enum class Algorithm {
   SIMPLIFICATION_ADVANCED_CHEBYSHEV,
   SIMPLIFICATION_ADVANCED_IMPLICIT_MINKOWSKI,
 };
+
+std::string algorithm_name(Algorithm);
 
 typedef std::chrono::duration<double> Time;
 
@@ -61,6 +64,7 @@ struct AlgorithmConfiguration final {
 	std::optional<PerformanceLogger> logger;
 };
 
+void measure_suite(std::filesystem::path path);
 
 } // namespace Log
 #endif // INCLUDE_INCLUDE_LOG_H_

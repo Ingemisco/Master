@@ -65,39 +65,6 @@ static inline float scalar_product(Polyline const &polyline, size_t u, size_t v,
   return dot_product;
 }
 
-static inline bool _alt_godau_euclidean_implicit_init(Polyline const &polyline, size_t j_0, size_t j_1, size_t r, size_t i_, float epsilon2) {
-  float const r0dist = unnormalized_euclidean_distance(polyline, j_0, r);
-  float const i_0dist = unnormalized_euclidean_distance(polyline, j_0, i_);
-  if (r0dist <= epsilon2) {
-    return i_0dist <= epsilon2;
-  }
-
-  float const ar0 = r0dist - epsilon2;
-  float const ar1 = scalar_product(polyline, j_0, j_1, r);
-
-  float const ai0 = i_0dist - epsilon2;
-  float const ai1 = scalar_product(polyline, j_0, j_1, i_);
-
-  float const a2 = unnormalized_euclidean_distance(polyline, j_0, j_1);
-
-  float const dr = ar1 * ar1 - ar0 * a2;
-  float const di = ai1 * ai1 - ai0 * a2;
-
-  float const x = ai1 - ar1;
-  float const y = dr + di - x * x;
-  float const y2 = y * y;
-  float const dprod = 4 * di * dr;
-
-  float const i_1dist = unnormalized_euclidean_distance(polyline, j_1, i_);
-  bool const first_condition = i_0dist <= epsilon2 || 
-		(di >= 0 && ((dr <= di && x >= 0) || (dr <= di && x < 0 && y >= 0 && y2 >= dprod) ||
-        (dr > di && x >= 0 && (y <= 0 || y2 <= dprod))));
-
-  bool const second_condition = i_1dist <= epsilon2 || (x <= 0 || y >= 0 || y2 <= dprod);
-
-  return first_condition && second_condition;
-}
-
 static inline bool _is_in_01(float a1, float a2, float discriminant) {
   float const z = 2 * a2 + a1;
   return a1 <= 0 && discriminant <= a1 * a1 &&
@@ -146,9 +113,6 @@ size_t solve_implicit_euclidean_in(Polyline const &polyline, size_t line_start, 
 // input epsilon squared
 size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_, size_t j, size_t i_, size_t i, size_t restriction, float epsilon2) {
 	
-  // if (!_alt_godau_euclidean_implicit_init(polyline, j_, j_ + 1, restriction, i_, epsilon2)) {
-  //  return IMPLICIT_UNREACHABLE;
-  //} else 
 	if (j_ == j) {
     auto const res = solve_implicit_euclidean_in(polyline, j, j + 1, restriction, i, epsilon2);
     size_t const results[3] = {(size_t)-1, restriction, i};

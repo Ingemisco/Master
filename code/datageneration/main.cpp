@@ -26,6 +26,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   float min_length = 0;
   float max_length = 10;
   int max_angle;
+	std::string suite_name = "";
 
   auto options = description.add_options();
 
@@ -65,6 +66,15 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
       "Bounds the maximum angle that two consecutive line segments in the "
       "polyline are allowed to have. Specified as an integer in degree from 1 "
       "to 180.");
+
+
+  options(
+      "suite,s",
+      po::value<std::string>(&suite_name)->default_value("")->value_name("suite_name"),
+			"creates a test suite with the given directory name. Uses the count flag for the amount of "
+			"data sets per case and the point_count flag for the max amount of points (goes in steps of 10)"
+			". Most flags are ignored."
+      );
 
   options("integral,i", "Rounds every coordinate to the nearest integer. May "
                         "slightly violate angles and length constraints.");
@@ -119,6 +129,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 
   std::random_device rd;
   std::mt19937 gen(rd());
+
+	if (suite_name != "") {
+		DataGeneration::make_test_suite(suite_name, 10, 10, point_count, count, gen);
+		return;
+	}
 
   auto polyline = DataGeneration::make_polyline(
       point_count, dimension, min_length, max_length,
