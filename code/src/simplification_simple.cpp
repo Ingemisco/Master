@@ -8,6 +8,8 @@
 #include "simplification.h"
 #include "visualizer.h"
 #include <algorithm>
+#include <chrono>
+#include <iostream>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -26,14 +28,14 @@ using DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT;
 #define TEMPLATE_DATA_SEMIEXPLICIT FRValue, LRValue, EMPTY_INTERVAL_SEMIEXPLICIT, DataStructures::FRValue(0,0)
 
 
-
-
-
-
-
-
-
-
+static inline void try_measure_time(AlgorithmConfiguration &config, size_t simplification_size, std::chrono::time_point<std::chrono::high_resolution_clock> start) {
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(simplification_size, end - start, "");
+		}
+	}
+}
 
 // dynamic programming table used in the algorithm
 template <typename F, F UNREACHABLE_POINT>
@@ -141,7 +143,7 @@ _simplification_main(Polyline const &polyline, size_t point_count, float epsilon
             if (val == empty_interval.first) {
               continue;
             }
-            F const reachable = _alt_godau(polyline, j_, j + 1, val, i_, i, epsilon);
+            F const reachable = _alt_godau(polyline, j_, j, val, i_, i, epsilon);
             if (reachable == empty_interval.first) {
               continue;
             } else if (first_reachable == empty_interval.first || reachable < first_reachable) {
@@ -171,6 +173,52 @@ local_minimality_skip:
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // dynamic programming table used in the algorithm
 struct DPImplicitTable final {
@@ -254,9 +302,7 @@ Simplification simplification_naive_euclidean_implicit(Polyline const &polyline,
               continue;
             }
 
-            auto const computed_restriction =
-                DataStructures::alt_godau_euclidean_implicit(
-                    polyline, j_, j, i_, i, val, epsilon2);
+            auto const computed_restriction = DataStructures::alt_godau_euclidean_implicit(polyline, j_, j, i_, i, val, epsilon2);
 
             if (computed_restriction == DataStructures::IMPLICIT_UNREACHABLE) {
               continue;
@@ -284,30 +330,22 @@ local_minimality_skip:
     if (table.dp_restriction(k, point_count - 1, point_count - 2) != DataStructures::IMPLICIT_UNREACHABLE) {
 			Simplification simplification = construct_simplification<DPImplicitTable>(table, point_count, k);
 
-			if (config.logger.has_value()) {
-				auto end = std::chrono::high_resolution_clock::now();
-				if (config.logger.has_value()) {
-					config.logger.value().add_data(simplification->size(), end - start, "");
-				}
-			}
+			try_measure_time(config, simplification->size(), start);
 
 			if (config.output_visualization) {
-				VisualizationLog::VisualizationLogger log( polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN_IMPLICIT);
-				for (unsigned int i = 0; table.dp_restriction(0, 0, i) == 0; i++) {
+				VisualizationLog::VisualizationLogger log(polyline, epsilon, VisualizationLog::Distance::EUCLIDEAN_IMPLICIT);
+				for (unsigned int i = 0; table.dp_restriction(0, 0, i) == 0ul; i++) {
 					log.add_use(VisualizationLog::VisualizationData(0, 0, i, 0, 0, 0ul));
 				}
 
-				// print whole table (relevant entries)
-				for (unsigned int a = 1; a <= k; a++) {
+				for (unsigned int a = 1; a < simplification->size(); a++) {
 					for (unsigned int b = a; b < point_count; b++) {
 						for (unsigned int c = 0; c < point_count - 1; c++) {
 							size_t v = table.dp_restriction(a, b, c);
-							if (v < DataStructures::IMPLICIT_NEVER_REACHABLE &&
-									(a == 0 || table.dp_restriction(a - 1, b, c) != v)) {
+							if (v < DataStructures::IMPLICIT_NEVER_REACHABLE && table.dp_restriction(a - 1, b, c) != v) {
 								size_t i_ = table.dp_point_ref_i(a, b, c);
 								size_t j_ = table.dp_point_ref_j(a, b, c);
-								log.add_use(
-										VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
+								log.add_use(VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
 							}
 						}
 					}
@@ -335,13 +373,7 @@ static inline Simplification _simplify(Polyline const &polyline, float epsilon, 
 	_simplification_initialization<F, L, empty_interval, start, _distance>(polyline, epsilon, point_count, table);
 	Simplification simplification = _simplification_main<F, L, empty_interval, _solver, _alt_godau>(polyline, point_count, epsilon, table);
 
-	// assumes test case was started before calling this function
-	if (config.logger.has_value()) {
-		auto end = std::chrono::high_resolution_clock::now();
-		if (config.logger.has_value()) {
-			config.logger.value().add_data(simplification->size(), end - time_start, "");
-		}
-	}
+	try_measure_time(config, simplification->size(), time_start);
 
 	if (config.output_visualization) {
 		VisualizationLog::VisualizationLogger log(polyline, epsilon, distanceType);
@@ -349,13 +381,14 @@ static inline Simplification _simplify(Polyline const &polyline, float epsilon, 
 			log.add_use(VisualizationLog::VisualizationData(0, 0, i, 0, 0, start));
 		}
 
-		for (unsigned int a = 1; a <= simplification->size() + 1; a++) {
+		for (unsigned int a = 1; a < simplification->size(); a++) {
 			for (unsigned int b = a; b < point_count; b++) {
 				for (unsigned int c = 0; c < point_count - 1; c++) {
 					F v = table.first_reachable(a, b, c);
-					if (v != empty_interval.first && (a == 0 || table.first_reachable(a - 1, b, c) != v)) {
+					if (v != empty_interval.first && table.first_reachable(a - 1, b, c) != v) {
 						size_t i_ = table.dp_point_ref_i(a, b, c);
 						size_t j_ = table.dp_point_ref_j(a, b, c);
+						std::cout << "test: " << v << ", " << a<< ", " << b<< ", " << c<< ", " << i_ << ", " << j_ << std::endl;
 						log.add_use(VisualizationLog::VisualizationData(a, b, c, i_, j_, v));
 					}
 				}

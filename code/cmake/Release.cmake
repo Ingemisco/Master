@@ -1,7 +1,21 @@
 add_compile_options(
-  -O3
+  -O3 
+	-march=native 
+	-mtune=native
   -DNDEBUG
+	-funroll-loops
+  -fomit-frame-pointer
+	# -fno-exceptions 
+	# -fno-rtti
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-flto)
+    add_link_options(-flto -fuse-ld=gold)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-flto=thin)
+    add_link_options(-flto=thin -fuse-ld=lld)
+endif()
 
 set(DEBUG_VALUE 0)
 file(GLOB SRC_FILES "src/*.cpp")

@@ -1,6 +1,7 @@
 #include "generators.h"
 #include "datastructures.h"
 #include "distance.h"
+#include "global.h"
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -11,7 +12,7 @@ namespace DataGeneration {
 
 // angle in radian in [0, pi]
 std::unique_ptr<DataStructures::Polyline>
-make_polyline(size_t point_count, size_t dimension, float min_length,
+make_polyline(PointCount point_count, Dimension dimension, float min_length,
               float max_length, float angle, std::mt19937 &gen) {
   auto res_polyline =
       std::make_unique<DataStructures::Polyline>(point_count, dimension);
@@ -65,7 +66,7 @@ void make_integral(DataStructures::Polyline &polyline) {
   }
 }
 
-void write_to_file(DataStructures::Polyline &polyline,
+void write_to_file(DataStructures::Polyline const &polyline,
                    std::filesystem::path path) {
   std::ofstream output;
   output.open(path);

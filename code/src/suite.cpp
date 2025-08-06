@@ -14,6 +14,7 @@ using std::vector;
 using std::unique_ptr;
 
 constexpr float _epsilon = 2.0;
+constexpr float _epsilon2 = _epsilon * _epsilon;
 AlgorithmConfiguration config = {};
 
 namespace Log {
@@ -31,7 +32,7 @@ void use_algorithm(
 										Log::algorithm_name(algorithm) + ":w:" + std::to_string(point_count));
 
 		for (auto const &poly : vec) {
-			auto simplification = _simplify(*poly, epsilon, config);
+			_simplify(*poly, epsilon, config);
 		}
 	}
 
@@ -82,13 +83,13 @@ void measure_suite(std::filesystem::path path) {
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV, Simplification::simplification_naive_chebyshev>(w_polylines, n_polylines, log, _epsilon);
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN, Simplification::simplification_naive_euclidean>(w_polylines, n_polylines, log, _epsilon);
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN, Simplification::simplification_naive_euclidean_implicit>(w_polylines, n_polylines, log, _epsilon);
-	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_naive_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon * _epsilon);
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_naive_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon2);
 
 
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_MANHATTAN, Simplification::simplification_advanced_manhattan_explicit>(w_polylines, n_polylines, log, _epsilon);
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV, Simplification::simplification_advanced_chebyshev_explicit>(w_polylines, n_polylines, log, _epsilon);
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN, Simplification::simplification_advanced_euclidean_explicit>(w_polylines, n_polylines, log, _epsilon);
-	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_advanced_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon * _epsilon);
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_advanced_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon2);
 
 }
 

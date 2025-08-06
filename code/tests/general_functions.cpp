@@ -44,3 +44,4 @@ BOOST_AUTO_TEST_CASE(PointDistances) {
 	BOOST_CHECK_CLOSE(l, 1.0f, 1e-2);
 }
 
+

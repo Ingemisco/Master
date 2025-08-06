@@ -90,7 +90,6 @@ ReachabilityData solve_euclidean(Polyline const &, size_t, size_t, size_t, float
 
 bool solve_implicit_euclidean(Polyline const &, size_t, size_t, size_t, size_t, float);
 
-size_t solve_implicit_euclidean_in(Polyline const &, size_t, size_t, size_t, size_t, float);
 SEReachabilityData solve_euclidean_se(Polyline const &, size_t, size_t, size_t, float);
 
 bool is_line_reachable_euclidean(Polyline const &, size_t, size_t, size_t, float);

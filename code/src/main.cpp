@@ -53,6 +53,10 @@ static inline void _flag_action_simplify(po::variables_map &map, char const *fla
 
     auto simplification_vertices = _simplification_algorithm(*polyline, epsilon, config);
 		std::cout << "size: " << simplification_vertices->size() << std::endl;
+		for (auto const &v : *simplification_vertices) {
+			std::cout << v << ", ";
+		}
+		std::cout << std::endl;
   }
 }
 

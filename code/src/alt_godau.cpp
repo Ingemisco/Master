@@ -13,17 +13,19 @@
 #include "config.h"
 #include "datastructures.h"
 #include "distance.h"
+#include "simplification.h"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <utility>
 
 namespace DataStructures {
 
 template <typename F, typename L, std::pair<F, L> _solver(Polyline const &, size_t, size_t, size_t, float), std::pair<F const, L const> const UNREACHABLE_INTERVAL, F const UNREACHABLE_VALUE, F zero>
-static inline F _alt_godau_main(Polyline const &polyline, size_t i_, size_t i, F t, size_t line_start, size_t line_end, float epsilon) {
-  if (i_ + 1 == i) {
-		std::pair<F, L> data = _solver(polyline, i_, i, line_end, epsilon);
+static inline F _alt_godau_main(Polyline const &polyline, size_t j_, size_t j, F t, size_t i_, size_t i, float epsilon) {
+  if (j_ == j) {
+		std::pair<F, L> data = _solver(polyline, j, j + 1, i, epsilon);
     if (data == UNREACHABLE_INTERVAL || !(t <= data.second)) {
       return UNREACHABLE_VALUE;
     }
@@ -33,8 +35,8 @@ static inline F _alt_godau_main(Polyline const &polyline, size_t i_, size_t i, F
   F first_reachable = zero;
   // first points already matched so start with 1 instead of 0
   // do not need to go to end of polyline so last point exluded
-  for (unsigned int j = i_ + 1; j < i; j++) {
-    auto data = _solver(polyline, line_start, line_end, j, epsilon);
+  for (unsigned int index = j_ + 1; index < j + 1; index++) {
+    auto data = _solver(polyline, i_, i, index, epsilon);
     if (data == UNREACHABLE_INTERVAL || !(first_reachable <= data.second)) {
       return UNREACHABLE_VALUE;
     }
@@ -43,7 +45,7 @@ static inline F _alt_godau_main(Polyline const &polyline, size_t i_, size_t i, F
   }
 
   // find on last line segment first reachable point
-  auto data = _solver(polyline, i - 1, i, line_end, epsilon);
+  auto data = _solver(polyline, j, j + 1, i, epsilon);
 
   return data.first;
 }
@@ -65,74 +67,68 @@ static inline float scalar_product(Polyline const &polyline, size_t u, size_t v,
   return dot_product;
 }
 
-static inline bool _is_in_01(float a1, float a2, float discriminant) {
-  float const z = 2 * a2 + a1;
-  return a1 <= 0 && discriminant <= a1 * a1 &&
-         (z >= 0 || z * z <= discriminant);
+static inline size_t _ag_implicit_single_line(Polyline const &polyline, size_t line_start, size_t line_end, size_t restriction, size_t u, float epsilon2) {
+  float const r_dist = unnormalized_euclidean_distance(polyline, restriction, line_start);
+  float const u_dist = unnormalized_euclidean_distance(polyline, u, line_start);
+  float const u_end_dist = unnormalized_euclidean_distance(polyline, u, line_end);
+
+	// parameters to the equations alpha t^2 + 2 beta t + gammma = 0, alpha for both the same
+  float const gamma_r = r_dist - epsilon2;
+  float const beta_r = scalar_product(polyline, line_start, line_end, restriction);
+
+  float const gamma_u = u_dist - epsilon2;
+  float const beta_u = scalar_product(polyline, line_start, line_end, u);
+
+  float const alpha = unnormalized_euclidean_distance(polyline, line_start, line_end);
+
+  float const D_r = beta_r * beta_r - gamma_r * alpha;
+  float const D_u = beta_u * beta_u - gamma_u * alpha;
+
+  float const x = beta_r - beta_u;
+  float const y = D_r + D_u - x * x;
+  float const y2 = y * y;
+  float const discr_prod = 4 * D_r * D_u;
+
+	// u does not reach the line segment 
+	if (!(u_dist <= epsilon2 || u_end_dist <= epsilon2 || 
+		(0 >= beta_u && beta_u >= -alpha && u_dist * alpha - beta_u * beta_u <= epsilon2 * alpha))) {
+		return IMPLICIT_UNREACHABLE;
+	}
+
+	// is first sol of r before first sol of u 
+	if ((x >= 0 && D_u <= D_r) || 
+		(x >= 0 && D_u >= D_r && (y <= 0 || y2 <= discr_prod)) || 
+		(x <= 0 && D_u <= D_r && (y >= 0 && y2 >= discr_prod))) {
+		return u;
+	}
+
+	// first sol of r is after that of u, so check if second sol of u is after first of r 
+	if (x >= 0 || y >= 0 || y2 <= discr_prod) {
+		return restriction;
+	}
+	
+	return IMPLICIT_UNREACHABLE;
 }
 
-// similar to the other implicit euclidean function. Returns 0 (unreachable), 1
-// or
-// 2. for the solutions [t01, t11], [t02, t12] on the line segment returns the
-// index of the bigger of t01, t02 with same additional checks as above but also
-// checks that t01 <= t12 and returns 0 if this is not the case
-size_t solve_implicit_euclidean_in(Polyline const &polyline, size_t line_start, size_t line_end, size_t restriction, size_t point, float epsilon2) {
-  float const restriction_dist = unnormalized_euclidean_distance(polyline, restriction, line_start);
+static inline size_t _ag_implicit_multi_line(Polyline const &polyline, size_t i_, size_t i, size_t j_, size_t j, float epsilon2) {
+	size_t restriction = i_;
+	for (size_t k = j_ + 1; k <= j; k++) {
+		restriction = _ag_implicit_single_line(polyline, i_, i, restriction, k, epsilon2);
+		if (restriction == IMPLICIT_UNREACHABLE) {
+			return IMPLICIT_UNREACHABLE;
+		}
+	}
 
-  float const point_dist = unnormalized_euclidean_distance(polyline, point, line_start);
-  float const a0_1 = restriction_dist - epsilon2;
-  float const a1_1 = 2 * scalar_product(polyline, line_start, line_end, restriction);
-
-  float const a0_2 = point_dist - epsilon2;
-  float const a1_2 = 2 * scalar_product(polyline, line_start, line_end, point);
-
-  float const a2 = unnormalized_euclidean_distance(polyline, line_start, line_end);
-
-  float const discriminant_1 = a1_1 * a1_1 - 4 * a0_1 * a2;
-  float const discriminant_2 = a1_2 * a1_2 - 4 * a0_2 * a2;
-
-  float const x = a1_1 - a1_2;
-  float const y = discriminant_1 + discriminant_2 - x * x;
-  float const y2 = y * y;
-  float const discr_prod = 4 * discriminant_1 * discriminant_2;
-
-  if (discriminant_2 < 0 ||
-      (point_dist > epsilon2 && !_is_in_01(a1_2, a2, discriminant_2)) ||
-      (x < 0 && y < 0 && discr_prod < y2)) {
-    return 0;
-  } else if (point_dist <= epsilon2 ||
-             !((x >= 0 && discriminant_2 >= discriminant_1 &&
-                (y <= 0 || y2 <= discr_prod)) ||
-               (x < 0 && discriminant_2 < discriminant_1 &&
-                (y >= 0 && y2 >= discr_prod)))) {
-    return 1;
-  }
-  return 2;
+	return _ag_implicit_single_line(polyline, j, j + 1, j, i, epsilon2);
 }
 
 // input epsilon squared
 size_t alt_godau_euclidean_implicit(Polyline const &polyline, size_t j_, size_t j, size_t i_, size_t i, size_t restriction, float epsilon2) {
-	
 	if (j_ == j) {
-    auto const res = solve_implicit_euclidean_in(polyline, j, j + 1, restriction, i, epsilon2);
-    size_t const results[3] = {(size_t)-1, restriction, i};
-    return results[res];
+		return _ag_implicit_single_line(polyline, j, j + 1, restriction, i, epsilon2);
   }
 
-  size_t new_restriction = i_;
-  for (unsigned int x = j_ + 1; x <= j; x++) {
-    auto res = solve_implicit_euclidean_in(polyline, i_, i, new_restriction, x, epsilon2);
-    if (res == 0) {
-      return IMPLICIT_UNREACHABLE;
-    }
-    size_t const results[3] = {0, new_restriction, x};
-    new_restriction = results[res];
-  }
-
-  if (is_line_reachable_euclidean(polyline, j, j + 1, i, epsilon2)) {
-    return i;
-  }
-  return IMPLICIT_UNREACHABLE;
+	return _ag_implicit_multi_line(polyline, i_, i, j_, j, epsilon2);
 }
 
 float alt_godau_chebyshev(Polyline const &polyline, size_t i_, size_t i, float t, size_t line_start, size_t line_end, float epsilon) {

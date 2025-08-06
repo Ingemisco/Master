@@ -107,7 +107,7 @@ void PerformanceLogger::emit() {
 
 	bool start = true;
 
-	out << "{\n";
+	out << "[\n";
 	for (auto const &data_set : this->data_sets) {
 		if (!start) {
 			out << ", ";
@@ -142,11 +142,11 @@ void PerformanceLogger::emit() {
 		}
 		out << "    ]\n";
 
-		out << "  }";
+		out << "  }\n";
 
 	}
 
-	out << "}";
+	out << "]";
   out.close();
 
 	this->data_sets.clear();
