@@ -11,8 +11,6 @@ jobs:
         working-directory: ./code
 
     strategy:
-      matrix:
-        boost-version: ["1.74", "1.78", "1.80"]
       fail-fast: false
 
     steps:
@@ -27,12 +25,6 @@ jobs:
           libboost-all-dev \
           libomp-dev \
           ccache
-
-    - name: Set Up Boost Version
-      run: |
-        sudo apt-get install -y \
-          libboost${{ matrix.boost-version }}-all-dev \
-          libboost${{ matrix.boost-version }}-dev
 
     - name: Configure ccache
       run: |
@@ -61,14 +53,14 @@ jobs:
       run: | 
         OMP_NUM_THREADS=2 ctest \
         --output-on-failure \
-        --parallel $(nproc)
+        --parallel $(nproc) \
         --timeout 120 
 
     - name: Upload Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-boost${{ matrix.boost-version }}
+        name: test-results
         path: |
           build/Testing/**/*.xml
           build/Testing/**/*.log
