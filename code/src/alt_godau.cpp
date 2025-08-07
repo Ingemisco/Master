@@ -25,7 +25,7 @@ namespace DataStructures {
 template <typename F, typename L, std::pair<F const, L const> _solver(Polyline const &, size_t, size_t, size_t, float), std::pair<F const, L const> const UNREACHABLE_INTERVAL, F const UNREACHABLE_VALUE, F zero>
 static inline F _alt_godau_main(Polyline const &polyline, size_t j_, size_t j, F t, size_t i_, size_t i, float epsilon) {
   if (j_ == j) {
-		std::pair<F, L> data = _solver(polyline, j, j + 1, i, epsilon);
+		auto data = _solver(polyline, j, j + 1, i, epsilon);
     if (data == UNREACHABLE_INTERVAL || !(t <= data.second)) {
       return UNREACHABLE_VALUE;
     }
