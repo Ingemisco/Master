@@ -6,6 +6,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./code
+
     strategy:
       matrix:
         boost-version: ["1.74", "1.78", "1.80"]
