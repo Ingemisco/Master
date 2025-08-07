@@ -40,8 +40,8 @@ inline std::ostream &operator<<(std::ostream &os, LRValue const &val) {
 	return os;
 }
 
-typedef std::pair<float, float> ReachabilityData;
-typedef std::pair<FRValue, LRValue> SEReachabilityData; // for semiexplicit euclidean
+typedef std::pair<float const, float const> ReachabilityData;
+typedef std::pair<FRValue const, LRValue const> SEReachabilityData; // for semiexplicit euclidean
 
 // first two points form a line segment and must not be the same, third point is
 // the point from which we solve the equation

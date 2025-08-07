@@ -82,7 +82,7 @@ struct KappaData final {
 
 // EMPTY_INTERVAL must satisfy that its first component is the value to be used for invalid entries, so it should not be a valid entry
 // NON_EMPTY_INTERVAL must be a non empty interval whose first point is something equivalent to 0 (i.e. start of the line segment)
-template <typename F, typename L, std::pair<F, L> eq_solver(Polyline const &, size_t, size_t, size_t, float),
+template <typename F, typename L, std::pair<F const, L const> eq_solver(Polyline const &, size_t, size_t, size_t, float),
 	std::pair<F, L> NON_EMPTY_INTERVAL, std::pair<F, L> EMPTY_INTERVAL>
 struct Simplifier final {
 	

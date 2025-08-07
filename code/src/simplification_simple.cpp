@@ -80,7 +80,7 @@ typedef DPTable<float, DataStructures::EXPLICIT_UNREACHABLE> DPExplicit;
 typedef DPTable<DataStructures::FRValue, DataStructures::EMPTY_INTERVAL_SEMIEXPLICIT.first> DPSemiExplicit;
 
 
-template <typename F, typename L, std::pair<F, L> empty_interval, F start, DataStructures::Distance _distance>
+template <typename F, typename L, std::pair<F const, L const> empty_interval, F start, DataStructures::Distance _distance>
 static inline void _simplification_initialization(Polyline const &polyline, float epsilon, size_t point_count, DPTable<F, empty_interval.first> &table) {
   table.first_reachable(0, 0, 0) = start;
   unsigned int j = 1;
@@ -108,8 +108,8 @@ static inline Simplification construct_simplification(TABLE &table, PointCount c
 	return result;
 }
 
-template <typename F, typename L, std::pair<F, L> empty_interval,
-          std::pair<F, L> _solver(Polyline const &, LineStart, LineEnd, PointIndex, float),
+template <typename F, typename L, std::pair<F const, L const> empty_interval,
+          std::pair<F const, L const> _solver(Polyline const &, LineStart, LineEnd, PointIndex, float),
           F _alt_godau(Polyline const &, size_t, size_t, F, size_t, size_t, float)>
 static inline Simplification
 _simplification_main(Polyline const &polyline, size_t point_count, float epsilon, DPTable<F, empty_interval.first> &table) {
@@ -359,9 +359,9 @@ local_minimality_skip:
 }
 
 
-template<typename F, typename L, std::pair<F, L> empty_interval, F start, VisualizationLog::Distance distanceType,
+template<typename F, typename L, std::pair<F const, L const> empty_interval, F start, VisualizationLog::Distance distanceType,
 					DataStructures::Distance _distance,
-          std::pair<F, L> _solver(Polyline const &, LineStart, LineEnd, PointIndex, float),
+          std::pair<F const, L const> _solver(Polyline const &, LineStart, LineEnd, PointIndex, float),
           F _alt_godau(Polyline const &, size_t, size_t, F, size_t, size_t, float)>
 static inline Simplification _simplify(Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
 	PointCount const point_count = polyline.point_count;
