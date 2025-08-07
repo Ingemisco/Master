@@ -269,11 +269,18 @@ ReachabilityData solve_chebyshev(Polyline const &polyline, size_t point1, size_t
 #endif
 
 
-// computes the product <v - u | u - w>
-static inline float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w) {
+float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w) {
   float dot_product = 0;
   for (unsigned int i = 0; i < polyline.dimension; i++) {
-    dot_product += (polyline[v, i] - polyline[u, i]) * (polyline[u, i] - polyline[w, i]);
+    dot_product += (polyline[v, i] - polyline[u, i]) * (polyline[w, i] - polyline[u, i]);
+  }
+  return dot_product;
+}
+
+float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w, size_t x) {
+  float dot_product = 0;
+  for (unsigned int i = 0; i < polyline.dimension; i++) {
+    dot_product += (polyline[u, i] - polyline[v, i]) * (polyline[w, i] - polyline[x, i]);
   }
   return dot_product;
 }
@@ -281,7 +288,7 @@ static inline float scalar_product(Polyline const &polyline, size_t u, size_t v,
 
 ReachabilityData solve_euclidean(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon) {
   float const a2 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point2);
-  float const a1 = scalar_product(polyline, point1, point2, point3);
+  float const a1 = -scalar_product(polyline, point1, point2, point3);
   float const a0 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point3) - epsilon * epsilon;
 
   float const discriminant = a1 * a1 - a2 * a0;
@@ -304,10 +311,10 @@ bool solve_implicit_euclidean(Polyline const &polyline, size_t line_start, size_
   float const point2_dist = unnormalized_euclidean_distance(polyline, point2, line_start);
 
   float const a0_1 = point1_dist - epsilon2;
-  float const a1_1 = scalar_product(polyline, line_start, line_end, point1);
+  float const a1_1 = -scalar_product(polyline, line_start, line_end, point1);
 
   float const a0_2 = point2_dist - epsilon2;
-  float const a1_2 = scalar_product(polyline, line_start, line_end, point2);
+  float const a1_2 = -scalar_product(polyline, line_start, line_end, point2);
 
   float const a2 = unnormalized_euclidean_distance(polyline, line_start, line_end);
 
@@ -331,7 +338,7 @@ bool is_line_reachable_euclidean(Polyline const &polyline, size_t line_start, si
     return true;
   }
   float const dist_uv = unnormalized_euclidean_distance(polyline, line_start, line_end);
-  float const prod = scalar_product(polyline, line_start, line_end, point);
+  float const prod = -scalar_product(polyline, line_start, line_end, point);
 
   return 0 >= prod && -prod <= unnormalized_euclidean_distance(polyline, line_start, line_end) &&
          dist_uw * dist_uv - prod * prod <= epsilon2 * dist_uv;
@@ -360,9 +367,9 @@ bool FRValue::operator<(FRValue const &other) const {
 }
 
 bool FRValue::operator<=(LRValue const &other) const {
-	if (other == NONEMPTY_INTERVAL_SEMIEXPLICIT.second) { // cannot compare against 1 for right boundary because of missing normalization so use this workaround
-		return true;
-	}
+	// if (other == NONEMPTY_INTERVAL_SEMIEXPLICIT.second) { // cannot compare against 1 for right boundary because of missing normalization so use this workaround
+	// 	return true;
+	// }
 
 	float const x = other.a - this->a;
 	float const y = other.d + this->d - x * x;
@@ -383,7 +390,7 @@ bool LRValue::operator==(LRValue const &other) const {
 // epsilon must be squared
 SEReachabilityData solve_euclidean_se(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon2) {
   float const a2 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point2);
-  float const a1 = scalar_product(polyline, point1, point2, point3);
+  float const a1 = -scalar_product(polyline, point1, point2, point3);
   float const a0 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point3) - epsilon2;
 
   float const discriminant = a1 * a1 - a2 * a0;
@@ -396,7 +403,7 @@ SEReachabilityData solve_euclidean_se(Polyline const &polyline, size_t point1, s
   if ((a12 < 0 && discriminant < a12*a12 ) || (discriminant < a1*a1 && a1 > 0) ) return EMPTY_INTERVAL_SEMIEXPLICIT;
   
   return SEReachabilityData(a1 >= 0 || a1 * a1 <= discriminant  ? FRValue(0, 0) : FRValue(-a1, discriminant), 
-														a12 < 0 || discriminant > a12*a12 ? NONEMPTY_INTERVAL_SEMIEXPLICIT.second : LRValue(-a1, discriminant));
+														a12 < 0 || discriminant > a12*a12 ? LRValue(a2, 0) : LRValue(-a1, discriminant));
 }
 
 } // namespace DataStructures

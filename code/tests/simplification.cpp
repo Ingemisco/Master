@@ -36,13 +36,12 @@ static inline void perform_on_polylines() {
 	test_function(polyline0, 1);
 	test_function(polyline0, 3);
 	test_function(polyline0, 3);
-	test_function(polyline0, 2); // <-- fails 
+	test_function(polyline0, 2);
 	test_function(polyline0, 2.5);
 	test_function(polyline0, 1.72);
 
 	std::mt19937 gen(RANDOM_SEED);
 	for (unsigned int i = 0; i < RANDOM_TEST_CASES_COUNT; i++) {
-		// both of the following fail, but smaller angles than 160 do work? The higher the angle the more fail
 		auto p = DataGeneration::make_polyline(10 + 5 * i, dimension, 2, 10, std::numbers::pi, gen);
 		// auto p = DataGeneration::make_polyline(10 + 5 * i, dimension, 2, 10, 175 * std::numbers::pi / 180.0, gen);
 		test_function(*p, 1);

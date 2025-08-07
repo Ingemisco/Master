@@ -58,15 +58,6 @@ float alt_godau_euclidean(Polyline const &polyline, size_t i_, size_t i, float t
   return _alt_godau_main<float, float, solve_euclidean, EMPTY_INTERVAL_EXPLICIT, EXPLICIT_UNREACHABLE, 0.0f>(polyline, i_, i, t, line_start, line_end, epsilon);
 }
 
-// computes the product <v - u | u - w>
-static inline float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w) {
-  float dot_product = 0;
-  for (unsigned int i = 0; i < polyline.dimension; i++) {
-    dot_product += (polyline[v, i] - polyline[u, i]) * (polyline[u, i] - polyline[w, i]);
-  }
-  return dot_product;
-}
-
 static inline size_t _ag_implicit_single_line(Polyline const &polyline, size_t line_start, size_t line_end, size_t restriction, size_t u, float epsilon2) {
   float const r_dist = unnormalized_euclidean_distance(polyline, restriction, line_start);
   float const u_dist = unnormalized_euclidean_distance(polyline, u, line_start);
@@ -74,10 +65,10 @@ static inline size_t _ag_implicit_single_line(Polyline const &polyline, size_t l
 
 	// parameters to the equations alpha t^2 + 2 beta t + gammma = 0, alpha for both the same
   float const gamma_r = r_dist - epsilon2;
-  float const beta_r = scalar_product(polyline, line_start, line_end, restriction);
+  float const beta_r = -scalar_product(polyline, line_start, line_end, restriction);
 
   float const gamma_u = u_dist - epsilon2;
-  float const beta_u = scalar_product(polyline, line_start, line_end, u);
+  float const beta_u = -scalar_product(polyline, line_start, line_end, u);
 
   float const alpha = unnormalized_euclidean_distance(polyline, line_start, line_end);
 

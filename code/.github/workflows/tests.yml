@@ -1,0 +1,71 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        boost-version: ["1.74", "1.78", "1.80"]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libboost-all-dev \
+          libomp-dev \
+          ccache
+
+    - name: Set Up Boost Version
+      run: |
+        sudo apt-get install -y \
+          libboost${{ matrix.boost-version }}-all-dev \
+          libboost${{ matrix.boost-version }}-dev
+
+    - name: Configure ccache
+      run: |
+        echo "/usr/lib/ccache" >> $GITHUB_PATH
+        echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> $GITHUB_ENV
+        mkdir -p $CCACHE_DIR
+
+    - name: Create Build Directory
+      run: mkdir -p build 
+
+    - name: Configure CMake
+      working-directory: ./build 
+      run: cmake \
+        -DCMAKE_BUILD_TYPE=Test \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+        ..
+
+    - name: Build 
+      working-directory: ./build
+      run: |
+        cmake --build . --parallel $(nproc)
+        ccache -s
+
+    - name: Run Tests 
+      working-directory: ./build 
+      run: | 
+        OMP_NUM_THREADS=2 ctest \
+        --output-on-failure \
+        --parallel $(nproc)
+        --timeout 120 
+
+    - name: Upload Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-boost${{ matrix.boost-version }}
+        path: |
+          build/Testing/**/*.xml
+          build/Testing/**/*.log
+

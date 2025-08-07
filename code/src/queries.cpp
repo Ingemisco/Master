@@ -20,29 +20,7 @@ AlgorithmConfiguration empty_config = {
 		.logger = std::nullopt,
 };
 
-
-// computes the product <v - u | w - u>
-static inline float
-scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w) {
-  float dot_product = 0;
-  for (unsigned int i = 0; i < polyline.dimension; i++) {
-    dot_product += (polyline[v, i] - polyline[u, i]) * (polyline[w, i] - polyline[u, i]);
-  }
-  return dot_product;
-}
-
-// computes the product <u - v | w - x>
-static inline float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w, size_t x) {
-  float dot_product = 0;
-  for (unsigned int i = 0; i < polyline.dimension; i++) {
-    dot_product += (polyline[u, i] - polyline[v, i]) * (polyline[w, i] - polyline[x, i]);
-  }
-  return dot_product;
-}
-
-
-
-void static _binary_search_build_ds(DataStructures::Polyline &polyline, float *events, SimplificationQuerier &ds,
+void static _binary_search_build_ds(Polyline &polyline, float *events, SimplificationQuerier &ds,
 																		size_t event_count, size_t min_to_set, size_t max_to_set) {
 	if (event_count == 0 || min_to_set > max_to_set) {
 		return;
@@ -65,7 +43,7 @@ void static _binary_search_build_ds(DataStructures::Polyline &polyline, float *e
 }
 
 
-std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Polyline &polyline) {
+std::unique_ptr<SimplificationQuerier> build_querier_simple(Polyline &polyline) {
 	size_t const n = polyline.point_count;
 
 	// Create array of events 
@@ -186,7 +164,7 @@ std::unique_ptr<SimplificationQuerier> SimplificationQuerier::from_file(std::fil
 
 
 
-std::unique_ptr<SimplificationQuerier> build_querier(DataStructures::Polyline &);
+std::unique_ptr<SimplificationQuerier> build_querier(Polyline &);
 
 
 

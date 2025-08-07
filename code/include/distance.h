@@ -2,6 +2,7 @@
 #define INCLUDE_INCLUDE_DISTANCE_H_
 
 #include "datastructures.h"
+#include "simplification.h"
 #include <cmath>
 #include <ostream>
 #include <utility>
@@ -93,6 +94,13 @@ bool solve_implicit_euclidean(Polyline const &, size_t, size_t, size_t, size_t, 
 SEReachabilityData solve_euclidean_se(Polyline const &, size_t, size_t, size_t, float);
 
 bool is_line_reachable_euclidean(Polyline const &, size_t, size_t, size_t, float);
+
+// <v - u | w - u> for inputs u, v, w 
+float scalar_product(Polyline const &polyline, size_t, size_t, size_t);
+// <u - v | w - x> for inputs u, v, w, x
+float scalar_product(Polyline const &polyline, size_t, size_t, size_t, size_t);
+
+
 
 } // namespace DataStructures
 #endif // INCLUDE_INCLUDE_DISTANCE_H_
