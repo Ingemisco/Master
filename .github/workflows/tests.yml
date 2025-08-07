@@ -24,13 +24,6 @@ jobs:
           cmake \
           libboost-all-dev \
           libomp-dev \
-          ccache
-
-    - name: Configure ccache
-      run: |
-        echo "/usr/lib/ccache" >> $GITHUB_PATH
-        echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> $GITHUB_ENV
-        mkdir -p $CCACHE_DIR
 
     - name: Create Build Directory
       run: mkdir -p build 
@@ -39,14 +32,12 @@ jobs:
       working-directory: ./build 
       run: cmake \
         -DCMAKE_BUILD_TYPE=Test \
-        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
         ..
 
     - name: Build 
       working-directory: ./build
       run: |
         cmake --build . --parallel $(nproc)
-        ccache -s
 
     - name: Run Tests 
       working-directory: ./build 
