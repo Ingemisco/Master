@@ -6,10 +6,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./code
-
     strategy:
       fail-fast: false
 
@@ -26,21 +22,21 @@ jobs:
           libomp-dev \
 
     - name: Create Build Directory
-      run: mkdir -p build 
+      run: mkdir -p code/build 
 
     - name: Configure CMake
-      working-directory: ./build 
+      working-directory: ./code/build 
       run: cmake \
         -DCMAKE_BUILD_TYPE=Test \
         ..
 
     - name: Build 
-      working-directory: ./build
+      working-directory: ./code/build
       run: |
         cmake --build . --parallel $(nproc)
 
     - name: Run Tests 
-      working-directory: ./build 
+      working-directory: ./code/build 
       run: | 
         OMP_NUM_THREADS=2 ctest \
         --output-on-failure \
