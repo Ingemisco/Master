@@ -176,7 +176,7 @@ To decide \(u \leftrightarrow e\) we only need to test if either of the two end 
 \end{alignat*}
 For the other two relations we get very similar procedures. For simplicity we only derive \(u \overset e\rightarrow v\). We define \(a_{0u} \coloneq \delta_2'(e_1, u)\), \(a_{0v} \coloneq \delta_2'(e_1, v)\), \(a_{1u} \coloneq 2\braket{e_2 - e_1 | e_1 - u}\), \(a_{1v} \coloneq 2\braket{e_2 - e_1 | e_1 - v}\), and \(a_{2} \coloneq \delta_2'(e_1, e_2)\) which are the coefficients of the quadratic equation needed to solve for \(\hat t_{0/1}(e, u)\) and \(\hat t_{0/1}(e, v)\). We further denote the discriminants of the solutions \(D_u \coloneq a_{1u}^2 - 4a_{0u}a_2\) and \(D_v \coloneq a_{1v}^2 - 4a_{0v}a_2\). We define \(x  \coloneq a_{1u} - a_{1v}\) and \(y \coloneq D_u + D_v - x^2\). With these we get 
 \begin{alignat*}{2}
-  u \overset e\rightarrow v \iff& v \leftrightarrow e \land \hat t_0'(e, u) \leq \hat t_0'(e, u) \\
+  u \overset e\rightarrow v \iff& v \leftrightarrow e \land \hat t_0'(e, u) \leq \hat t_0'(e, v) \\
   \iff& v \leftrightarrow e \land \frac{-a_{1u} - \sqrt{D_u}}{2a_2} \leq \frac{-a_{1v} - \sqrt{D_v}}{2a_2} \\
   \iff& v \leftrightarrow e \land -a_{1u} - \sqrt{D_u} \leq -a_{1v} - \sqrt{D_v} \\
   \iff& v \leftrightarrow e \land \sqrt{D_v} - \sqrt{D_u} \leq a_{1u} - a_{1v}  \\

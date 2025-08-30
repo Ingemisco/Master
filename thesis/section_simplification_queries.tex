@@ -237,6 +237,8 @@ We conclude with a summary of the results of this section.
   The global case is what we have extensively analyzed. By substituting the simplification algorithm for a local one, the same algorithm works for the local Fréchet distance. It can be seen that both variants have the exact same events by, e.g., using the Imai and Iri algorithm as it also only uses the Fréchet distance decision problem that the global version uses. 
 \end{proof}
 
+Interestingly, this suggests that in high dimensions distance functions such as \(\delta_4\) can be better than both the Manhattan and Chebyshev distance as the amount of events does not scale with the dimension. In practice, \(\delta_4\) is inferior to \(\delta_2\) in every regard and \(\delta_1\) and \(\delta_\infty\) have the advantage of allowing fast, stable and exact solution algorithms. Further, high dimensions are rarely used.
+
 \begin{corollary}
 	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time for both the local and global Fréchet distance. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
 \end{corollary}
