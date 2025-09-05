@@ -22,6 +22,22 @@ The minimum and maximum line length are fixed to be \(2\) and \(10\). The exact 
 
 To generate the polylines, we fix the first point of the polylines to be the origin (remember that the simplifications are invariant under translation) and following that we sample an initial angle arbitrarily uniformly distributed. This does not use the maximal angle yet. Following that we iteratively sample a line segment length and an angle which is added to the current total angle. Using these two values the next point of the polylines is generated. Each angle is chosen uniformly distributed in the range \([-\alpha, \alpha]\) where \(\alpha\) is the maximum angle as explained before. The line segment length is not chosen uniformly as we want to sample the next point uniformly from the annular sector defined by the maximal angle and the line lengths. To achieve this we use inverse transform sampling resuling in choosing the line segment lengths as \(\sqrt[d]{m^d + (M^d-m^d)U}\) where \(d\) is the dimension, \(m\) and \(M\) are the minimum and maximum line segment length respectively and \(U\) is a uniform distribution on \([0,1]\). This generation principle should work in arbitrary dimensions but we restrict ourselves to two dimensions as that is the most relevant use case and can be visualized well.
 
+Examples of such generated polylines can be seen in \cref{fig:well-behaved-300} and \cref{fig:non-well-behaved-300}.
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[scale=0.3]{./figures/well-behaved-300.png}
+  \caption{Example of a well-behaved polyline consisting of \(300\) points in \(2\) dimensions.}
+  \label{fig:well-behaved-300}
+\end{figure}
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.3]{./figures/non-well-behaved-300.png}
+  \caption{Example of a non-well-behaved polyline consisting of \(300\) points in \(2\) dimensions.}
+  \label{fig:non-well-behaved-300}
+\end{figure}
+
 \subsubsection{Hardware}
 \label{subsubsec:hardware}
 The experiments were conducted on a system with an AMD Ryzen 5 7520U CPU (4.38 GHz, 8 cores) running Arch Linux.
@@ -62,7 +78,7 @@ We have already mentioned some of our choices but for completeness we list all o
   \item Compiler optimizations with the O3 flag: This generally resulted in a performance boost of a factor of \(10\) on all variants and there was no reason to test the algorithms without optimizations.
 	\item Link time optimizations with the flto flag: For most variants enabling this flag resulted in a \(20\%\) performance boost. The only exception being the semiexplicit version of the simple algorithm which for unknown reasons is noticeably slower.
 	\item Parallelization of the simple algorithms using eight cores: This speeds up the implicit and semiexplicit versions by about three times and the explicit ones by six to seven times. The difference can be attributed to the more complicated comparisons in the non-explicit versions which may lead to worse parallelizability. 
-	\item Well-behaved and non-well-behaved polylines: We test on both types of polylines where well behaved ones have a maximum angle of \(60°\) and non-well-behaved ones have a maximum angle of \(180°\). The lengths of the lines segments are restricted to be within \([2, 10]\). 
+	\item Well-behaved and non-well-behaved polylines: We test on both types of polylines where well behaved ones have a maximum angle of \(60^\circ\) and non-well-behaved ones have a maximum angle of \(180^\circ\). The lengths of the lines segments are restricted to be within \([2, 10]\). 
 	\item Choice of \(\varepsilon\): We generally choose \(\varepsilon = 2\) if not stated otherwise. The reason for this is a technical one, namely it has the property that \(\varepsilon^2 \neq \varepsilon\) which we wanted to be able to notice mistakes in the semiexplicit implementations more easily as those use \(\varepsilon^2\) instead but must yield the same result as the explicit version. This has no effect on the runtime of the advanced algorithms but together with the data generation, this naturally affects the size of the simplifications and thus the runtime of the simple algorithms.
 	\item Many implementation details affect the runtime more than expected. For example, we observed that inlining some functions can speed up or slow down some algorithms by upto \(20\%\). We tried to choose the versions with the best performance but it is likely that some better choices exist depending on compiler and hardware. 
 \end{itemize}
@@ -84,7 +100,7 @@ We present the results of our experimental evaluation, structured into two parts
   \label{fig:res_all300w}
 \end{figure}
 
-It may be notable that we were even able to perform experiments on polylines of that size given the bad theoretical runtimes of \(\O(n^3)\) and \(\O(n^6)\)\footnote{As can be seen in \cref{ssubsec:simplification_size} the output sizes scale approximately linear on the tested polylines thus the runtime of the simple algorithm is closer to \(\O(n^6)\) than \(\O(n^5)\).} respectively. This can be explained as the individual operations are simple artihmetical operations that can be performed fast on modern hardware.
+It may be notable that we were even able to perform experiments on polylines of that size given the bad theoretical runtimes of \(\O(n^3)\) and \(\O(n^6)\) respectively\footnote{As can be seen in \cref{ssubsec:simplification_size} the output sizes scale approximately linear on the tested polylines thus the runtime of the simple algorithm is closer to \(\O(n^6)\) than \(\O(n^5)\).}. This can be explained as the individual operations are simple artihmetical operations that can be performed fast on modern hardware.
 
 Further, it is remarkable how smooth the data for the advanced variants is. The Bringmann et al. algorithm always performs the same computations regardless of the input polyline but this degree of stability is surprising. 
 
@@ -99,7 +115,16 @@ We extend the evaluation of the advanced variants to polylines of upto 800 point
 
 At this point, we note that the reason that we did not test longer polylines was that during preliminary testing we observed that polylines of length 1000 would use too much memory and thus terminate while ones with 800 points still worked. We did not test what the exact boundary is because it is implementation and hardware dependent and we wanted to perform the tests with enough memory that all of them would execute without problems. 
 
+We now examine in more detail the dependence of the input data on the runtime of the simple algorithm in \cref{fig:res_simple}. If we ignore the semiexplicit variant (which are the slowest variants), all variants on well-behaved polylines take less time than any variant on non-well-behaved data. Another interesting insight is that the runtimes are more consistent on well-behaved data while there is more variance in the non-well-behaved data. 
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/res_simple.png}
+  \caption{Effect of well-behavedness on the runtime of the simple algorithms.}
+  \label{fig:res_simple}
+\end{figure}
 
 \subsubsection{Simplification Size}
+
 \label{ssubsec:simplification_size}
 

@@ -1,4 +1,4 @@
-\section{Polyline Simplification}\label{sec:polyline-simplification}
+\section{Polyline Simplification and Basic Properties}\label{sec:polyline-simplification}
 In this section, we discuss and illustrate different types of simplification objectives that have been studied. 
 This yields valuable insights for the rest of this work as well as highlights differences between most of the previously studied
 types and the global (vertex-restricted) simplification under the Fréchet distance that we mainly focus on.
@@ -41,7 +41,7 @@ To understand local simplifications, we need to define which points are allowed 
 \end{itemize}
 
 Local simplifications is mainly used in the vertex-restricted setting but also works for the curve-restricted one. There we apply the distance function not between the simplification \(Q\) and the original \(P\) but instead apply it between the line segment of \(Q\) and the respective subpolyline in \(P\) and take the maximum over all of these. More specifically, for a polyline distance function \(\delta^P\) we measure the distance the local distance \(\delta^{LP}\) as 
-\[\delta^{LP}(P, Q) = \max_{i \in \set{1,\dots, q}} \delta^P(P[k_{i-1}\dots k_i], Q[i-1 \dots i]),\]
+\[\delta^{LP}(P, Q) = \max_{i = 1, \dots, q} \delta^P(P[k_{i-1}\dots k_i], Q[i-1 \dots i]),\]
 where \(P = \angl{u_0, \dots, u_p}\) and \(Q = \angl{u_{k_0}, \dots, u_{k_q}}\).
 
 In contrast to the local setting, there is also the \emph{global} one which we study for the Fréchet distance in this work. In this setting the non-restricted cases can also be studied.
@@ -51,21 +51,112 @@ In the following, we discuss the vertex-restricted local and global (undirected)
 \subsection{Global Hausdorff}
 We start with the global Hausdorff setting because it can be argued to be the least useful setting. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that it is NP-hard to find such simplifications~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which is less than ideal when it comes to practically applicable algorithms. Fortunately, of the four discussed variants it is the only NP-hard one.
 
-Further, it does not really capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications.
+Further, it does not really capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications. See \cref{fig:polyline-ex-hausdorff} to see an example why using the Hausdorff distance may be problematic to measure similarity.
 
-% TODO: Hausdorff image for dense stupidity
+\begin{figure}[b]
+  \centering
+  \includegraphics{./tikz-fig/polyline-ex-hausdorff.pdf}
+  \caption{Two polylines with a comparatively high Fréchet distance but small Hausdorff distance. Note that each point on any of the two polylines is close to some point of the other polylines which causes a small Hausdorff distance but the completely different contours cause a high Fréchet distance.}
+  \label{fig:polyline-ex-hausdorff}
+\end{figure}
+
 % TODO: Global Hausdorff simplification 
 
 \subsection{Local Hausdorff}
-Whereas the global Hausdorff variant is the hardest to solve, the local Hausdorff setting seems to be the simplest. Currently, it  is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\). Further, unlike its global counterpart, this variant captures more fittingly our understanding of similar polylines as the locality constraint force a coarse order on the simplification.
+Whereas the global Hausdorff variant is the hardest to solve, the local Hausdorff setting seems to be the simplest. Currently, it  is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\) (see, e.g., \cite{efficiently_approximating_higher_dim}). Further, unlike its global counterpart, this variant captures more fittingly our understanding of similar polylines as the locality constraint force a coarse order on the simplification.
 
+% TODO: reference for subcubic in d >= 3	
 % TODO: More + Images or smth
 
 \subsection{Local Fréchet}
 
 \subsection{Global Fréchet}
 
+\begin{figure}[b]
+  \centering
+  \includegraphics{./tikz-fig/polyline-ex-local-global-f.pdf}
+  \caption{This polyline has a global Fréchet simplification consisting of two line segments but no local simplification of the same size.}
+  \label{fig:polyline-ex-local-global-f}
+\end{figure}
 
+\subsection{Basic Properties}
+We want to conclude with some elementary properties about polylines and their simplifications. We use many of these implicitly in \cref{sec:evaluation} to standardize the experiments as well as for automated testing in our implementations.
 
+\begin{lemma}[Monotonicity of Minkowski Distances]\label{lem:monotonicity_minkowski}
+  Let \(d \in \N_+\) be a dimension and \(1 \leq k \leq \ell \leq \infty\).
+	\begin{enumerate}
+		\item Let \(u, v \in \R^d\) be points. Then \(\delta_\ell(u,v) \leq \delta_k(u, v)\).
+		\item Let \(P\) and \(Q\) be \(d\) dimensional polylines. Then \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\).
+	\end{enumerate}
+\end{lemma}
 
+\begin{proof}
+  \begin{enumerate}
+		\item It suffices to show the inequalities for the underlying norms, i.e., show the following 
+			\[\left(\sum_{i=1}^d |x_i|^\ell\right)^{1/\ell} \leq \left(\sum_{i=1}^d |x_i|^k\right)^{1/k}\]
+			and 
+			\[\max_{i=1, \dots, d} |x_i| \leq \left(\sum_{i=1}^d |x_i|^k\right)^{1/k}\]
+			for an arbitrary \(x \in \R^d\).
 
+			For the first inequality fix \(m \coloneq \max_{1,\dots, d}|x_i|\) and also note that 
+			\[m = \left(\max_{i=1, \dots, d} |x_i|^{k}\right)^{1/k} \leq \left(\sum_{i=1}^d |x_i|^{k}\right)^{1/k}\]
+			as each term is positive and the maximum component is included in the rightmost sum. This already shows the second inequality.
+
+			For the first one we get:
+			\begin{align*}
+				\sum_{i=1}^d |x_i|^\ell &= \sum_{i=1}^d |x_i|^k|x_i|^{\ell - k} \\
+				 &\leq \sum_{i=1}^d |x_i|^k m^{\ell - k} \\
+				 &\leq \sum_{i=1}^d |x_i|^k \left(\sum_{i=1}^d |x_i|^{k}\right)^{(\ell-k)/k} \\
+				 &\leq \left(\sum_{i=1}^d |x_i|^{k}\right)^{\ell/k} \\
+			\end{align*}
+			
+			Raising both sides of this inequality by \(1/\ell\) yields the wanted inequality.
+
+		\item The respective result for the Fréchet distance follows directly from the definition of the Fréchet distance and the just showed property for points as for all suitable functions \(f\) and \(g\) we get \(\delta_\ell(P(f(t)), Q(g(t))) \leq \delta_k(P(f(t)), Q(g(t)))\).
+  \end{enumerate}
+\end{proof}
+
+\begin{corollary}[Simplification Size Monotonicity]\label{cor:size_monotonicity}
+	Let \(d \in \N_+\) be a dimension, \(1 \leq k \leq \ell \leq \infty\),
+  \(P\) be a \(d\)-dimensional polyline, and \(\varepsilon \geq 0\). Denote the size of the \(\varepsilon\)-simplification of \(P\) using \(\delta_k\) or \(\delta_\ell\) as \(S_k\) or \(S_\ell\) respectively. Then \(S_\ell \leq S_k\).
+\end{corollary}
+
+\cref{cor:size_monotonicity} is a simple sanity check that is fast to implement and use for automated testing. 
+
+\begin{proof}
+	We use \cref{lem:monotonicity_minkowski} with the polyline \(P\) and an arbitrary (not necessarily optimal) simplification \(Q\) of \(P\). As \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\) for each such simplification \(Q\), it must hold that if it is a valid \(\varepsilon\)-simplification of \(P\) under \(\delta_\ell\) then it must also be one under \(\delta_k\). As we minimize the point count during simplification we get the wanted inequality.
+\end{proof}
+
+\begin{lemma}[Translation Invariance]\label{lem:translation_invariant}
+	Let \(P\) be a \(d\)-dimensional polyline and \(x \in \R^d\). Let \(\varepsilon \geq 0\). If \(Q\) is an \(\varepsilon\)-simplification of \(P\) then \(Q-x\) is an \(\varepsilon\)-simplification of \(P-x\) where the subtraction is interpreted as a shift of each point of the polyline, i.e., \(P-x = \angl{u_0 - x, \dots, u_p - x}\) for \(P = \angl{u_0,\dots, u_p}\).
+\end{lemma}
+
+\begin{proof}
+	All distances that we consider are invariant under translation by \cref{lem:distance_properties} which directly extends to polylines and thus the Fréchet distance does not change under simultaneous translation of both polylines by the same shift. Thus the simplifications also do not change (except for the translation itself). 
+\end{proof}
+
+Because of \cref{lem:translation_invariant} we fix the first point of each polyline to be the origin. The indices of the points in the simplification will remain the same before and after translation. 
+
+\begin{corollary}[Rotation Invariances]\label{cor:rot_inv}
+  When using the Euclidean distance \(\delta_2\), applying a rotation on the polyline only rotates the simplifications but does not alter them in any other way.
+
+	For all other distances the same holds only for discrete rotations by \(90^\circ, 180^\circ\), or \(270^\circ\), i.e., swapping entries or negating entries.
+\end{corollary}
+
+\begin{proof}
+  This is another property that simply follows from the underlying property of the distance function as under these rotations all distances are preserved. 
+\end{proof}
+
+\begin{lemma}[Polyline Scaling]\label{lem:scaling}
+	Let \(P\) be a \(d\)-dimensional polyline and \(c > 0\). Let \(\varepsilon \geq 0\). If \(Q\) is an \(\varepsilon\)-simplification of \(P\) then \(cQ\) is an \(c\varepsilon\)-simplification of \(cP\) where the multiplication is a scalar multiplication on  each point of the polyline, i.e., \(cP = \angl{cu_0, \dots, cu_p}\) for \(P = \angl{u_0,\dots, u_p}\).
+\end{lemma}
+
+\cref{lem:scaling} allows us to cap the maximum length of line segments through the use of scaling the polyline and the \(\varepsilon\) which we use for data generation in \cref{sec:evaluation}\footnote{In \cref{sec:evaluation} we also impose a lower bound on the line segment lengths which this lemma does not justify. }.
+
+\begin{proof}
+	Fix an \(\varepsilon\)-simplification \(Q\) of \(P\) and suitable functions \(f\) and \(g\). Scaling all points also scales all distances appropriately as \(\delta((cP)(f(t)), (cQ)(g(t))) = \delta(cP(f(t)), cQ(g(t))) = c\delta(P(f(t)), Q(g(t)))\).
+\end{proof}
+
+\begin{remark}
+	\cref{cor:size_monotonicity}, \cref{lem:translation_invariant}, \cref{cor:rot_inv}, and \cref{lem:scaling} also apply to the curve-restricted and non-restricted setting.
+\end{remark}
