@@ -27,8 +27,17 @@ void static _binary_search_build_ds(Polyline &polyline, float *events, Simplific
 	} 
 
 	size_t mid_index = event_count / 2;
-	float const epsilon = std::sqrt(events[mid_index]); // events are all squared
-	auto simplification = Simplification::simplification_advanced_euclidean_explicit(polyline, epsilon + 1e-7, empty_config);
+	// float const epsilon = std::sqrt(events[mid_index]); // events are all squared
+	float const epsilon = events[mid_index]; // events are all squared
+	
+	Simplification::Simplification simplification;
+	if (epsilon > 1e-5) {
+		// auto simplification = Simplification::simplification_advanced_euclidean_explicit(polyline, epsilon + 1e-7, empty_config);
+		simplification = Simplification::simplification_advanced_euclidean_semiexplicit(polyline, epsilon + 1e-7, empty_config);
+	} else {
+		// if epsilon is zero we only need to remove colinear points (somehow this does not work with the regular simplifications algorithms??)
+		simplification = Simplification::simplification_filter_colinear(polyline, empty_config);
+	}
 	// this "-1" is to get the size of the simplification, i.e., the amount of line segments instead of amount of points 
 	size_t const simplification_size = simplification->size() - 1;
 
@@ -123,7 +132,14 @@ void SimplificationQuerier::save_datastructure_to_file(std::filesystem::path pat
     exit(1);
   }
 
+	std::cout << simplifications.size() << std::endl;
+
+	std::cout << this->epsilons.size() << " " << simplifications.size() << std::endl;
 	for (size_t i = 0; i < this->epsilons.size(); i++) {
+		if (!simplifications[i]) {
+			// the simplification size of i is always skipped in favor for a smaller simplification no matter the epsilon so we skip it here
+			continue; 
+		}
 		output << epsilons[i] << " " << simplifications[i]->size();
 		for (auto v: *simplifications[i]) {
 			output << " " << v;

@@ -65,6 +65,7 @@ struct AlgorithmConfiguration final {
 };
 
 void measure_suite(std::filesystem::path path);
+void measure_suite_advanced(std::filesystem::path path);
 
 } // namespace Log
 #endif // INCLUDE_INCLUDE_LOG_H_

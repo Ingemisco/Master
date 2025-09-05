@@ -31,6 +31,8 @@ Simplification simplification_advanced_chebyshev_explicit(Polyline const &, floa
 Simplification simplification_advanced_euclidean_implicit(Polyline const &, float, AlgorithmConfiguration &);
 Simplification simplification_advanced_euclidean_semiexplicit(Polyline const &, float, AlgorithmConfiguration &);
 
+// logically equivalent to any simpification algorithm with epsilon = 0, but more stable and linear runtime
+Simplification simplification_filter_colinear(Polyline const &, AlgorithmConfiguration &);
 
 } // namespace Simplification
 

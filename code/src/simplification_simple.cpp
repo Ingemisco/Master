@@ -417,4 +417,35 @@ Simplification simplification_naive_euclidean_semiexplicit(Polyline const &polyl
 	return _simplify<TEMPLATE_DATA_SEMIEXPLICIT, VisualizationLog::Distance::EUCLIDEAN_SEMIEXPLICIT, DataStructures::unnormalized_euclidean_distance, DataStructures::solve_euclidean_se, DataStructures::alt_godau_euclidean_semiexplicit>(polyline, epsilon2, config);
 }
 
+
+
+
+
+static bool is_collinear(Polyline const &polyline, size_t point) {
+	for (auto i = 1u; i < polyline.dimension; i++) {
+		if ((polyline[point+1, i] - polyline[point-1, i]) * (polyline[point, i-1] - polyline[point-1, i-1])
+		 != (polyline[point+1, i-1] - polyline[point-1, i-1]) * (polyline[point, i] - polyline[point-1, i])) {
+			return false;
+		}
+	}
+	// technically after the loop the points must be collinear but we also want that the third point is after the second and not before it ie u - v - w not u - w - v or w - u -v 
+	return (polyline[point+1,0] >= polyline[point,0]) == (polyline[point,0] >= polyline[point-1,0]);
+}
+
+
+Simplification simplification_filter_colinear(Polyline const &polyline, AlgorithmConfiguration &config) {
+	Simplification result = std::make_unique<std::vector<size_t>>();
+	auto &p = *result;
+	p.push_back(0);
+
+	for (auto i = 1u; i < polyline.point_count - 1; i++) {
+		if (!is_collinear(polyline, i)) {
+			p.push_back(i);
+		}
+	}
+
+	p.push_back(polyline.point_count - 1);
+	return result;
+}
+
 } // namespace Simplification
