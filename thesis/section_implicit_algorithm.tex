@@ -160,7 +160,7 @@ Having seen how we can use these decision problems to implement the algorithms, 
   For a \(d\)-dimensional polyline \(P\) of length \(n\) the problem of global polyline simplification using the Euclidean Fréchet distance can be solved in \(\O(d k^*n^5)\) with the only arithmetical operations necessary being addition, subtraction and multiplication where \(k^*\) is the size of the simplification.
 \end{theorem}
 
-Although we have not explained it in full detail, we can improve \cref{thm:euclidean_implicit_simplification_simple} by using the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. We have shown how the such a rewrite works extensively and we provide \cref{tab:explicit-implicit-translation} as a guide on how to each individual operation needs to be transformed to obtain an implicit algorithm.  
+Although we have not explained it in full detail, we can improve \cref{thm:euclidean_implicit_simplification_simple} by using the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. We have shown how such a rewrite works extensively and we provide \cref{tab:explicit-implicit-translation} as a guide on how to each individual operation needs to be transformed to obtain an implicit algorithm.  
 Further note that we can also extend this to the Manhattan and Chebyshev distance by using explicit computations but storing the results as a numerator-denominator pair. For this, note that we only compare the fractions but do not perform any computations with these thus the magnitudes of numerator and denominator do not explode.
 
 \begin{theorem}\label{thm:euclidean_implicit_simplification_advanced}

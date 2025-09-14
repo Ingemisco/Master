@@ -2,7 +2,7 @@
 \label{sec:equation_solving}
 Before delving into the actual algorithms, we first need to address a problem at the core of the following procedures: the \emph{line segment intersection problem}. 
 \begin{definition}[Line Segment Intersection Problem]
-  Let \(e = \overline{e_1e_2}\) be a \(d\)-dimensional line segment, \(u \in \R^d\) a point, \(\varepsilon > 0\) and \(\delta\) a distance function. In the \emph{line segment intersection problem}, we aim to determine the set \(\set{t \in [0, 1] \mid \delta(e_1 + t(e_2 - e_1), u) \leq \varepsilon}\), where \(t\) represents the parameter along the line segment \(e\).
+  Let \(e = \overline{e_1e_2}\) be a \(d\)-dimensional line segment, \(u \in \R^d\) a point, \(\varepsilon > 0\) and \(\delta\) a distance function. In the \emph{line segment intersection problem}, we aim to determine the set \newline \(\set{t \in [0, 1] \mid \delta(e_1 + t(e_2 - e_1), u) \leq \varepsilon}\), where \(t\) represents the parameter along the line segment \(e\).
 
   As the name suggests, this corresponds to the intersection of \(\set{x \in \R^d \mid \delta(x, u) \leq \varepsilon}\), the set of points within distance \(\varepsilon\) of \(u\), and the line segment \(e\). 
 \end{definition}

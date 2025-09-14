@@ -48,10 +48,8 @@ In contrast to the local setting, there is also the \emph{global} one which we s
 
 In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet setting. For more information on other types of global setting we refer to \citeauthor{global_curve_simplification}.
 
-\subsection{Global Hausdorff}
-We start with the global Hausdorff setting because it can be argued to be the least useful setting. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that it is NP-hard to find such simplifications~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which is less than ideal when it comes to practically applicable algorithms. Fortunately, of the four discussed variants it is the only NP-hard one.
-
-Further, it does not really capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications. See \cref{fig:polyline-ex-hausdorff} to see an example why using the Hausdorff distance may be problematic to measure similarity.
+\subsection{Hausdorff Distance}
+In this thesis, we study only the Fréchet distance, not the Hausdorff distance. The global Hausdorff distance is among the four variants we discuss here the least useful one. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that it is NP-hard to find such simplifications~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which is less than ideal when it comes to practically applicable algorithms. Further, it does not capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications. See \cref{fig:polyline-ex-hausdorff} to see an example why using the Hausdorff distance may be problematic to measure similarity.
 
 \begin{figure}[b]
   \centering
@@ -60,17 +58,25 @@ Further, it does not really capture the contour of a polyline as the order of po
   \label{fig:polyline-ex-hausdorff}
 \end{figure}
 
-% TODO: Global Hausdorff simplification 
+The local Hausdorff does not have the same problems as applying the Hausdorff distance locally guarantees a coarse global order on the simplification. Further, whereas the global Hausdorff variant is the hardest to solve, the local Hausdorff setting seems to be the simplest. Currently, it  is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\) (see, e.g., \cite{efficiently_approximating_higher_dim}). 
 
-\subsection{Local Hausdorff}
-Whereas the global Hausdorff variant is the hardest to solve, the local Hausdorff setting seems to be the simplest. Currently, it  is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\) (see, e.g., \cite{efficiently_approximating_higher_dim}). Further, unlike its global counterpart, this variant captures more fittingly our understanding of similar polylines as the locality constraint force a coarse order on the simplification.
-
-% TODO: reference for subcubic in d >= 3	
-% TODO: More + Images or smth
+The local Hausdorff variant has already been covered extensively which is why we do not expand further on it. 
 
 \subsection{Local Fréchet}
+The local Fréchet variant enforces locality constraints just like the local Hausdorff variant but using the Fréchet distance. Unlike the Hausdorff distance, the Fréchet distance already enforces the correct point ordering so the local constraints are technically unnecessary. The reason why the local version is more studied than the global version is that the locality constraints simplify the problem. In fact, the definition of the local variants gives rise to an algorithm, the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve}: First, for each pair of points we test if the line segment between is a valid shortcut, i.e., the Fréchet distance between the line segment and the respective subpolyline is within the error parameter \(\varepsilon\). Using this information we construct the shortcut graph where the vertices are the points of the polyline and the edges are the shortcuts. Finally a shortest path from the first to the last point is found.
+
+This algorithm can also be used for the local Fréchet distance. For a full algorithm we need to be able to test if the Fréchet distance between two polylines is within a certain bound. This can be done with the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves} which we discuss in \cref{sec:algorithm_implementation}. This can generally be done in \(\O(pq\) for two polylines of length \(p\) and \(q\) respectively and as one of the polylines is always a line segment (the shortcut) it can be solved in linear runtime. The complete algorithm can be implemented cubic runtime.
+
+The local Fréchet variant has seen improvements to this runtime in small dimensions. \citeauthor{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}~\cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal} present an algorithm to solve the problem in \(\O(n^2\log n)\) with quadratic runtime when using the Manhattan, Chebyshev distance, or when the polyline satisfies some well-behavedness property. Their algorithm works in two dimensions and is itself a refinement of the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
 
 \subsection{Global Fréchet}
+Unlike its local counterpart, the global Fréchet variant has seen less research. As far as we are aware only three papers have actually researched the topic.
+
+First, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that the global Hausdorff variant is NP-hard and developed a first polynomial algorithm for the global Fréchet variant.
+
+\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} improved this algorithm to achieve cubic runtime and give matching conditional lower bounds which rule out subcubic algorithms in higher dimensions for both of the local and the global Fréchet variant. 
+
+Finally, \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} give a formal classification of global variants and present multiple results. For the global Fréchet variant that we discuss here they present an additional cubic algorithm.
 
 \begin{figure}[b]
   \centering
@@ -80,7 +86,7 @@ Whereas the global Hausdorff variant is the hardest to solve, the local Hausdorf
 \end{figure}
 
 \subsection{Basic Properties}
-We want to conclude with some elementary properties about polylines and their simplifications. We use many of these implicitly in \cref{sec:evaluation} to standardize the experiments as well as for automated testing in our implementations.
+We now investigate some elementary properties about polylines and their simplifications. We use many of these implicitly in \cref{sec:evaluation} to standardize the experiments as well as for automated testing in our implementations.
 
 \begin{lemma}[Monotonicity of Minkowski Distances]\label{lem:monotonicity_minkowski}
   Let \(d \in \N_+\) be a dimension and \(1 \leq k \leq \ell \leq \infty\).
@@ -160,3 +166,67 @@ Because of \cref{lem:translation_invariant} we fix the first point of each polyl
 \begin{remark}
 	\cref{cor:size_monotonicity}, \cref{lem:translation_invariant}, \cref{cor:rot_inv}, and \cref{lem:scaling} also apply to the curve-restricted and non-restricted setting.
 \end{remark}
+
+
+\subsection{A First Simplfication Algorithm}
+We conclude this section with a simple simplification algorithm for both the local and global Fréchet variant under any distance. This however only covers simplifications for \(\varepsilon = 0\).
+
+We already know that \(\delta(u, v) = 0\) if and only if \(u = v\) for two points \(u\) and \(v\). The same is almost true for polylines. 
+
+\begin{lemma}\label{lem:polyline_dist0}
+	Let \(P\) and \(Q\) be polylines of length \(p\) and \(q\) respectively. Then \(\delta^F(P, Q) = 0\) if and only if 
+	There are \(k \in \N\) with \(k \leq \min(p, q)\) and strictly monotonously increasing \(f:\set{0,\dots,k} \to \set{0,\dots,p}\) and \(g:\set{0,\dots,k} \to \set{0,\dots,q}\) with \(f(0) = g(0) = 0\), \(f(k) = p\), and \(g(k) = q\) such that 
+	\begin{enumerate}
+		\item \(P(f(t)) = Q(g(t))\) for all \(t \in \set{0, \dots, k}\).
+		\item There are \(0 \leq t_{f(\ell-1)+1} \leq \cdots \leq t_{f(\ell)-1} \leq 1\) for all \(\ell \in \set{1, \dots, k}\) such that \newline \(P(i) = (1-t_i)P(f(\ell - 1)) + t_iP(f(\ell))\).
+		\item There are \(0 \leq t_{g(\ell-1)+1} \leq \cdots \leq t_{g(\ell)-1} \leq 1\) for all \(\ell \in \set{1, \dots, k}\) such that \newline \(Q(i) = (1-t_i)Q(g(\ell - 1)) + t_iQ(g(\ell))\).
+	\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+	First assume \(\delta^F(P, Q) = 0\) this means \(P(f'(t)) = Q(g'(t))\) for suitable functions \(f':\mathcal{C}([0,1], [0,p])\) and \(g':\mathcal{C}([0,1], [0,q])\) and all \(t \in [0,1]\). Set \(k \coloneq |\set{u \mid u = P(i) = Q(j), i = 0, \dots, p, j = 0, \dots, q}|\) and define \(f\) and \(g\) to map onto these \(u\) accordingly in order of \(i\) and \(j\). This satisfies the first property.
+
+	For the other two properties we need to show that between all points that are consecutive via \(f\) or \(g\) only a line segment lies and not multiple bends. Further we need to show that the points on the line segments are in appropriate order. The second of which is guaranteed by the Fréchet distance. For the first property assume that there are at least two proper line segments. Then there must lie a point that lies on \(P\) on it. As the Fréchet distance is \(0\) the respective point must also be on \(Q\) but as it is between two line segments that do not form a single line segment it must be a proper point on \(Q\) and thus be part of \(f\) which is a contradiction to the definition of \(f\). We argue similarly for the third property.
+
+	For the other direction, notice that these properties imply that the polylines are the same upto possible additions of points on line segments (without going back on the line segment). From this it is trivial to construct suitable functions \(f'\) and \(g'\) such that \(P(f'(t)) = Q(g'(t))\) for each \(t \in [0, 1]\).
+\end{proof}
+
+According to \cref{lem:polyline_dist0}, two polylines have distance \(0\) if and only if the only points by which they differ are points that lie on a line segment of the polyline. In other words, by removing all collinear points the polylines are the same.
+
+Using this, it is trivial to construct a linear time algorithm to obtain optimal simplifications when \(\varepsilon = 0\). The start and end point must always be included and for all points inbetween we test if the point lies on the line segment defined by its two neighbors. If this is not the case we apped the point to the simplification and otherwise we skip it. 
+
+\begin{algorithm}[ht]
+  \DontPrintSemicolon
+  \KwData{Polyline \(P\) of length \(n\)}
+  \KwResult{Smallest \(0\)-simplification of \(P\)}
+  \BlankLine
+	\(simplification \gets (0)\)\;
+	\For{\(i=1,\dots, n - 1\)}{
+		\If{\(P(i)\) does not lie on \(\overline{P(i-1)P(i+1)}\)}{
+			\(simplification.append(i)\)
+		}
+	}
+	\(simplification.append(n)\)
+  \caption{PolylineSimplificationWithEpsilon0(\(P\))}
+  \label{algo:simplify_epsilon0}
+\end{algorithm}
+
+To test if a point lies on a line segment is trivial but for completeness sake we derive it. A point \(p\) lies on \(\overline{uv}\) if and only if there is \(t \in [0,1]\) such that \(p = u + t(v-u)\) or equivalently \(p - u = t(v-u)\). So we need \(t = \frac{p_i - u_i}{v_i - u_i}\) for all entries \(i\). To avoid divions by \(0\) we can reformulate it as 
+\((p_{i-1} - u_{i-1})(v_i - u_i) = (p_i - u_i)(v_{i-1} - u_{i-1})\) for all \(i \geq 1\). To enforce the condition that \(t \in [0, 1]\) we require \(0 \leq \frac{p_i-u_i}{v_i - u_i} \leq 1\) which is equivalent to \(u_i \leq p_i \leq v_i \) if \(v_i \geq u_i\) and otherwise \(v_i \leq p_i \leq u_i\) for any component that does not contain the same value for \(u_i, v_i\) and \(p_i\). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
