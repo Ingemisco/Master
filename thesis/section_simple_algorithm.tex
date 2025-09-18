@@ -9,7 +9,7 @@ The simplification algorithm we will describe heavily uses a subroutine to solve
 
 This can be solved by a simplified version of \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}'s algorithm to decide if the Fréchet distance of two polylines is at most \(\varepsilon\). We present the algorithm in the specific form needed for this problem. 
 
-By definition, the Fréchet distance requires the starting points to match, i.e., \(\delta(P(j' + t'), P(i')) \leq \varepsilon\). If this fails, we immediately return ``no solution". We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). Similarly, as the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there is no such interval we can return that there is no solution.
+By definition of the Fréchet distance, we require \(\delta(P(j' + t'), P(i')) \leq \varepsilon\), i.e., the starting points must be close. If this fails, we immediately return ``no solution". We set \(t_0 \coloneq \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) and \(t_1 \coloneq \hat t_1'(\overline{P(j)P(j+1)}, P(i))\). Similarly, as the end points must match, we get that \(t \in [t_0, t_1]\). Thus if there is no such interval we can return that there is no solution.
 
 We distinguish the two cases \(j' = j\) and \(j' < j\). 
 \begin{enumerate}
@@ -99,7 +99,7 @@ As for the other entries, the authors show that the entry \(DP[k, i, j]\) can be
   \label{algo:simplify_simple}
 \end{algorithm}
 
-There are \(\O(k^* n^2)\) many iterations to fill in the table and each entry requires \(\O(n^2)\) many computations to find the minimum where \(k^*\) is the size of the output simplification. Each call to the \(AltGodau\) subroutine requires linear runtime thus in total we have \(\O(k^*n^5)\) run time.
+There are \(\O(k^* n^2)\) many iterations to fill in the table and each entry requires \(\O(n^2)\) many computations to find the minimum where \(k^*\) is the size of the output simplification. Each call to the \(AltGodau\) subroutine requires linear runtime thus in total we have \(\Oh(k^*n^5)\) run time.
 
 \subsection{Examples}
 Before discussing possible optimizations, we want to go through an example for the algorithm as well as the \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} subroutine. This gives us more intuition for the algorithms as well as ideas for further optimizations. Because of the cubic number of entries it is unreasonable to show all computations thus we only show the computations that lead to the simplification and the subroutine for them. 
@@ -186,7 +186,7 @@ In total, for all three layers there were only \(1 + 17 + 5 = 23\) entries, far 
 
 \subsection{Optimizations}
 \label{ssec:optimizations}
-Based on the just described algorithm we outline optimizations that greatly reduce the \(\O(k^*n^5)\) runtime in practice. The most effective optimizations circumvent the theoretical runtime by skipping iterations. 
+Based on the just described algorithm we outline optimizations that greatly reduce the \(\Oh(k^*n^5)\) runtime in practice. The most effective optimizations circumvent the theoretical runtime by skipping iterations. 
 
 We first note that for the entry \((k, i, j)\) in the dynamic program we do not always need to iterate over all possible \(i' < i\) and \(j' \leq j\). As we are interested in the minimal value \(t\) on the line segment \(\overline{v_{j}v_{j+1}}\) that can be reached, we can stop further search if we have reached a lower bound for that value. Such a lower bound is \(\hat t_0'(\overline{v_{j}v_{j+1}}, i)\), i.e. the modified solution to the \cref{eq:eq_solve_main}, which is tight as for a sufficiently large \(k\) this value must be reached eventually. This allows an early break out of the search through the \(i' < i, j'\leq j\) and a speed up of upto quadratic runtime. This is the \emph{local minimality} optimization. 
 

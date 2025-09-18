@@ -1,7 +1,10 @@
 \begin{abstract}
   We explore deeply current algorithms used to simplify polylines using the global Fréchet distance, implement them, and test them thoroughly. As such we present the first experimental data using the global Fréchet distance. 
 	All necessary subproblems that are required for the algorithms are discussed in detail and various optimizations are mentioned that allow for practically usable runtimes. 
+
 	We separate approaches to solve Fréchet distance related problems into three variants: explicit, implicit, and semi-explict. We classify all previous algorithms as explicit variants and present implicit and semi-explict variants. These new variants introduce decision problems that abstract direct comparisons of values. As a result, we show that many such problems can be solved without square root computations in the Euclidean case. 
-	We present a new algorithm that computes all simplifcations of a polyline for any distance \(\varepsilon\) as well as the intervals in which these simplifications do not change. This algorithm can be implemented in \(\mathcal{O}(n^4\log n)\) runtime and \(\mathcal{O}(n^3)\) space for a polyline of length \(n\). Using this, we explore the effect of \(\varepsilon\) on the simplification size. 
+
+	We present a new algorithm that computes all simplifcations of a polyline for any distance \(\varepsilon\) as well as the intervals in which these simplifications do not change. This algorithm can be implemented in \(\hat{\mathcal{O}}(n^4\log n)\) runtime and \(\hat{\mathcal{O}}(n^3)\) space for a polyline of length \(n\). Using this, we explore the effect of \(\varepsilon\) on the simplification size. 
+
 	We study the Imai-Iri algorithm and show how to construct a global variant from it. The resulting algorithm is equivalent to the algorithm from \citeauthor{global_curve_simplification} but gives a more intuitive perspective. 
 \end{abstract}

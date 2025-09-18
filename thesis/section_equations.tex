@@ -8,7 +8,7 @@ Before delving into the actual algorithms, we first need to address a problem at
 \end{definition}
 
 \begin{observation}
-  For \(\ell \in [1, \infty]\) the solution set to the line segment intersection problem using the distance \(\delta_\ell\) is convex. Thus we can express it as a single interval \(I \subseteq [0, 1]\). This interval is either empty or closed, which allows us to identify it by its left and right boundaries. 
+  For \(\ell \in [1, \infty]\) the solution set to the line segment intersection problem using the distance \(\delta_\ell\) is convex. Thus we can express it as a single interval \(I \subseteq [0, 1]\). This interval is empty or closed, which allows us to identify it by its left and right boundaries. 
 \end{observation}
 \begin{proof}
   Follows directly from the convexity property of \cref{lem:distance_properties} and the fact that intervals and the points on line segments are convex sets. 
@@ -84,7 +84,7 @@ For a line segment \(\overline{uv}\) and a point \(w\) we denote \(\hat t_0'(\ov
       \caption{\(\hat t_0, \hat t_1\) do not exist\\ 
         \(\hat t_0' = \hat t_1' = \infty\)}
     \end{subfigure}
-    \caption{The different kinds of solutions. Note that we associate \(0\) with \(u\), \(1\) with \(v\) and \(t\) with \((1-t)u + tv\)}
+    \caption{The different kinds of solutions. Note that we associate \(0\) with \(u\), \(1\) with \(v\), and \(t\) with \((1-t)u + tv\)}
     \label{fig:solution_kinds}
 \end{figure}
 

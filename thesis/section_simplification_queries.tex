@@ -2,14 +2,14 @@
 \label{sec:simplification-queries}
 
 In this section, given a fixed polyline we design a datastructure that allows optimal simplification queries, i.e., for 
-an input \(\varepsilon\) we find the smallest simplification within \(\varepsilon\). In total, we will be able to construct the datastructure in time \(\O(n^4\log n)\) and allow queries in time \(\O(\log n)\) where \(n\) is the length of the polyline.
+an input \(\varepsilon\) we find the smallest simplification within \(\varepsilon\). In total, we will be able to construct the datastructure in time \(\Oh(n^4\log n)\) and allow queries in time \(\O(\log n)\) where \(n\) is the length of the polyline.
 
 \begin{lemma}\label{lem:datastructure-existence}
   Given a fixed polyline \(P\) of length \(n\). There is a datastructure \(D\) that uses \(\O(n^2)\) space that allows querying polyline simplifications in logarithmic time. That is, \(D\) allows queries of the following form: For \(\varepsilon > 0\) find the smallest simplification \(Q\) of \(P\) with \(\delta^F(P, Q) \leq \varepsilon\).
 \end{lemma}
 
 \begin{proof}
-  The datastructure is a sorted array of length \(n\) with entries \((I, S_I)\) where \(I \subseteq \R_{\geq 0}\) and \(S_I\) is a simplification of \(P\). The \(I\) are intervals of the form \([\varepsilon_i, \varepsilon_{i+1})\) that partition \(\R_{\geq 0}\) with \(0 = \varepsilon_0 < \varepsilon_1 < \cdots < \varepsilon_{n} = \infty\) that satisfy the property that for all \(\varepsilon \in I\) the simplification size is the same and \(S_I\) is a simplification of that size with the smallest Fréchet distance. 
+  The datastructure is a sorted array of length \(n\) with entries \((I, S_I)\) where \(I \subseteq \R_{\geq 0}\) and \(S_I\) is a simplification of \(P\). The \(I\) partition \(\R_{\geq 0}\) into intervals of the form \([\varepsilon_i, \varepsilon_{i+1})\) where the \(\varepsilon_i\) satisfy \(0 = \varepsilon_0 < \varepsilon_1 < \cdots < \varepsilon_{n} = \infty\) that satisfy the property that for all \(\varepsilon \in I\) the simplification size is the same and \(S_I\) is a simplification of that size with the smallest Fréchet distance. 
 
 	Given an \(\varepsilon\) we can query for the simplification using binary search on this interval in time \(\O(\log(n))\) to lookup the simplification. By construction this simplification must be optimal.
 
@@ -82,9 +82,9 @@ Single points are themselves events and for proper intervals we only need to inc
 
 In the following we use the amount of events from the Euclidean case to analyze runtimes. We will state the total runtimes for the other cases at the end. 
 
-Using \cref{obs:event-count} we can formulate a simple \(\O(n^7)\) algorithm to construct the datastructure: Compute all events, sort them and process them in order. For each, apply the cubic runtime algorithm and test if the simplification size changed. If so we have found the boundary of the current interval.
+Using \cref{obs:event-count} we can formulate a simple \(\Oh(n^7)\) algorithm to construct the datastructure: Compute all events, sort them and process them in order. For each, apply the cubic runtime algorithm and test if the simplification size changed. If so we have found the boundary of the current interval.
 
-With a simple trick, we can reduce the runtime down to \(\O(n^4 \log n)\). After sorting the events, we perform binary search to find the events that constitute the boundaries of the intervals. We need to perform the binary search \(\O(n)\) times, once for each possible simplification size. Each binary search takes runtime \(\log(n^4) \in \O(\log n)\) resulting in \(\O(n \log n)\) many events to test. For each event we perform the cubic simplification algorithm to obtain \(\O(n^4 \log n)\) for this step. As both the sorting step and the search step require \(\O(n^4\log n)\) time, the total algorithm requires the same time. 
+With a simple trick, we can reduce the runtime down to \(\Oh(n^4 \log n)\). After sorting the events, we perform binary search to find the events that constitute the boundaries of the intervals. We need to perform the binary search \(\O(n)\) times, once for each possible simplification size. Each binary search takes runtime \(\log(n^4) \in \O(\log n)\) resulting in \(\O(n \log n)\) many events to test. For each event we perform the cubic simplification algorithm to obtain \(\O(n^4 \log n)\) for this step. As both the sorting step and the search step require \(\Oh(n^4\log n)\) time, the total algorithm requires the same time. 
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
@@ -228,7 +228,7 @@ We conclude with a summary of the results of this section.
 		\item \(\O(d^5\ell^4 n^4 \log(d \ell n)\log(d \ell)f(\ell, d))\) using an \(\ell\)-Minkowski distance with odd \(\ell\),
 	\end{itemize}
 
-	where \(f\) is the time required to solve the necessary equations.
+	where \(f\) is the time required to solve the necessary equations with sufficient precision.
 
 	For the Euclidean distance, no square root computations are necessary.
 \end{theorem}
@@ -243,10 +243,9 @@ Interestingly, this suggests that in high dimensions distance functions such as 
 	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time for both the local and global Fréchet distance. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
 \end{corollary}
 
-In the local case, both Fréchet and Hausdorff, the algorithm can also be improved as there are, in fact, only quadratically many events which are exactly the distances of the shortcuts to the respective subpolyline. This is independent of the distance used and only quadratically many shortcuts can exist. This improves the search through the events to a runtime of \(\O(f(n)n\log n)\) where \(\O(f(n))\) is the runtime for a local simplification. In total, this allows also for runtimes of \(\O(n^3\log n)\) or \(\O(n^3\log^2 n)\) for the Euclidean, Chebyshev, and Manhattan distance for two dimensions, or even constant dimensions.
+In the local case, both Fréchet and Hausdorff, the algorithm can also be improved as there are, in fact, only quadratically many events which are exactly the distances of the shortcuts to the respective subpolyline. This is independent of the distance used and only quadratically many shortcuts can exist. This improves the search through the events to a runtime of \(\O(f(n)n\log n)\) where \(\O(f(n))\) is the runtime for a local simplification. In total, this allows also for runtimes of \(\O(n^3\log n)\) or \(\O(n^3\log^2 n)\) for the Euclidean, Chebyshev, and Manhattan distance in two dimensions using appropriate algorithms.
 
 % TODO: Compare in table 
-
 
 We also note that to achieve \(\O(\log d)\) query time the query search is only allowed to return a reference to a precomputed simplification and not the simplification itself as it may have \(\O(d)\) many points. 
 

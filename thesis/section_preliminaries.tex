@@ -3,7 +3,7 @@
 
 This section introduces the notation, conventions, and definitions used throughout this report.  
 
-We denote the set of natural numbers \(\N\), including \(0\), and define positive natural numbers as \(\N_+ = \N \setminus\set{0}\).
+We denote the set of natural numbers \(\N\), including \(0\), and define \(\N_+ = \N \setminus\set{0}\) as the set of positive natural numbers. 
 
 \subsection{Polylines}
 \label{ssec:polylines}
@@ -22,8 +22,7 @@ The central geometric object of our study is the \emph{polyline}, defined as fol
   \end{itemize}
 
 \end{definition}
-We denote the dimension by \(d\) throughout the report. Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case they are mostly denoted as \(e\). The length of a polyline is typically \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline.
-
+We denote the dimension by \(d\) throughout the report. Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case they are mostly denoted as \(e\). The length of a polyline is typically \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline. Further, similarly to \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} we differentiate between \(\O\) and \(\Oh\) notation where the latter hides polynomial factors\footnote{In this thesis, no exponential factors appear so \(\Oh\) hides all factors in \(d\)} in \(d\). 
 
 \subsection{Distances}
 \label{ssec:distances}
@@ -52,14 +51,16 @@ Other Minkowski distances are less common due to numerical instability and lack 
 \begin{definition}[Fréchet Distance]\label{def:frechet}
   Let \(\delta\) be a normalized distance. The \emph{Fréchet distance} \(\delta^F\) between two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\), respectively, is 
 	\[\delta^F(P, Q) = \inf_{\substack{f \in \mathcal{C}([0,1], [0, p]) \\ g \in \mathcal{C}([0,1], [0, q])}} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
-	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, monotone functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) \(f(b) = d\).
+	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, monotone functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) and \(f(b) = d\).
 \end{definition}
 
 \begin{definition}[Polyline Simplification]
 	Given a polyline \(P\) of length \(n\), and \(\varepsilon > 0\), and a distance \(\delta\), \emph{global Fréchet simplification problem} seeks a minimal subsequence \(Q\) of \(P\)'s vertices that includes both the start \(P(0)\) and end \(P(n)\), and \(\delta^F(P, Q) \leq \varepsilon\).
 \end{definition}
 
-This differs from \emph{local} simplification, where each line segment \(e = \overline{S(i)S(i+1)}\) must satisfy \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\) for its corresponding subpolyline. We focus exclusively on the global Fréchet case.
+This differs from \emph{local} simplification, where each line segment \(e = \overline{S(i)S(i+1)}\) must satisfy the property \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\) for its corresponding subpolyline. We focus on the global Fréchet case but cover the local one briefly in \cref{sec:polyline-simplification}.
+
+We refer to a solution \(Q\) of the global Fréchet simplification problem as a \emph{polyline simplification}. Further, a subsequence \(Q\) of a polyline \(P\) that has a Fréchet distance within \(\varepsilon\) and the first and last point match will be refered to as a non-optimal simplification, i.e., it satisfies all properties of a polyline simplification except for minimality.
 
 \subsection{Properties of Distances}
 All introduced distances are \emph{metrics} on \(\R^d\)~\cite{metric_spaces}:
@@ -85,7 +86,8 @@ All introduced distances are \emph{metrics} on \(\R^d\)~\cite{metric_spaces}:
   \begin{enumerate}
 		\item \(\delta(u, v) = \delta(u - w, v - w)\), \hfill (Translation)
 		\item \(\delta(a u, a v) = |a| \delta(u, v)\), \hfill (Homogeneity)
-		\item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\) then also \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\), and \hfill (Convexity)
+		\item Let \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). \newline 
+			Then \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\), and \hfill (Convexity)
 		\item \(\delta^F(\overline{uv}, \overline{wx}) \leq \varepsilon\) if and only if \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, x) \leq \varepsilon\).
 	\end{enumerate}
 
@@ -109,12 +111,13 @@ Convexity implies that \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is a conv
   \item The forward direction, follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)). 
 		For the backward direction, we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
     \begin{flalign*}
-      \delta((1-f(t))u + f(t)v, (1-g(t))w + g(t)x) &= \delta((1-t)u + tv, (1-t)w + tx) \\
-                                                   &= \delta((1-t)(u-w), t(x-v)) && \textrm{Translation}\\
-                                                   &\leq \delta((1-t)(u-w), 0) + \delta(0, t(x-v)) && \textrm{Triangle Inequality}\\
-                                                   &= (1-t)\delta(u, w) + t\delta(x, v) && \textrm{Homogeneity and Translation} \\
-                                                   &\leq (1-t)\varepsilon + t\varepsilon \\
-																									 &\leq \varepsilon.
+			& \quad \delta((1-f(t))u + f(t)v, (1-g(t))w + g(t)x) \\
+			=& \quad \delta((1-t)u + tv, (1-t)w + tx) \\
+			=& \quad \delta((1-t)(u-w), t(x-v)) && \textrm{Translation}\\
+			\leq& \quad \delta((1-t)(u-w), 0) + \delta(0, t(x-v)) && \textrm{Triangle Inequality}\\
+			=& \quad (1-t)\delta(u, w) + t\delta(x, v) && \textrm{Homogeneity and Translation} \\
+			\leq& \quad (1-t)\varepsilon + t\varepsilon \\
+			\leq& \quad \varepsilon.
     \end{flalign*}
   \end{enumerate}
 \end{proof}

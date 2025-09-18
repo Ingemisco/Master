@@ -35,7 +35,7 @@ Further, for both the Hausdorff and the Fréchet distance, a common alternative 
 
 To understand local simplifications, we need to define which points are allowed to be used in the simplification. \citeauthor{global_curve_simplification} distinguish three types:
 \begin{itemize}
-  \item \emph{Vertex-restricted}: Only the points that define the polyline are allowed, i.e., for a polyline \(P = \angl{u_0, \dots, u_n}\) a simplification is only allowed to contain a subsequence of \(u_0, \dots, u_n\) without changing the order.
+  \item \emph{Vertex-restricted}: Only the finitely many points that define the polyline are allowed, i.e., for a polyline \(P = \angl{u_0, \dots, u_n}\) a simplification is only allowed to contain a subsequence of \(u_0, \dots, u_n\) without changing the order.
 	\item \emph{Curve-restricted}: Only points that lie on the polyline are allowed, i.e., for a polyline \(P\) of length \(p\) any point \(P(t)\) for \(t \in [0, p]\) is allowed. This sequence of \(t\) used must be increasing.
 	\item \emph{Non-restricted}: Any point in the ambient space is valid 
 \end{itemize}
@@ -46,7 +46,7 @@ where \(P = \angl{u_0, \dots, u_p}\) and \(Q = \angl{u_{k_0}, \dots, u_{k_q}}\).
 
 In contrast to the local setting, there is also the \emph{global} one which we study for the Fréchet distance in this work. In this setting the non-restricted cases can also be studied.
 
-In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet setting. For more information on other types of global setting we refer to \citeauthor{global_curve_simplification}.
+In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet setting. For more information on other types of global setting we refer to \citeauthor{global_curve_simplification}'s paper.
 
 \subsection{Hausdorff Distance}
 In this thesis, we study only the Fréchet distance, not the Hausdorff distance. The global Hausdorff distance is among the four variants we discuss here the least useful one. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that it is NP-hard to find such simplifications~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which is less than ideal when it comes to practically applicable algorithms. Further, it does not capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications. See \cref{fig:polyline-ex-hausdorff} to see an example why using the Hausdorff distance may be problematic to measure similarity.
