@@ -83,6 +83,68 @@ We have already mentioned some of our choices but for completeness we list all o
 	\item Many implementation details affect the runtime more than expected. For example, we observed that inlining some functions can speed up or slow down some algorithms by upto \(20\%\). We tried to choose the versions with the best performance but it is likely that some better choices exist depending on compiler and hardware. 
 \end{itemize}
 
+\subsection{Optimization Tests}
+Before we present the actual results, we explore the effects of the optimizations from \cref{ssec:optimizations} applied on the simple algorithm. In the following section, we will use all optimizations for further comparisons.
+
+We have the following optimizations to test:
+\begin{itemize}
+	\item Parallelization (p)
+	\item Reachability optimization (r)
+	\item Local minimality optimization (l)
+	\item Global minimality optimization (g)
+\end{itemize}
+
+For the parallelized setting we compare fully parallelized with \(8\) cores against no parallelization. For the other three we test having the optimization and not having them. Further, we test the algorithm with no optimizations applied. All of these tests are on well-behaved data and \(20\) cases per point count on polylines upto length \(200\).
+
+First, we compare the effect of parallelization. \cref{fig:simple-seq} shows both the unparallelized and the parallelized versions. The parallelized versions are consistently about three times faster than the unparallelized ones.
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/simple-seq.png}
+  \caption{Simple algorithm with and without parallelization}
+  \label{fig:simple-seq}
+\end{figure}
+
+Next, we inspect how our optimizations affect the runtime. All of the following are parallelized. \cref{fig:simple-noopt} compares having all three optimizations and none of them. Without any of them, the theoretical \(\Oh(n^6)\) runtime seems to match. It further illustrates how effective these small optimizations are.
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/simple-noopt.png}
+  \caption{Simple algorithm with all optimizations and with none of them.}
+  \label{fig:simple-noopt}
+\end{figure}
+
+Finally, we compare omitting exactly one of the three optimizations. \cref{fig:simple-g} does not have the global optimality optimization, \cref{fig:simple-l} lacks the local optimality optimization, and \cref{fig:simple-r} does not use the reachability optimization. 
+
+The reachability optimization has little effect on most variants but a massive one on the implicit variant. We have no good reasoning why that is the case whereas the other variants are mostly unaffected as the main logic should be the same for all variants.
+
+The local minimality optimization also has almost no effect on most variants with the noticeable outlier again being the implicit variant as well as a slight but consistent improvement in the Manhattan variant.
+
+The global minimality optimization has the most positive effect. We note again that \cref{fig:simple-g}, \cref{fig:simple-l}, and \cref{fig:simple-r} have two of the optimizations but omit one of them. It is noticeable that the performance improvements from these three diagrams does not add up to the performance difference seen in \cref{fig:simple-noopt} which suggests that all these optimizations have a large overlap in what parts of the algorithm they speed up. This can especially be explained in the local and global minimality optimizations: If the local one is triggered in any layer of the algorithm, the global version will be triggered in all following layers for the same cell entry. This explains why the global minimality seems to be better. 
+
+In the actual results we use all optimizations and parallelization for the tests as they have proven to be beneficial, especially for the implicit variant. 
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/simple-g.png}
+  \caption{Simple algorithm with all optimizations and with all but the global optimality optimization.}
+  \label{fig:simple-g}
+\end{figure}
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/simple-l.png}
+  \caption{Simple algorithm with all optimizations and with all but the local optimality optimization.}
+  \label{fig:simple-l}
+\end{figure}
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/simple-r.png}
+  \caption{Simple algorithm with all optimizations and with all but the reachability optimization.}
+  \label{fig:simple-r}
+\end{figure}
+
 \subsection{Results}
 \label{subsec:results}
 
