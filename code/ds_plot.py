@@ -21,7 +21,7 @@ def parse_file(file_path: str) -> List[Tuple[float, int, List[int]]]:
             numbers = list(map(int, parts[2:2+n]))
             
             data.append((float_val, n, numbers))
-    
+
     return data
 
 def process_single_file(data: List[Tuple[float, int, List[int]]]) -> List[Tuple[float, float, int]]:
@@ -98,26 +98,35 @@ def process_directory(directory_path: str) -> Dict[float, List[int]]:
     
     return averaged_data
 
-def plot_data(intervals: List[Tuple[float, float, int]], title: str = "List Lengths vs Normalized Intervals"):
+def plot_data(intervals: List[Tuple[float, float, int]], title: str = "Simplification Size vs Normalized Intervals", moreintervals=None):
     """
     Plot the step function for the given intervals
     """
     fig, ax = plt.subplots(figsize=(10, 6))
     
     for start, end, length in intervals:
-        ax.hlines(y=length, xmin=start, xmax=end, linewidth=2, color='blue')
+        ax.hlines(y=length, xmin=start, xmax=end, linewidth=2, color='red')
         # Add small vertical lines at interval boundaries for clarity
-        ax.vlines(x=start, ymin=length-0.1, ymax=length+0.1, color='blue', linewidth=1, alpha=0.7)
-        ax.vlines(x=end, ymin=length-0.1, ymax=length+0.1, color='blue', linewidth=1, alpha=0.7)
+        ax.vlines(x=start, ymin=length-0.1, ymax=length+0.1, color='red', linewidth=1, alpha=0.7)
+        ax.vlines(x=end, ymin=length-0.1, ymax=length+0.1, color='red', linewidth=1, alpha=0.7)
+
+    if moreintervals:
+        for start, end, length in moreintervals:
+            ax.hlines(y=length, xmin=start, xmax=end, linewidth=2, color='blue')
+            # Add small vertical lines at interval boundaries for clarity
+            ax.vlines(x=start, ymin=length-0.1, ymax=length+0.1, color='blue', linewidth=1, alpha=0.7)
+            ax.vlines(x=end, ymin=length-0.1, ymax=length+0.1, color='blue', linewidth=1, alpha=0.7)
+
     
-    ax.set_xlabel('Normalized Interval Value')
-    ax.set_ylabel('List Length')
+    ax.set_xlabel('Normalized Epsilon')
+    ax.set_ylabel('Simplification Size')
     ax.set_title(title)
+    #ax.set_xscale('log')
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
 
-def plot_averaged_data(averaged_data: Dict[float, float], title: str = "Averaged List Lengths vs Normalized Intervals"):
+def plot_averaged_data(averaged_data: Dict[float, float], title: str = "Averaged Simplification Size vs Normalized Epsilon", more_data=None):
     """
     Plot the averaged data as a step function
     """
@@ -129,33 +138,47 @@ def plot_averaged_data(averaged_data: Dict[float, float], title: str = "Averaged
     
     # Create step plot
     ax.step(x_values, y_values, where='post', linewidth=2, color='red')
+
+    if more_data:
+        x_values = sorted(more_data.keys())
+        y_values = [more_data[x] for x in x_values]
+        
+        # Create step plot
+        ax.step(x_values, y_values, where='post', linewidth=2, color='blue')
+
     
-    ax.set_xlabel('Normalized Interval Value')
-    ax.set_ylabel('Average List Length')
+    ax.set_xlabel('Normalized Epsilon')
+    ax.set_ylabel('Average Simplification Size')
     ax.set_title(title)
     ax.grid(True, alpha=0.3)
+    # ax.set_xscale('log')
     plt.tight_layout()
     plt.show()
 
 def main():
-    parser = argparse.ArgumentParser(description='Plot list lengths from data files')
+    parser = argparse.ArgumentParser(description='Plot Simplification Sizes')
     parser.add_argument('input_path', help='Path to input file or directory')
+    parser.add_argument('input_path2', help='Path to input file or directory')
     args = parser.parse_args()
     
     input_path = args.input_path
+    input_path2 = args.input_path2
     
     if os.path.isfile(input_path):
         # Process single file
         print(f"Processing file: {input_path}")
         data = parse_file(input_path)
+        data2 = parse_file(input_path2)
         intervals = process_single_file(data)
-        plot_data(intervals, f"List Lengths - {os.path.basename(input_path)}")
+        intervals2 = process_single_file(data2)
+        plot_data(intervals, f"Simplification Sizes", intervals2)
         
     elif os.path.isdir(input_path):
         # Process directory
         print(f"Processing directory: {input_path}")
         averaged_data = process_directory(input_path)
-        plot_averaged_data(averaged_data, f"Averaged List Lengths - {os.path.basename(input_path)}")
+        averaged_data2 = process_directory(input_path2)
+        plot_averaged_data(averaged_data, f"Averaged Simplification Sizes", averaged_data2)
         
     else:
         print(f"Error: {input_path} is not a valid file or directory")

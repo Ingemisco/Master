@@ -110,4 +110,22 @@ void measure_suite_advanced(std::filesystem::path path) {
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_advanced_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon2);
 }
 
+void measure_suite_simple(std::filesystem::path path) {
+	config.logger = std::make_optional<Log::PerformanceLogger>(Log::PerformanceLogger());
+	auto &log = config.logger.value();
+	config.output_visualization = false;
+	vector<vector<unique_ptr<Polyline>>> w_polylines;
+	vector<vector<unique_ptr<Polyline>>> n_polylines;
+	fs::path well_behaved_path = fs::path(path) / "well-behaved";
+	fs::path non_well_behaved_path = fs::path(path) / "non-well-behaved";
+	process_category(well_behaved_path, w_polylines);
+	process_category(non_well_behaved_path, n_polylines);
+
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_MANHATTAN, Simplification::simplification_naive_manhattan>(w_polylines, n_polylines, log, _epsilon);
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_CHEBYSHEV, Simplification::simplification_naive_chebyshev>(w_polylines, n_polylines, log, _epsilon);
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_EUCLIDEAN, Simplification::simplification_naive_euclidean>(w_polylines, n_polylines, log, _epsilon);
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_IMPLICIT_EUCLIDEAN, Simplification::simplification_naive_euclidean_implicit>(w_polylines, n_polylines, log, _epsilon);
+	use_algorithm<Log::Algorithm::SIMPLIFICATION_SIMPLE_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_naive_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon2);
+}
+
 }

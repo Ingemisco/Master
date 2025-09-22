@@ -101,6 +101,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 					"Perfomes measurments for all advanced algorithms on the data in a directory."
 					"The directory must have a specific structure.");
 
+  options("measure-suite-simple",
+					po::value<std::string>(&suite_dir)->value_name("directory"),
+					"Perfomes measurments for all simple algorithms on the data in a directory."
+					"The directory must have a specific structure.");
+
   options("ses",
 					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
@@ -139,6 +144,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Bringmann et al. algorithm to simplify the polyline with "
           "a distance of at most epsilon using Chebyshev distance.");
 
+  options("ii",
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
+          "Uses the Imai and Iri algorithm to (locally) simplify the polyline with "
+          "a distance of at most epsilon using Euclidean distance.");
+
   options("bes",
 					po::value<std::string>(&poly_line_file_name)->value_name("filename"),
           "Builds the datastructure to allow fast simplification queries"
@@ -176,6 +186,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 		exit(0);
 	} else if (map.count("measure-suite-advanced")) {
 		Log::measure_suite_advanced(suite_dir);
+		exit(0);
+	} else if (map.count("measure-suite-simple")) {
+		Log::measure_suite_simple(suite_dir);
 		exit(0);
 	}
 
@@ -225,6 +238,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	}	else if (map.count("ac")) {
     _flag_action_simplify<Simplification::simplification_advanced_chebyshev_explicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV>(map, "ac", config);
+	}	else if (map.count("ii")) {
+    _flag_action_simplify<Simplification::simplification_imai_iri_euclidean,
+                          Log::Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN>(map, "ii", config);
 	}	else if (map.count("aes")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_semiexplicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>(map, "aes", config);

@@ -132,9 +132,7 @@ void SimplificationQuerier::save_datastructure_to_file(std::filesystem::path pat
     exit(1);
   }
 
-	std::cout << simplifications.size() << std::endl;
 
-	std::cout << this->epsilons.size() << " " << simplifications.size() << std::endl;
 	for (size_t i = 0; i < this->epsilons.size(); i++) {
 		if (!simplifications[i]) {
 			// the simplification size of i is always skipped in favor for a smaller simplification no matter the epsilon so we skip it here

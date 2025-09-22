@@ -34,6 +34,8 @@ Simplification simplification_advanced_euclidean_semiexplicit(Polyline const &, 
 // logically equivalent to any simpification algorithm with epsilon = 0, but more stable and linear runtime
 Simplification simplification_filter_colinear(Polyline const &, AlgorithmConfiguration &);
 
+Simplification simplification_imai_iri_euclidean(Polyline const &, float, AlgorithmConfiguration &);
+
 } // namespace Simplification
 
 #endif // INCLUDE_INCLUDE_SIMPLIFICATION_H_

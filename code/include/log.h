@@ -30,6 +30,8 @@ enum class Algorithm {
   SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN,
   SIMPLIFICATION_ADVANCED_CHEBYSHEV,
   SIMPLIFICATION_ADVANCED_IMPLICIT_MINKOWSKI,
+
+  SIMPLIFICATION_IMAI_IRI_EUCLIDEAN,
 };
 
 std::string algorithm_name(Algorithm);
@@ -66,6 +68,7 @@ struct AlgorithmConfiguration final {
 
 void measure_suite(std::filesystem::path path);
 void measure_suite_advanced(std::filesystem::path path);
+void measure_suite_simple(std::filesystem::path path);
 
 } // namespace Log
 #endif // INCLUDE_INCLUDE_LOG_H_

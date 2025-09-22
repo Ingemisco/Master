@@ -269,11 +269,11 @@ Simplification simplification_naive_euclidean_implicit(Polyline const &polyline,
 
   for (unsigned int i = 0; i < point_count; i++) {
 		for (; j < point_count - 1; j++) {
-			if (DataStructures::is_line_reachable_euclidean(polyline, j, j + 1, i, epsilon2)) {
+			//if (DataStructures::is_line_reachable_euclidean(polyline, j, j + 1, i, epsilon2)) {
 				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_UNREACHABLE;
-			} else {
-				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
-			}
+			// } else {
+			// 	table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
+			// }
 		}
 		j = 0;
 	}
@@ -421,15 +421,21 @@ Simplification simplification_naive_euclidean_semiexplicit(Polyline const &polyl
 
 
 
-static bool is_collinear(Polyline const &polyline, size_t point) {
+// tests if the given point is on the line defined by its two neighbors.
+// Does no checks if the point is even valid so only use valid indices 
+static bool lies_on_line(Polyline const &polyline, size_t point) {
+	size_t non_zero_coord = 0;
 	for (auto i = 1u; i < polyline.dimension; i++) {
 		if ((polyline[point+1, i] - polyline[point-1, i]) * (polyline[point, i-1] - polyline[point-1, i-1])
 		 != (polyline[point+1, i-1] - polyline[point-1, i-1]) * (polyline[point, i] - polyline[point-1, i])) {
 			return false;
 		}
+		if (polyline[point,i] != 0 || polyline[point-1,i] != 0 || polyline[point+1,i] != 0) {
+			non_zero_coord = i;
+		}
 	}
-	// technically after the loop the points must be collinear but we also want that the third point is after the second and not before it ie u - v - w not u - w - v or w - u -v 
-	return (polyline[point+1,0] >= polyline[point,0]) == (polyline[point,0] >= polyline[point-1,0]);
+	// the above only checked that the point lies on the line but not the line segment. For this we need that the coordinate is actually in between the two. We need a non zero coordinate for this test as otherwise we could have all values be zero
+	return (polyline[point+1,non_zero_coord] >= polyline[point,non_zero_coord] && polyline[point,non_zero_coord] >= polyline[point-1,non_zero_coord]) || (polyline[point+1,non_zero_coord] <= polyline[point,non_zero_coord] && polyline[point,non_zero_coord] <= polyline[point-1,non_zero_coord]);
 }
 
 
@@ -439,7 +445,7 @@ Simplification simplification_filter_colinear(Polyline const &polyline, Algorith
 	p.push_back(0);
 
 	for (auto i = 1u; i < polyline.point_count - 1; i++) {
-		if (!is_collinear(polyline, i)) {
+		if (!lies_on_line(polyline, i)) {
 			p.push_back(i);
 		}
 	}
