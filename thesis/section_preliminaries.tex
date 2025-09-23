@@ -15,7 +15,7 @@ The central geometric object of our study is the \emph{polyline}, defined as fol
 
   The sequence \(P = \angl{u_0, \dots, u_n}\) is a \(d\)-dimensional \emph{polyline} of length \(n\). It consists of \(n+1\) points connected by \(n\) line segments.
   \begin{itemize}
-    \item We interpret \(P\) as a continuous function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for \(i \in \set{0, \dots, n}\).
+    \item We interpret \(P\) as a continuous function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for all \(i~\in~\set{0,~\dots,~n}\).
       Points in between integers are linearly interpolated: for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\), we set \(P(i + t) = (1- t)u_i + t u_{i+1} = u_i + t(u_{i+1} - u_i)\).
     \item We denote by \(P[t' \dots t]\) the subpolyline from parameter \(t' \in [0, n]\) to \(t \in [t', n]\). Formally,
 			\[P[t' \dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2), \dots, P(\ceil{t} - 1), P(t)}.\]
