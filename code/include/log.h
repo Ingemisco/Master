@@ -32,6 +32,8 @@ enum class Algorithm {
   SIMPLIFICATION_ADVANCED_IMPLICIT_MINKOWSKI,
 
   SIMPLIFICATION_IMAI_IRI_EUCLIDEAN,
+
+  BUILD_DS_EUCLIDEAN,
 };
 
 std::string algorithm_name(Algorithm);

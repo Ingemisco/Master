@@ -52,7 +52,8 @@ void static _binary_search_build_ds(Polyline &polyline, float *events, Simplific
 }
 
 
-std::unique_ptr<SimplificationQuerier> build_querier_simple(Polyline &polyline) {
+std::unique_ptr<SimplificationQuerier> build_querier_simple(Polyline &polyline, AlgorithmConfiguration &config) {
+	auto start = std::chrono::high_resolution_clock::now();
 	size_t const n = polyline.point_count;
 
 	// Create array of events 
@@ -121,6 +122,16 @@ std::unique_ptr<SimplificationQuerier> build_querier_simple(Polyline &polyline) 
 		std::cout << std::endl;
 	}
 	delete[] events;
+
+
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(0, end - start, "");
+		}
+	}
+
+
 	return datastructure;
 }
 

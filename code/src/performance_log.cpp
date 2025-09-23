@@ -46,6 +46,10 @@ std::string algorithm_name(Algorithm algorithm) {
     return "Chebyshev Simplification (Advanced)";
   case Algorithm::SIMPLIFICATION_ADVANCED_IMPLICIT_MINKOWSKI:
     return "Minkowski Simplification (Advanced, Implicit)";
+  case Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN:
+    return "Local Euclidean Simplification (Imai Iri)";
+  case Algorithm::BUILD_DS_EUCLIDEAN:
+    return "Datastructure Euclidean";
 
 	default:
 		__builtin_unreachable();

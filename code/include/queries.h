@@ -32,7 +32,7 @@ struct SimplificationQuerier final {
 
 // all only for Euclidean distance 
 Simplification::Simplification &simplify_query(SimplificationQuerier &, float);
-std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Polyline &);
+std::unique_ptr<SimplificationQuerier> build_querier_simple(DataStructures::Polyline &, AlgorithmConfiguration &);
 std::unique_ptr<SimplificationQuerier> build_querier(DataStructures::Polyline &);
 
 

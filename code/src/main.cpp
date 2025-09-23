@@ -196,7 +196,12 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	if(map.count("bes")) {
 		auto path = std::filesystem::path(poly_line_file_name);
 		auto polyline = DataStructures::Polyline::from_file(path);
-		auto ds = build_querier_simple(*polyline);
+
+		if (config.logger.has_value()) {
+			config.logger.value().begin_data_set(Log::Algorithm::BUILD_DS_EUCLIDEAN, polyline->dimension, polyline->point_count, poly_line_file_name);
+		}
+
+		auto ds = build_querier_simple(*polyline, config);
 		auto file_name = path.filename().string();
 		std::filesystem::path save_path = std::filesystem::path("datastructures") / file_name;
 		ds->save_datastructure_to_file(save_path);
