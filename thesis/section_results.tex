@@ -186,7 +186,19 @@ We now examine in more detail the dependence of the input data on the runtime of
   \label{fig:res_simple}
 \end{figure}
 
+
+Finally, we can see the runtime of \cref{algo:query-datastructure} in \cref{fig:res_ds}. We only used one test case per point count not only for shorter testing times but to highlight the stability of this algorithm. This very noticable stability of the runtime can be explained by the already seen stability of the advanced algorithm that is used and the predictable amount of simplifications that need to be performed due to the binary search.
+
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/res_ds.png}
+  \caption{Runtime to create the datastructure to query for simplifications using Euclidean distance and one case per point count.}
+  \label{fig:res_ds}
+\end{figure}
+
+
 \subsubsection{Simplification Size}
+\label{ssubsec:simplification_size}
 Having compared the performance of the algorithms, we now compare the simplifications and their sizes. This is independent of the algorithm used but instead only depends on the distance type, input data, and the epsilon used.
 
 \cref{fig:simplification_sizes} shows the averaged computed sizes of the same data that was used for \cref{fig:res_all300w} and \cref{fig:res_simple}. It can clearly be seen that the Chebyshev simplifications are the smallest and the Manhattan ones are the largest which we already know from \cref{cor:size_monotonicity}. However, the sizes are more impacted by the well-behavedness than by the distance used as the difference between the well-behaved Manhattan and the non-well-behaved Chebyshev simplifications is larger than the difference between the non-well-behaved or the well-behaved respectively. Other Minkowski distances \(\delta_\ell\) would fall in the region between the Euclidean and Chebyshev distance if \(\ell > 2\) or between the Euclidean and Manhattan distance if \(\ell \in (1,2)\) so there would not be more spread in those well-behavednes clusters.
@@ -219,5 +231,4 @@ Interestingly, all four plots seem to approach concave functions for which we ha
 \end{figure}
 
 
-\label{ssubsec:simplification_size}
 
