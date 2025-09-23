@@ -1,82 +1,78 @@
 \section{Polyline Simplification and Basic Properties}\label{sec:polyline-simplification}
-In this section, we discuss and illustrate different types of simplification objectives that have been studied. 
-This yields valuable insights for the rest of this work as well as highlights differences between most of the previously studied
-types and the global (vertex-restricted) simplification under the Fréchet distance that we mainly focus on.
+In this section, we discuss and illustrate different types of simplification objectives that have been studied. This yields valuable insights for the rest of this work. It also highlights the differences between the previously studied types and the global (vertex-restricted) simplification under the Fréchet distance, which is our main focus.
 
-We mainly use the classification of \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} as a basis. 
+We mainly use the classification of \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} as a basis.
 
-There are two aspects in which the types of simplification differ from each other:
+There are two key aspects in which simplification variants differ from each other:
 \begin{enumerate}
-  \item The set from which to choose the points of the simplification and 
-	\item The distance function between polylines that is used to measure the quality of the simplification. 
+  \item The set from which the points of the simplification are chosen.
+	\item The distance function between polylines used to measure the quality of the simplification.
 \end{enumerate}
+These two aspects are not completely independent.
 
-These two aspects are not completely independent of each other.
-
-In \cref{sec:preliminaries} we have already defined one distance function between polylines which is the \emph{Fréchet distance}. The other commonly used function is the \emph{Hausdorff distance}
+In \cref{sec:preliminaries}, we defined the \emph{Fréchet distance}. The other commonly used function is the \emph{Hausdorff distance}.
 
 \begin{definition}[Hausdorff Distance]
-  Let \(P\) and \(Q\) be polylines of length \(p\) and \(q\) respectively in \(d\)-dimensions. Let \(\delta\) be a distance function on points. 
-
+  Let \(P\) and \(Q\) be polylines of length \(p\) and \(q\), respectively, in \(d\)-dimensional space. Let \(\delta\) be a distance function on points.
 	\begin{itemize}
-		\item The \emph{directed Hausdorff distance} \(\delta^{dH}(P, Q)\) from \(P\) to \(Q\) is defined as 
-		\[\delta^{dH}(P, Q) = \max_{s \in [0, p]}\min_{t \in [0, q]} \delta(P(s), Q(t))\].
-		\item The \emph{(undirected) Hausdorff distance} \(\delta^{H}(P, Q)\) of \(P\) and \(Q\) is defined as 
-		\[\delta^{H}(P, Q) = \max(\delta^{dH}(P, Q), \delta^{dH}(Q, P))\].
+		\item The \emph{directed Hausdorff distance} \(\delta^{dH}(P, Q)\) from \(P\) to \(Q\) is defined as
+		\[\delta^{dH}(P, Q) = \max_{s \in [0, p]}\min_{t \in [0, q]} \delta(P(s), Q(t)).\]
+		\item The \emph{(undirected) Hausdorff distance} \(\delta^{H}(P, Q)\) between \(P\) and \(Q\) is defined as
+		\[\delta^{H}(P, Q) = \max(\delta^{dH}(P, Q), \delta^{dH}(Q, P)).\]
 	\end{itemize}
-
-	Note that the directed Hausdorff distance is not symmetric while the undirected Hausdorff distance is.
+	Note that the directed Hausdorff distance is not symmetric, while the undirected Hausdorff distance is.
 \end{definition}
 
-Both the directed and undirected Hausdorff distance as well as the Fréchet distance can be used with different types of point distances, with the most commonly used being the Euclidean distance, the Manhattan distance, and the Chebyshev distance.
+The Hausdorff and Fréchet distances can be based on different point distances, with the most common being the Euclidean, Manhattan, and Chebyshev distances.
 
-These distances are used to measure the simplification against the original polyline. In the case of the directed Hausdorff distance there are two different ways: From the simplification to the polyline or the other way around. 
-Further, for both the Hausdorff and the Fréchet distance, a common alternative way is to compare the simplification only \emph{locally}.
+These distances measure the similarity between the simplification and the original polyline. In the case of the directed Hausdorff distance, it can be applied in two directions: from the simplification to the polyline or vice versa.
 
-To understand local simplifications, we need to define which points are allowed to be used in the simplification. \citeauthor{global_curve_simplification} distinguish three types:
+A common alternative for both the Hausdorff and Fréchet distances is to compare the simplification only \emph{locally}.
+
+To understand local simplification, we need to define the allowed points for the simplification. \citeauthor{global_curve_simplification} distinguish three types of point selection:
 \begin{itemize}
-  \item \emph{Vertex-restricted}: Only the finitely many points that define the polyline are allowed, i.e., for a polyline \(P = \angl{u_0, \dots, u_n}\) a simplification is only allowed to contain a subsequence of \(u_0, \dots, u_n\) without changing the order.
-	\item \emph{Curve-restricted}: Only points that lie on the polyline are allowed, i.e., for a polyline \(P\) of length \(p\) any point \(P(t)\) for \(t \in [0, p]\) is allowed. This sequence of \(t\) used must be increasing.
-	\item \emph{Non-restricted}: Any point in the ambient space is valid 
+  \item \emph{Vertex-restricted}: Only the original vertices of the polyline are allowed. For a polyline \(P = \angl{u_0, \dots, u_n}\), a simplification must be a subsequence of \(u_0, \dots, u_n\) preserving the order.
+	\item \emph{Curve-restricted}: Any point lying on the polyline is allowed. For a polyline \(P\) of length \(p\), any point \(P(t)\) for \(t \in [0, p]\) is valid. The sequence of parameters \(t\) must be increasing.
+	\item \emph{Non-restricted}: Any point in the ambient space is valid.
 \end{itemize}
 
-Local simplifications is mainly used in the vertex-restricted setting but also works for the curve-restricted one. There we apply the distance function not between the simplification \(Q\) and the original \(P\) but instead apply it between the line segment of \(Q\) and the respective subpolyline in \(P\) and take the maximum over all of these. More specifically, for a polyline distance function \(\delta^P\) we measure the distance the local distance \(\delta^{LP}\) as 
+Local simplification is mainly used in the vertex-restricted setting but also applies to the curve-restricted one. In this approach, the distance function is not applied globally between \(Q\) and \(P\). Instead, it is applied between each line segment of \(Q\) and its corresponding subpolyline in \(P\), and the maximum of these distances is taken. More specifically, for a polyline distance function \(\delta^P\), we define the local distance \(\delta^{LP}\) as
 \[\delta^{LP}(P, Q) = \max_{i = 1, \dots, q} \delta^P(P[k_{i-1}\dots k_i], Q[i-1 \dots i]),\]
 where \(P = \angl{u_0, \dots, u_p}\) and \(Q = \angl{u_{k_0}, \dots, u_{k_q}}\).
 
-In contrast to the local setting, there is also the \emph{global} one which we study for the Fréchet distance in this work. In this setting the non-restricted cases can also be studied.
+In contrast to the local setting, we study the \emph{global} Fréchet distance in this work. In the global setting, the non-restricted cases can also be considered.
 
-In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet setting. For more information on other types of global setting we refer to \citeauthor{global_curve_simplification}'s paper.
+In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet variants. For more information on other global variants, we refer to \citeauthor{global_curve_simplification}'s paper.
 
 \subsection{Hausdorff Distance}
-In this thesis, we study only the Fréchet distance, not the Hausdorff distance. The global Hausdorff distance is among the four variants we discuss here the least useful one. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that it is NP-hard to find such simplifications~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} which is less than ideal when it comes to practically applicable algorithms. Further, it does not capture the contour of a polyline as the order of points is not involved in the measurement. This causes oversimplifications. See \cref{fig:polyline-ex-hausdorff} to see an example why using the Hausdorff distance may be problematic to measure similarity.
+In this thesis, we study only the Fréchet distance. The global Hausdorff distance is the least useful among the four variants discussed here. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that finding such simplifications is NP-hard~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, making it impractical for applications. Furthermore, it does not capture the contour of a polyline well, as the order of points is not considered. This can lead to oversimplifications. See \cref{fig:polyline-ex-hausdorff} for an example illustrating why the Hausdorff distance may be problematic for measuring similarity.
 
 \begin{figure}[b]
   \centering
   \includegraphics{./tikz-fig/polyline-ex-hausdorff.pdf}
-  \caption{Two polylines with a comparatively high Fréchet distance but small Hausdorff distance. Note that each point on any of the two polylines is close to some point of the other polylines which causes a small Hausdorff distance but the completely different contours cause a high Fréchet distance.}
+  \caption{Two polylines with a comparatively high Fréchet distance but small Hausdorff distance. Each point on either polyline is close to some point on the other, resulting in a small Hausdorff distance. However, the completely different contours cause a high Fréchet distance.}
   \label{fig:polyline-ex-hausdorff}
 \end{figure}
 
-The local Hausdorff does not have the same problems as applying the Hausdorff distance locally guarantees a coarse global order on the simplification. Further, whereas the global Hausdorff variant is the hardest to solve, the local Hausdorff setting seems to be the simplest. Currently, it  is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\) (see, e.g., \cite{efficiently_approximating_higher_dim}). 
+The local Hausdorff variant does not suffer from the same problems, as applying the Hausdorff distance locally enforces a coarse global order on the simplification. Moreover, while the global Hausdorff variant is the hardest to solve, the local Hausdorff setting appears to be the simplest. Currently, it is the only variant for which subcubic algorithms are known in dimensions \(d \geq 3\) (see, e.g., \cite{efficiently_approximating_higher_dim}).
 
-The local Hausdorff variant has already been covered extensively which is why we do not expand further on it. 
+The local Hausdorff variant has already been covered extensively, so we do not expand further on it.
 
 \subsection{Local Fréchet}
-The local Fréchet variant enforces locality constraints just like the local Hausdorff variant but using the Fréchet distance. Unlike the Hausdorff distance, the Fréchet distance already enforces the correct point ordering so the local constraints are technically unnecessary. The reason why the local version is more studied than the global version is that the locality constraints simplify the problem. In fact, the definition of the local variants gives rise to an algorithm, the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve}: First, for each pair of points we test if the line segment between is a valid shortcut, i.e., the Fréchet distance between the line segment and the respective subpolyline is within the error parameter \(\varepsilon\). Using this information we construct the shortcut graph where the vertices are the points of the polyline and the edges are the shortcuts. Finally a shortest path from the first to the last point is found.
+The local Fréchet variant enforces locality constraints similar to the local Hausdorff variant but uses the Fréchet distance. Unlike the Hausdorff distance, the Fréchet distance inherently enforces the correct point ordering, making the local constraints technically unnecessary. However, the local version is more studied because these constraints simplify the problem. In fact, the definition of the local variants gives rise to an algorithm by \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve}: First, for each pair of points, test if the line segment between them is a valid shortcut, i.e., if the Fréchet distance between the line segment and the corresponding subpolyline is within the error parameter \(\varepsilon\). Using this information, construct a shortcut graph where vertices are the points of the polyline and edges represent valid shortcuts. Finally, find a shortest path from the first to the last point.
 
-This algorithm can also be used for the local Fréchet distance. For a full algorithm we need to be able to test if the Fréchet distance between two polylines is within a certain bound. This can be done with the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves} which we discuss in \cref{sec:algorithm_implementation}. This can generally be done in \(\O(pq\) for two polylines of length \(p\) and \(q\) respectively and as one of the polylines is always a line segment (the shortcut) it can be solved in linear runtime. The complete algorithm can be implemented cubic runtime.
+This algorithm also applies to the local Fréchet distance. A full implementation requires testing whether the Fréchet distance between two polylines is within a given bound. This can be done using the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves}, which we discuss in \cref{sec:algorithm_implementation}. This test generally takes \(\O(pq)\) time for polylines of length \(p\) and \(q\). However, when one polyline is a single line segment (the shortcut), the test can be performed in linear time. The complete algorithm thus runs in cubic time.
 
-The local Fréchet variant has seen improvements to this runtime in small dimensions. \citeauthor{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}~\cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal} present an algorithm to solve the problem in \(\O(n^2\log n)\) with quadratic runtime when using the Manhattan, Chebyshev distance, or when the polyline satisfies some well-behavedness property. Their algorithm works in two dimensions and is itself a refinement of the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
+The local Fréchet variant has seen runtime improvements in low dimensions. \citeauthor{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}~\cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal} present an algorithm that solves the problem in \(\O(n^2 \log n)\) time, achieving quadratic runtime for the Manhattan or Chebyshev distances, or when the polyline satisfies certain well-behavedness properties. Their algorithm works in two dimensions and is a refinement of the algorithm by \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
 
 \subsection{Global Fréchet}
-Unlike its local counterpart, the global Fréchet variant has seen less research. As far as we are aware only three papers have actually researched the topic.
+Unlike its local counterpart, the global Fréchet variant has received less attention. To our knowledge, only three papers have specifically researched this topic.
 
-First, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that the global Hausdorff variant is NP-hard and developed a first polynomial algorithm for the global Fréchet variant.
+First, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that the global Hausdorff variant is NP-hard and developed the first polynomial-time algorithm for the global Fréchet variant.
 
-\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} improved this algorithm to achieve cubic runtime and give matching conditional lower bounds which rule out subcubic algorithms in higher dimensions for both of the local and the global Fréchet variant. 
+\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} improved this algorithm to achieve cubic runtime and provided matching conditional lower bounds that rule out subcubic algorithms in higher dimensions for both the local and global Fréchet variants.
 
-Finally, \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} give a formal classification of global variants and present multiple results. For the global Fréchet variant that we discuss here they present an additional cubic algorithm.
+Finally, \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} provided a formal classification of global variants and presented multiple results. For the global Fréchet variant discussed here, they presented an additional cubic-time algorithm.
 
 \begin{figure}[b]
   \centering
@@ -86,39 +82,36 @@ Finally, \citeauthor{global_curve_simplification}~\cite{global_curve_simplificat
 \end{figure}
 
 \subsection{Basic Properties}
-We now investigate some elementary properties about polylines and their simplifications. We use many of these implicitly in \cref{sec:evaluation} to standardize the experiments as well as for automated testing in our implementations.
+We now investigate elementary properties of polylines and their simplifications. Many of these properties are used implicitly in \cref{sec:evaluation} to standardize experiments and for automated testing in our implementations.
 
 \begin{lemma}[Monotonicity of Minkowski Distances]\label{lem:monotonicity_minkowski}
   Let \(d \in \N_+\) be a dimension and \(1 \leq k \leq \ell \leq \infty\).
 	\begin{enumerate}
 		\item Let \(u, v \in \R^d\) be points. Then \(\delta_\ell(u,v) \leq \delta_k(u, v)\).
-		\item Let \(P\) and \(Q\) be \(d\) dimensional polylines. Then \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\).
+		\item Let \(P\) and \(Q\) be \(d\)-dimensional polylines. Then \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\).
 	\end{enumerate}
 \end{lemma}
 
 \begin{proof}
   \begin{enumerate}
-		\item It suffices to show the inequalities for the underlying norms, i.e., show the following 
+		\item It suffices to show the inequalities for the underlying norms. That is, for an arbitrary \(x \in \R^d\), show:
 			\[\left(\sum_{i=1}^d |x_i|^\ell\right)^{1/\ell} \leq \left(\sum_{i=1}^d |x_i|^k\right)^{1/k}\]
-			and 
-			\[\max_{i=1, \dots, d} |x_i| \leq \left(\sum_{i=1}^d |x_i|^k\right)^{1/k}\]
-			for an arbitrary \(x \in \R^d\).
+			and
+			\[\max_{i=1, \dots, d} |x_i| \leq \left(\sum_{i=1}^d |x_i|^k\right)^{1/k}.\]
 
-			For the first inequality fix \(m \coloneq \max_{1,\dots, d}|x_i|\) and also note that 
-			\[m = \left(\max_{i=1, \dots, d} |x_i|^{k}\right)^{1/k} \leq \left(\sum_{i=1}^d |x_i|^{k}\right)^{1/k}\]
-			as each term is positive and the maximum component is included in the rightmost sum. This already shows the second inequality.
+			Let \(m \coloneq \max_{1,\dots, d}|x_i|\). Note that
+			\[m = \left(\max_{i=1, \dots, d} |x_i|^{k}\right)^{1/k} \leq \left(\sum_{i=1}^d |x_i|^{k}\right)^{1/k},\]
+			which proves the second inequality, as the maximum component is included in the sum.
 
-			For the first one we get:
+			For the first inequality:
 			\begin{align*}
 				\sum_{i=1}^d |x_i|^\ell &= \sum_{i=1}^d |x_i|^k|x_i|^{\ell - k} \\
 				 &\leq \sum_{i=1}^d |x_i|^k m^{\ell - k} \\
 				 &\leq \sum_{i=1}^d |x_i|^k \left(\sum_{i=1}^d |x_i|^{k}\right)^{(\ell-k)/k} \\
-				 &\leq \left(\sum_{i=1}^d |x_i|^{k}\right)^{\ell/k} \\
+				 &= \left(\sum_{i=1}^d |x_i|^{k}\right)^{\ell/k}.
 			\end{align*}
-			
-			Raising both sides of this inequality by \(1/\ell\) yields the wanted inequality.
-
-		\item The respective result for the Fréchet distance follows directly from the definition of the Fréchet distance and the just showed property for points as for all suitable functions \(f\) and \(g\) we get \(\delta_\ell(P(f(t)), Q(g(t))) \leq \delta_k(P(f(t)), Q(g(t)))\).
+			Taking the \(1/\ell\)-th power of both sides yields the desired result.
+		\item The result for the Fréchet distance follows directly from the definition and Property (1), as for all suitable functions \(f\) and \(g\), we have \(\delta_\ell(P(f(t)), Q(g(t))) \leq \delta_k(P(f(t)), Q(g(t)))\).
   \end{enumerate}
 \end{proof}
 
@@ -127,106 +120,87 @@ We now investigate some elementary properties about polylines and their simplifi
   \(P\) be a \(d\)-dimensional polyline, and \(\varepsilon \geq 0\). Denote the size of the \(\varepsilon\)-simplification of \(P\) using \(\delta_k\) or \(\delta_\ell\) as \(S_k\) or \(S_\ell\) respectively. Then \(S_\ell \leq S_k\).
 \end{corollary}
 
-\cref{cor:size_monotonicity} is a simple sanity check that is fast to implement and use for automated testing. 
+\cref{cor:size_monotonicity} provides a simple sanity check that is fast to implement and use for automated testing.
 
 \begin{proof}
-	We use \cref{lem:monotonicity_minkowski} with the polyline \(P\) and an arbitrary (not necessarily optimal) simplification \(Q\) of \(P\). As \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\) for each such simplification \(Q\), it must hold that if it is a valid \(\varepsilon\)-simplification of \(P\) under \(\delta_\ell\) then it must also be one under \(\delta_k\). As we minimize the point count during simplification we get the wanted inequality.
+	By \cref{lem:monotonicity_minkowski}, for any non-optimal simplification \(Q\) of \(P\), \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\). Thus, if \(Q\) is a valid non-optimal \(\varepsilon\)-simplification under \(\delta_\ell\), it is also valid under \(\delta_k\). Since we minimize the number of points, the inequality \(S_\ell \leq S_k\) follows.
 \end{proof}
 
 \begin{lemma}[Translation Invariance]\label{lem:translation_invariant}
-	Let \(P\) be a \(d\)-dimensional polyline and \(x \in \R^d\). Let \(\varepsilon \geq 0\). If \(Q\) is an \(\varepsilon\)-simplification of \(P\) then \(Q-x\) is an \(\varepsilon\)-simplification of \(P-x\) where the subtraction is interpreted as a shift of each point of the polyline, i.e., \(P-x = \angl{u_0 - x, \dots, u_p - x}\) for \(P = \angl{u_0,\dots, u_p}\).
+	Let \(P\) be a \(d\)-dimensional polyline and \(x \in \R^d\). Let \(\varepsilon \geq 0\). If \(Q\) is an \(\varepsilon\)-simplification of \(P\), then \(Q-x\) is an \(\varepsilon\)-simplification of \(P-x\), where the subtraction is interpreted as shifting each point of the polyline (i.e., \(P-x = \angl{u_0 - x, \dots, u_p - x}\) for \(P = \angl{u_0,\dots, u_p}\)).
 \end{lemma}
 
 \begin{proof}
-	All distances that we consider are invariant under translation by \cref{lem:distance_properties} which directly extends to polylines and thus the Fréchet distance does not change under simultaneous translation of both polylines by the same shift. Thus the simplifications also do not change (except for the translation itself). 
+	All distances considered are translation-invariant by \cref{lem:distance_properties}. This property extends to polylines, so the Fréchet distance is unchanged under simultaneous translation of both polylines by the same shift. Therefore, the simplifications remain equivalent up to translation.
 \end{proof}
 
-Because of \cref{lem:translation_invariant} we fix the first point of each polyline to be the origin. The indices of the points in the simplification will remain the same before and after translation. 
+Due to \cref{lem:translation_invariant}, we can fix the first point of each polyline to be the origin without loss of generality. The indices of the points in the simplification remain unchanged.
 
 \begin{corollary}[Rotation Invariances]\label{cor:rot_inv}
-  When using the Euclidean distance \(\delta_2\), applying a rotation on the polyline only rotates the simplifications but does not alter them in any other way.
+  When using the Euclidean distance \(\delta_2\), applying a rotation to the polyline rotates the simplifications but does not alter them otherwise.
 
-	For all other distances the same holds only for discrete rotations by \(90^\circ, 180^\circ\), or \(270^\circ\), i.e., swapping entries or negating entries.
+	For other distances, the same holds only for discrete rotations by \(90^\circ, 180^\circ\), or \(270^\circ\) (i.e., swapping or negating coordinates).
 \end{corollary}
 
 \begin{proof}
-  This is another property that simply follows from the underlying property of the distance function as under these rotations all distances are preserved. 
+	This follows because the underlying distance functions are invariant under these transformations.
 \end{proof}
 
 \begin{lemma}[Polyline Scaling]\label{lem:scaling}
-	Let \(P\) be a \(d\)-dimensional polyline and \(c > 0\). Let \(\varepsilon \geq 0\). If \(Q\) is an \(\varepsilon\)-simplification of \(P\) then \(cQ\) is an \(c\varepsilon\)-simplification of \(cP\) where the multiplication is a scalar multiplication on  each point of the polyline, i.e., \(cP = \angl{cu_0, \dots, cu_p}\) for \(P = \angl{u_0,\dots, u_p}\).
+	Let \(P\) be a \(d\)-dimensional polyline and \(c > 0\). Let \(\varepsilon \geq 0\). If \(Q\) is an \(\varepsilon\)-simplification of \(P\), then \(cQ\) is a \(c\varepsilon\)-simplification of \(cP\), where multiplication is scalar multiplication applied to each point (i.e., \(cP = \angl{cu_0, \dots, cu_p}\) for \(P = \angl{u_0,\dots, u_p}\)).
 \end{lemma}
 
-\cref{lem:scaling} allows us to cap the maximum length of line segments through the use of scaling the polyline and the \(\varepsilon\) which we use for data generation in \cref{sec:evaluation}\footnote{In \cref{sec:evaluation} we also impose a lower bound on the line segment lengths which this lemma does not justify. }.
+\cref{lem:scaling} allows us to control the maximum length of line segments by scaling the polyline and \(\varepsilon\), which we utilize for data generation in \cref{sec:evaluation}\footnote{In \cref{sec:evaluation}, we also impose a lower bound on line segment lengths, which this lemma does not justify.}.
 
 \begin{proof}
-	Fix an \(\varepsilon\)-simplification \(Q\) of \(P\) and suitable functions \(f\) and \(g\). Scaling all points also scales all distances appropriately as \(\delta((cP)(f(t)), (cQ)(g(t))) = \delta(cP(f(t)), cQ(g(t))) = c\delta(P(f(t)), Q(g(t)))\).
+	Let \(Q\) be an \(\varepsilon\)-simplification of \(P\) with suitable functions \(f\) and \(g\). Scaling all points scales the distances: \(\delta((cP)(f(t)), (cQ)(g(t))) = \delta(cP(f(t)), cQ(g(t))) = c\delta(P(f(t)), Q(g(t)))\).
 \end{proof}
 
 \begin{remark}
-	\cref{cor:size_monotonicity}, \cref{lem:translation_invariant}, \cref{cor:rot_inv}, and \cref{lem:scaling} also apply to the curve-restricted and non-restricted setting.
+	\cref{cor:size_monotonicity}, \cref{lem:translation_invariant}, \cref{cor:rot_inv}, and \cref{lem:scaling} also apply to the curve-restricted and non-restricted settings.
 \end{remark}
 
+\subsection{A First Simplification Algorithm}
+We conclude this section with a simple simplification algorithm for both the local and global Fréchet variants under any distance. This, however, only covers the case \(\varepsilon = 0\).
 
-\subsection{A First Simplfication Algorithm}
-We conclude this section with a simple simplification algorithm for both the local and global Fréchet variant under any distance. This however only covers simplifications for \(\varepsilon = 0\).
-
-We already know that \(\delta(u, v) = 0\) if and only if \(u = v\) for two points \(u\) and \(v\). The same is almost true for polylines. 
+We know that \(\delta(u, v) = 0\) if and only if \(u = v\) for two points \(u\) and \(v\). A similar condition holds for polylines.
 
 \begin{lemma}\label{lem:polyline_dist0}
-	Let \(P\) and \(Q\) be polylines of length \(p\) and \(q\) respectively. Then \(\delta^F(P, Q) = 0\) if and only if 
-	There are \(k \in \N\) with \(k \leq \min(p, q)\) and strictly monotonously increasing \(f:\set{0,\dots,k} \to \set{0,\dots,p}\) and \(g:\set{0,\dots,k} \to \set{0,\dots,q}\) with \(f(0) = g(0) = 0\), \(f(k) = p\), and \(g(k) = q\) such that 
+	Let \(P\) and \(Q\) be polylines of length \(p\) and \(q\), respectively. Then \(\delta^F(P, Q) = 0\) if and only if there exists \(k \in \N\) with \(k \leq \min(p, q)\) and strictly increasing functions \(f:\set{0,\dots,k} \to \set{0,\dots,p}\) and \(g:\set{0,\dots,k} \to \set{0,\dots,q}\) with \(f(0) = g(0) = 0\), \(f(k) = p\), and \(g(k) = q\) such that:
 	\begin{enumerate}
 		\item \(P(f(t)) = Q(g(t))\) for all \(t \in \set{0, \dots, k}\).
-		\item There are \(0 \leq t_{f(\ell-1)+1} \leq \cdots \leq t_{f(\ell)-1} \leq 1\) for all \(\ell \in \set{1, \dots, k}\) such that \newline \(P(i) = (1-t_i)P(f(\ell - 1)) + t_iP(f(\ell))\).
-		\item There are \(0 \leq t_{g(\ell-1)+1} \leq \cdots \leq t_{g(\ell)-1} \leq 1\) for all \(\ell \in \set{1, \dots, k}\) such that \newline \(Q(i) = (1-t_i)Q(g(\ell - 1)) + t_iQ(g(\ell))\).
+		\item For each \(\ell \in \set{1, \dots, k}\) and each integer \(i\) with \(f(\ell-1) < i < f(\ell)\), there exists \(t_i \in [0,1]\) such that \(P(i) = (1-t_i)P(f(\ell-1)) + t_iP(f(\ell))\), and the sequence \(t_i\) is non-decreasing in \(i\).
+		\item For each \(\ell \in \set{1, \dots, k}\) and each integer \(i\) with \(g(\ell-1) < i < g(\ell)\), there exists \(t_i \in [0,1]\) such that \(Q(i) = (1-t_i)Q(g(\ell-1)) + t_iQ(g(\ell))\), and the sequence \(t_i\) is non-decreasing in \(i\).
 	\end{enumerate}
 \end{lemma}
 
 \begin{proof}
-	First assume \(\delta^F(P, Q) = 0\) this means \(P(f'(t)) = Q(g'(t))\) for suitable functions \(f':\mathcal{C}([0,1], [0,p])\) and \(g':\mathcal{C}([0,1], [0,q])\) and all \(t \in [0,1]\). Set \(k \coloneq |\set{u \mid u = P(i) = Q(j), i = 0, \dots, p, j = 0, \dots, q}|\) and define \(f\) and \(g\) to map onto these \(u\) accordingly in order of \(i\) and \(j\). This satisfies the first property.
+	(\(\Rightarrow\)) First, Assume \(\delta^F(P, Q) = 0\). Then there exist continuous, non-decreasing functions \(f'~:~[0,1]~\to~[0,p]\) and \(g':[0,1] \to [0,q]\) such that \(P(f'(t)) = Q(g'(t))\) for all \(t \in [0,1]\). \newline Let \(U = \set{u \mid u = P(i) = Q(j) \text{ for some } i=0,\dots,p, j=0,\dots,q}\). Define \(k = |U| - 1\), and let \(f\) and \(g\) map indices to the points in \(U\) in order. This satisfies Property (1).
 
-	For the other two properties we need to show that between all points that are consecutive via \(f\) or \(g\) only a line segment lies and not multiple bends. Further we need to show that the points on the line segments are in appropriate order. The second of which is guaranteed by the Fréchet distance. For the first property assume that there are at least two proper line segments. Then there must lie a point that lies on \(P\) on it. As the Fréchet distance is \(0\) the respective point must also be on \(Q\) but as it is between two line segments that do not form a single line segment it must be a proper point on \(Q\) and thus be part of \(f\) which is a contradiction to the definition of \(f\). We argue similarly for the third property.
+	For Properties (2) and (3), the Fréchet condition ensures that between consecutive points in \(f\) (or \(g\)), the polyline must consist of a single line segment without bends, and the points on these segments must be in order. If there were multiple segments or out-of-order points, the Fréchet distance could not be zero.
 
-	For the other direction, notice that these properties imply that the polylines are the same upto possible additions of points on line segments (without going back on the line segment). From this it is trivial to construct suitable functions \(f'\) and \(g'\) such that \(P(f'(t)) = Q(g'(t))\) for each \(t \in [0, 1]\).
+	(\(\Leftarrow\)) If the conditions hold, the polylines are identical up to the addition of points on line segments. It is straightforward to construct functions \(f'\) and \(g'\) such that \(P(f'(t)) = Q(g'(t))\) for all \(t \in [0, 1]\).
 \end{proof}
 
-According to \cref{lem:polyline_dist0}, two polylines have distance \(0\) if and only if the only points by which they differ are points that lie on a line segment of the polyline. In other words, by removing all collinear points the polylines are the same.
+According to \cref{lem:polyline_dist0}, two polylines have Fréchet distance zero if and only if they differ only by points that lie on the line segments of the polyline. In other words, by removing all collinear points, the polylines become identical.
 
-Using this, it is trivial to construct a linear time algorithm to obtain optimal simplifications when \(\varepsilon = 0\). The start and end point must always be included and for all points inbetween we test if the point lies on the line segment defined by its two neighbors. If this is not the case we apped the point to the simplification and otherwise we skip it. 
+This leads to a linear-time algorithm for optimal simplification when \(\varepsilon = 0\). The start and end points must be included. For each intermediate point, we test if it lies on the line segment between its neighbors. If not, it is added to the simplification; otherwise, it is skipped.
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
   \KwData{Polyline \(P\) of length \(n\)}
   \KwResult{Smallest \(0\)-simplification of \(P\)}
   \BlankLine
-	\(simplification \gets (0)\)\;
-	\For{\(i=1,\dots, n - 1\)}{
+	\(simplification \gets [0]\)\;
+	\For{\(i=1\) \KwTo \(n - 1\)}{
 		\If{\(P(i)\) does not lie on \(\overline{P(i-1)P(i+1)}\)}{
-			\(simplification.append(i)\)
+			\(simplification.\text{append}(i)\)
 		}
 	}
-	\(simplification.append(n)\)
+	\(simplification.\text{append}(n)\)
+	\Return{\(simplification\)}
   \caption{PolylineSimplificationWithEpsilon0(\(P\))}
   \label{algo:simplify_epsilon0}
 \end{algorithm}
 
-To test if a point lies on a line segment is trivial but for completeness sake we derive it. A point \(p\) lies on \(\overline{uv}\) if and only if there is \(t \in [0,1]\) such that \(p = u + t(v-u)\) or equivalently \(p - u = t(v-u)\). So we need \(t = \frac{p_i - u_i}{v_i - u_i}\) for all entries \(i\). To avoid divions by \(0\) we can reformulate it as 
-\((p_{i-1} - u_{i-1})(v_i - u_i) = (p_i - u_i)(v_{i-1} - u_{i-1})\) for all \(i \geq 1\). To enforce the condition that \(t \in [0, 1]\) we require \(0 \leq \frac{p_i-u_i}{v_i - u_i} \leq 1\) which is equivalent to \(u_i \leq p_i \leq v_i \) if \(v_i \geq u_i\) and otherwise \(v_i \leq p_i \leq u_i\) for any component that does not contain the same value for \(u_i, v_i\) and \(p_i\). 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Testing if a point lies on a line segment is straightforward. For completeness, we derive the condition. A point \(p\) lies on \(\overline{uv}\) if and only if there exists \(t \in [0,1]\) such that \(p = u + t(v-u)\), or equivalently, \(p - u = t(v-u)\). Thus, for all coordinates \(i\), we need \(t = (p_i - u_i)/(v_i - u_i)\) to be the same. To avoid division by zero, we can reformulate this as \((p_{i-1} - u_{i-1})(v_i - u_i) = (p_i - u_i)(v_{i-1} - u_{i-1})\) for all \(i \geq 1\). To ensure \(t \in [0, 1]\), we require \(u_i \leq p_i \leq v_i\) (or \(v_i \leq p_i \leq u_i\)) for any coordinate where \(u_i \neq v_i\).
