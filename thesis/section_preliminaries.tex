@@ -1,9 +1,9 @@
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-This section introduces the notation, conventions, and definitions used throughout this report.  
+This section introduces the notation, conventions, and definitions used throughout this report.
 
-We denote the set of natural numbers \(\N\), including \(0\), and define \(\N_+ = \N \setminus\set{0}\) as the set of positive natural numbers. 
+We denote the set of natural numbers by \(\N\), which includes \(0\), and define \(\N_+ = \N \setminus\set{0}\) as the set of positive natural numbers.
 
 \subsection{Polylines}
 \label{ssec:polylines}
@@ -11,113 +11,113 @@ We denote the set of natural numbers \(\N\), including \(0\), and define \(\N_+ 
 The central geometric object of our study is the \emph{polyline}, defined as follows:
 
 \begin{definition}[Polyline]
-  Let \(d\in \N_+\) and \(n \in \N\) be natural numbers and \(u_0, \dots, u_n \in \R^d\) be \(d\)-dimensional points. 
+  Let \(d\in \N_+\) and \(n \in \N\) be natural numbers, and let \(u_0, \dots, u_n \in \R^d\) be points in \(d\)-dimensional space.
 
-  The sequence \(P = \angl{u_0, \dots, u_n}\) is a \(d\)-dimensional \emph{polyline} of length \(n\). It consists of \(n+1\) many points which are connected by \(n\) line segments. 
+  The sequence \(P = \angl{u_0, \dots, u_n}\) is a \(d\)-dimensional \emph{polyline} of length \(n\). It consists of \(n+1\) points connected by \(n\) line segments.
   \begin{itemize}
-    \item We interpret \(P\) as a function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for \(i \in \set{0, \dots, n}\).
-
-      Points in between are linearly interpolated, meaning that for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\) we set \(P(i + t) = (1- t)u_i + t u_{i+1} = u_i + t(u_{i+1} - u_i)\)
-    \item We denote \(P[t'\dots t]\) as the subpolyline from \(t' \in [0, n]\) to \(t \in [t', n]\). Formally, \[P[t'\dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2) \dots, P(\ceil{t} - 1), P(t)}.\]
+    \item We interpret \(P\) as a continuous function \(P:[0,n] \to \R^d\) such that \(P(i) = u_i\) for \(i \in \set{0, \dots, n}\).
+      Points in between integers are linearly interpolated: for \(t \in [0, 1]\) and \(i \in \set{0, \dots, n - 1}\), we set \(P(i + t) = (1- t)u_i + t u_{i+1} = u_i + t(u_{i+1} - u_i)\).
+    \item We denote by \(P[t' \dots t]\) the subpolyline from parameter \(t' \in [0, n]\) to \(t \in [t', n]\). Formally,
+			\[P[t' \dots t] = \angl{P(t'), P(\floor{t'} + 1),  P(\floor{t'} + 2), \dots, P(\ceil{t} - 1), P(t)}.\]
   \end{itemize}
-
 \end{definition}
-We denote the dimension by \(d\) throughout the report. Polylines are mostly written as capital letters \(P\) and \(Q\) unless they are single line segments, in which case they are mostly denoted as \(e\). The length of a polyline is typically \(n\), \(p\), or \(q\) where \(p\) and \(q\) are generally the lengths of \(P\) and \(Q\) and \(n\) is used when only discussing a single polyline. Further, similarly to \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} we differentiate between \(\O\) and \(\Oh\) notation where the latter hides polynomial factors\footnote{In this thesis, no exponential factors appear so \(\Oh\) hides all factors in \(d\)} in \(d\). 
+
+We denote the dimension by \(d\) throughout the report. Polylines are typically denoted by capital letters such as \(P\) and \(Q\). Single line segments are often denoted by \(e\).
+
+The length of a polyline is typically denoted by \(n\), \(p\), or \(q\), where \(p\) and \(q\) are the lengths of \(P\) and \(Q\), respectively, and \(n\) is used when discussing a single polyline.
+
+Following \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}, we differentiate between \(\O\) and \(\Oh\) notation, where the latter hides polynomial factors in \(d\)\footnote{In this thesis, no exponential factors appear, so \(\Oh\) hides all factors depending on \(d\).}.
 
 \subsection{Distances}
 \label{ssec:distances}
-We distinguish between distances between points and distances between polylines. 
+We distinguish between distances between points and distances between polylines.
 
 \begin{definition}[Distances]\label{def:point_distance}
   Let \(d \in \N_+\) and \(\ell \geq 1\).
   \begin{itemize}
-    \item The \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) is defined as 
+    \item The \emph{unnormalized \(\ell\)-Minkowski distance} \(\delta'_\ell\) is defined as
       \[\delta'_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \sum_{i = 1}^d |u_i - v_i|^\ell.\]
-    \item The \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) is 
+    \item The \emph{(normalized) \(\ell\)-Minkowski distance} \(\delta_\ell\) is
       \[\delta_\ell:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \delta'_\ell(u, v)^{\frac1\ell} = \parenth{\sum_{i = 1}^d |u_i - v_i|^\ell}^{\frac1\ell}.\]
     \item The special case of \(\delta_2'\) is called the \emph{unnormalized Euclidean distance} and \(\delta_2\) the \emph{(normalized) Euclidean distance}.
-    \item In the case of \(\ell = 1\), the unnormalized and normalized versions coincide. We call \(\delta_1' = \delta_1\) the \emph{Manhattan distance}. 
-    \item We further define the \emph{Chebyshev distance} \(\delta'_\infty = \delta_\infty\) as 
+    \item When \(\ell = 1\), the unnormalized and normalized versions coincide. We call \(\delta_1' = \delta_1\) the \emph{Manhattan distance}.
+    \item We define the \emph{Chebyshev distance} \(\delta'_\infty = \delta_\infty\) as
       \[\delta_\infty:\R^d \times \R^d \to \R_{\geq 0}, (u, v) \mapsto \max_{i = 1, \dots, d} |u_i - v_i|.\]
     \item We define the auxiliary function \(\nu_\ell:\R_{\geq 0} \to \R_{\geq 0}\) as \(\nu_\ell(x) = x^\ell\) for \(\ell \neq \infty\) and \(\nu_\infty(x) = x\).
   \end{itemize}
-
   The subscript \(\ell\) is omitted when clear from context.
 \end{definition}
 
-The Euclidean distance (\(\ell = 2\)) is the most widely used metric. The Manhattan distance (\(\ell = 1\)) and Chebyshev distance (\(\ell = \infty\)) are computationally simpler, as they avoid roots. 
-Other Minkowski distances are less common due to numerical instability and lack of geometric interpretation. The unnormalized variants will later allow us to avoid explicit root computations in algorithms. 
+The Euclidean distance (\(\ell = 2\)) is the most widely used metric. The Manhattan distance (\(\ell = 1\)) and Chebyshev distance (\(\ell = \infty\)) are computationally simpler, as they avoid roots.
+Other Minkowski distances are less common due to numerical instability and lack of geometric interpretation. The unnormalized variants will later allow us to avoid explicit root computations in algorithms.
 
 \begin{definition}[Fréchet Distance]\label{def:frechet}
-  Let \(\delta\) be a normalized distance. The \emph{Fréchet distance} \(\delta^F\) between two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\), respectively, is 
+  Let \(\delta\) be a normalized distance. The \emph{Fréchet distance} \(\delta^F\) between two polylines \(P\) and \(Q\) of lengths \(p\) and \(q\), respectively, is
 	\[\delta^F(P, Q) = \inf_{\substack{f \in \mathcal{C}([0,1], [0, p]) \\ g \in \mathcal{C}([0,1], [0, q])}} \max_{t \in [0,1]}\delta(P(f(t)), Q(g(t))),\]
-	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, monotone functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) and \(f(b) = d\).
+	where \(\mathcal{C}([a,b], [c,d])\) denotes the set of continuous, non-decreasing functions \(f\) mapping \([a,b]\) to \([c,d]\) with \(f(a) = c\) and \(f(b) = d\).
 \end{definition}
 
 \begin{definition}[Polyline Simplification]
-	Given a polyline \(P\) of length \(n\), and \(\varepsilon > 0\), and a distance \(\delta\), \emph{global Fréchet simplification problem} seeks a minimal subsequence \(Q\) of \(P\)'s vertices that includes both the start \(P(0)\) and end \(P(n)\), and \(\delta^F(P, Q) \leq \varepsilon\).
+	Given a polyline \(P\) of length \(n\), an error parameter \(\varepsilon > 0\), and a distance \(\delta\), the \emph{global Fréchet simplification problem} is to find a minimal subsequence \(Q\) of the vertices of \(P\) that includes the start point \(P(0)\) and the end point \(P(n)\), and satisfies \(\delta^F(P, Q) \leq \varepsilon\).
 \end{definition}
 
-This differs from \emph{local} simplification, where each line segment \(e = \overline{S(i)S(i+1)}\) must satisfy the property \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\) for its corresponding subpolyline. We focus on the global Fréchet case but cover the local one briefly in \cref{sec:polyline-simplification}.
+This differs from \emph{local} simplification, where each line segment \(e = \overline{S(i)S(i+1)}\) of the simplification must satisfy \(\delta^F(e, P[j' \dots j]) \leq \varepsilon\) for its corresponding subpolyline. We focus on the global Fréchet case but cover the local one briefly in \cref{sec:polyline-simplification}.
 
-We refer to a solution \(Q\) of the global Fréchet simplification problem as a \emph{polyline simplification}. Further, a subsequence \(Q\) of a polyline \(P\) that has a Fréchet distance within \(\varepsilon\) and the first and last point match will be refered to as a non-optimal simplification, i.e., it satisfies all properties of a polyline simplification except for minimality.
+We refer to a solution \(Q\) of the global Fréchet simplification problem as a \emph{polyline simplification}. Furthermore, any subsequence \(Q\) of \(P\) that includes \(P(0)\) and \(P(n)\) and satisfies \(\delta^F(P, Q) \leq \varepsilon\) will be referred to as a \emph{non-optimal simplification}; it meets all criteria except minimality.
 
 \subsection{Properties of Distances}
 All introduced distances are \emph{metrics} on \(\R^d\)~\cite{metric_spaces}:
 
 \begin{definition}[Metric Spaces]\label{def:metric}
-  Let \(X\) be a set and \(\delta:X\times X \to \R\). \(\delta\) is a \emph{metric} on \(X\) if and only if for each \(a, b, c \in X\), 
+  Let \(X\) be a set and \(\delta:X\times X \to \R\). Then \(\delta\) is a \emph{metric} on \(X\) if for all \(a, b, c \in X\):
   \begin{itemize}
     \item \(\delta(a, b) \geq 0\) with equality if and only if \(a = b\), \hfill (Positivity)
     \item \(\delta(a, b) = \delta(b, a)\), and \hfill (Symmetry)
     \item \(\delta(a, c) \leq \delta(a, b) + \delta(b, c)\). \hfill (Triangle Inequality)
   \end{itemize}
-
   A set \(X\) together with a metric \(\delta\) is called a \emph{metric space}.
 \end{definition}
 
 \begin{observation}\label{obs:unnormalize}
-  Let \(\ell \in [1, \infty]\), \(\varepsilon > 0\), and \(u, v \in \R^d\). Then 
+  Let \(\ell \in [1, \infty]\), \(\varepsilon > 0\), and \(u, v \in \R^d\). Then
     \[\delta_\ell(u, v) \leq \varepsilon \iff \delta_\ell'(u, v) \leq \nu_\ell(\varepsilon).\]
 \end{observation}
 
 \begin{lemma}\label{lem:distance_properties}
-	Let \(\delta\) be any Minkowski distance (including Chebyshev). For all \(u, v, w, x \in \R^d\), \(a \in \R\), and \(t \in [0, 1]\)
+	Let \(\delta\) be any Minkowski distance (including Chebyshev). For all \(u, v, w, x \in \R^d\), \(a \in \R\), and \(t \in [0, 1]\):
   \begin{enumerate}
-		\item \(\delta(u, v) = \delta(u - w, v - w)\), \hfill (Translation)
+		\item \(\delta(u, v) = \delta(u - w, v - w)\), \hfill (Translation Invariance)
 		\item \(\delta(a u, a v) = |a| \delta(u, v)\), \hfill (Homogeneity)
-		\item Let \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). \newline 
-			Then \(\delta(u + t(v-u), w) = \delta((1-t)u + tv, w) \leq \varepsilon\), and \hfill (Convexity)
+		\item If \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\), then \(\delta((1-t)u + tv, w) \leq \varepsilon\). \hfill (Convexity)
 		\item \(\delta^F(\overline{uv}, \overline{wx}) \leq \varepsilon\) if and only if \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, x) \leq \varepsilon\).
 	\end{enumerate}
-
 \end{lemma}
 
-Convexity implies that \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is a convex set for fixed \(v \in \R^d\) and \(\varepsilon \geq 0\), motivating the name of the property. The fourth property gives us a characterization of the Fréchet distance when comparing single line segments. 
+Property (3) implies that the set \(\set{u \mid \delta(u, v) \leq \varepsilon }\) is convex for fixed \(v \in \R^d\) and \(\varepsilon \geq 0\), motivating the name. Property (4) provides a simple characterization of the Fréchet distance between two line segments.
 
 \begin{proof}
   \begin{enumerate}
-    \item Follows directly from definitions.
-    \item Follows directly from definitions.
-    \item Assume \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). Then
+    \item Follows directly from the definitions.
+    \item Follows directly from the definitions.
+		\item Assume \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). Let \(z = (1-t)u + tv\). Then,
 			\begin{flalign*}
-				\delta((1-t)u + tv, w) &= \delta((1-t)u + tv- w, 0) && \textrm{Translation}\\
-         &= \delta((1-t)(u-w)+t(v-w), 0) \\
-         &= \delta((1-t)(u-w),t(w-v)) && \textrm{Translation}\\
-         &\leq \delta((1-t)(u-w),0) + \delta(0,t(w-v)) && \textrm{Triangle Inequality}\\
-				 &= (1-t)\delta(u,w) + t\delta(v,w) && \textrm{Homogeneity} \\
-				 &\leq (1-t)\varepsilon + t\varepsilon = \varepsilon.\\
+				\delta(z, w) &= \delta(z - w, 0) && \text{(Translation)} \\
+        	&= \delta((1-t)(u-w) + t(v-w), 0) \\
+					&\leq \delta((1-t)(u-w), 0) + \delta(t(v-w), 0) && \text{(Triangle Inequality)} \\
+					&= (1-t)\delta(u-w, 0) + t\delta(v-w, 0) && \text{(Homogeneity)} \\
+					&= (1-t)\delta(u, w) + t\delta(v, w) && \text{(Translation)} \\
+					&\leq (1-t)\varepsilon + t\varepsilon = \varepsilon.
     \end{flalign*}
-  \item The forward direction, follows as the first and last points of the two polylines must match (the minimization in the definition of the Fréchet distance is over functions \(f, g\) with \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\)). 
-		For the backward direction, we construct respective functions \(f\) and \(g\), in fact, the identity functions suffices for both, i.e., \(f(t) = g(t) = t\) suffices as 
+	\item (\(\Rightarrow\)) This direction follows because the reparameterizations \(f\) and \(g\) must satisfy \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\), so the endpoints are matched at \(t=0\) and \(t=1\).
+
+		(\(\Leftarrow\)) For the backward direction, consider the linear reparameterizations \(f(s) = s\) and \(g(s) = s\) for \(s \in [0,1]\). Then, for any \(s \in [0, 1]\),
     \begin{flalign*}
-			& \quad \delta((1-f(t))u + f(t)v, (1-g(t))w + g(t)x) \\
-			=& \quad \delta((1-t)u + tv, (1-t)w + tx) \\
-			=& \quad \delta((1-t)(u-w), t(x-v)) && \textrm{Translation}\\
-			\leq& \quad \delta((1-t)(u-w), 0) + \delta(0, t(x-v)) && \textrm{Triangle Inequality}\\
-			=& \quad (1-t)\delta(u, w) + t\delta(x, v) && \textrm{Homogeneity and Translation} \\
-			\leq& \quad (1-t)\varepsilon + t\varepsilon \\
-			\leq& \quad \varepsilon.
+			\delta(P(f(s)), Q(g(s))) &= \delta((1-s)u + sv, (1-s)w + sx) \\
+			&= \delta((1-s)(u-w) + s(v-x), 0) && \text{(Translation)} \\
+			&\leq \delta((1-s)(u-w), 0) + \delta(s(v-x), 0) && \text{(Triangle Inequality)} \\
+			&= (1-s)\delta(u, w) + s\delta(v, x) && \text{(Homogeneity and Translation)} \\
+			&\leq (1-s)\varepsilon + s\varepsilon = \varepsilon.
     \end{flalign*}
+		Since the maximum over \(s \in [0,1]\) is at most \(\varepsilon\), the Fréchet distance is at most \(\varepsilon\).
   \end{enumerate}
 \end{proof}
