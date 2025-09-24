@@ -230,5 +230,12 @@ Interestingly, all four plots seem to approach concave functions for which we ha
   \label{fig:vary_e200}
 \end{figure}
 
+Finally, we investigate how local and global simplification sizes differs in \cref{fig:res-local-global}. For this we used the Euclidean variant of the Imai-Iri algorithm to compare against and plot the average simplification sizes on well-behaved and non-well-behaved data. This might be the most surprising result as the sizes do not differ in any meaningful way. On well-behaved data they are indistinguishable and on non-well-behaved the local simplifications are marginally larger.
 
 
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/res_local_global.png}
+  \caption{Comparison of local and global simplification sizes on well-behaved and non-well-behaved data.}
+  \label{fig:res-local-global}
+\end{figure}
