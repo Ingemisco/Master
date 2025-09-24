@@ -7,81 +7,81 @@
 As the main step to achieve cubic runtime, \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} introduce the \emph{cell reachability} problem and show how to solve it efficiently. We introduce a slightly generalized version of the problem and a modified version of the algorithm. 
 
 \begin{definition}[Cell Reachability Problem]
-	Let \(X\) and \(Y\) be sets and \(\leq\) be a relation on \(X \times (X \cup Y)\) such that it is a total preorder on \(X\), i.e., \(\leq\) is reflexive and transitive and any two elements are comparable but \(\leq\) is not necessarily antisymmetric. Let \(0\in X\) be a minimal element and \(1\in Y\) be a maximal element (both of which must exist). Further, \(\leq\) must be transitive in the sense that if \(x_1 \leq x_2 \leq y\) for \(x_1, x_2 \in X\) and \(y \in Y\) then also \(x_1 \leq y\).
+	Let \(X\) and \(Y\) be sets, and let \(\leq\) be a relation on \(X \times (X \cup Y)\) such that it is a total preorder on \(X\) (i.e., \(\leq\) is reflexive, transitive, and any two elements in \(X\) are comparable, but it is not necessarily antisymmetric). Let \(0 \in X\) be a minimal element and \(1 \in Y\) be a maximal element (both of which must exist). Furthermore, \(\leq\) must be transitive in the sense that if \(x_1 \leq x_2 \leq y\) for \(x_1, x_2 \in X\) and \(y \in Y\), then also \(x_1 \leq y\).
 
-	In the \emph{cell reachability problem} we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in (0, \infty]\), as well as intervals \(I_1, \dots, I_{n-1}\) which are written as pairs \([a_i, b_i]\) with \(a_i \in X, b_i \in Y\). 
+	In the \emph{cell reachability problem}, we are given \emph{entry-costs} \(\lambda_1, \dots, \lambda_n \in (0, \infty]\), as well as intervals \(I_1, \dots, I_{n-1}\), each written as a pair \([a_i, b_i]\) with \(a_i \in X, b_i \in Y\).
 
 	\begin{itemize}
-		\item As with regular intervals, we say \(x \in [a, b]\) if and only if \(a \leq x \leq b\) for \(x \in X\). The interval is empty  if \(\lnot (a \leq b)\). 
-	  
-		\item We define a relation \(\prec\) on \(\set{1, \dots, n}\) such that \(i \prec j\) holds if and only if \(i < j\) and there are \(x_i \in I_i, \dots, x_{j-1} \in I_{j-1}\) with \(x_i \leq \dots \leq x_{j - 1}\).
+		\item As with regular intervals, we say \(x \in [a, b]\) for \(x \in X\) if and only if \(a \leq x \leq b\). The interval is empty if \(\lnot (a \leq b)\).
 
-		\item The goal of cell reachability is to find the sequence of minimal \emph{exit-costs} \(\angl{\mu_1, \dots, \mu_n}\) where \(\mu_i \coloneq \min \set{ \lambda_j \mid j \prec i}\) wher we define \(\min \emptyset = \infty\).
+		\item We define a relation \(\prec\) on \(\set{1, \dots, n}\) such that \(i \prec j\) holds if and only if \(i < j\) and there exist \(x_i \in I_i, \dots, x_{j-1} \in I_{j-1}\) with \(x_i \leq \dots \leq x_{j - 1}\).
+
+		\item The goal of cell reachability is to find the sequence of minimal \emph{exit-costs} \(\angl{\mu_1, \dots, \mu_n}\), where \(\mu_i \coloneq \min \set{ \lambda_j \mid j \prec i}\) and we define \(\min \emptyset = \infty\).
 	\end{itemize}
 \end{definition}
 
-This is to be interpreted as a set of \(n\) consecutive square cells arranged in a line. Each has an assigned entry-cost and an exit-cost to be computed. The intervals are passages between neighboring cells. See \cref{fig:ex_cell_reachability_statement} for an example instance with solution.
+This problem can be interpreted as a set of \(n\) consecutive square cells arranged in a line. Each cell has an assigned entry-cost, and an exit-cost is to be computed. The intervals represent passages between neighboring cells. See \cref{fig:ex_cell_reachability_statement} for an example instance with a solution.
 
-This definition only differs from the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in that we allow positive real or infinite entry-costs \(\lambda \in (0, \infty]\) instead of integral ones and that we allow empty intervals. The first modification can also be solved with their original algorithm but only integral costs (including infinite costs) are used for the simplification algorithm. Empty intervals can occur but they handle them by performing cell reachability multiple times.  This makes their cell reachability algorithm simpler but forces the caller to know how to handle this case. The final generalization we make is the use of preordered sets instead of just \(X = Y = [0, 1]\) because it will be useful for the semiexplicit setting. 
+This definition differs from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s in two ways: we allow positive real or infinite entry-costs \(\lambda \in (0, \infty]\) instead of only integral ones, and we allow empty intervals. The first modification can also be handled by their original algorithm, but only integral costs (including infinite costs) are used for the simplification algorithm. Empty intervals can occur, but their algorithm handles them by performing cell reachability multiple times. This makes their cell reachability algorithm simpler but requires the caller to handle this case. The final generalization is the use of preordered sets instead of just \(X = Y = [0, 1]\), which we use to cover the semiexplicit setting.
 
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=1, width=0.9\linewidth]{tikz-fig/ex_cell_reachability_statement.pdf}
-  \caption{An instance of cell reachability. The last three intervals are empty. The first cell is the left most, the lower boundary of the intervals is the below, the upper boundary is on top. The cells can be traversed only by going right or up.}
+  \caption{An instance of cell reachability. The last three intervals are empty. The first cell is the leftmost; the lower boundary of each interval is below, and the upper boundary is on top. Cells can be traversed only by moving right or up.}
   \label{fig:ex_cell_reachability_statement}
 \end{figure}
 
-We now inspect properties of the exit-costs to derive the algorithm. We refer to the paths drawn in \cref{fig:ex_cell_reachability_statement} as examples for these properties. We define \(x_{i, j}\) as the minimal \(x_{j-1} \in I_{j-1}\) such that there exist \(x_i \in I_i, \dots, x_{j-2} \in I_{j-2}\) with \(x_i \leq \dots \leq x_{j-2} \leq x_{j-1}\) for \(i < j\). If no such value exists, we set \(x_{i, j} = \infty\). We call \(x_{i,j}\) the \emph{first reachable point in \(j\) from \(i\)}. It holds trivially that \(\mu_i = \min \set{\lambda_j \mid x_{i, j} \neq \infty}\).
+We now examine properties of the exit-costs to derive the algorithm. We refer to the paths drawn in \cref{fig:ex_cell_reachability_statement} as examples for these properties. We define \(x_{i, j}\) as the minimal \(x_{j-1} \in I_{j-1}\) such that there exist \(x_i \in I_i, \dots, x_{j-2} \in I_{j-2}\) with \(x_i \leq \dots \leq x_{j-2} \leq x_{j-1}\) for \(i < j\). If no such value exists, we set \(x_{i, j} = \infty\). We call \(x_{i,j}\) the \emph{first reachable point in cell \(j\) from cell \(i\)}. It holds trivially that \(\mu_i = \min \set{\lambda_j \mid x_{i, j} \neq \infty}\).
 
 \begin{observation}\label{obs:recursive_x}
   \begin{enumerate}
-		\item \(x_{i, i+1} = a_i\) for \(i \in \set{1, \dots, n - 1}\) 
-		\item For \(i, j \in \set{1, \dots, n}\) with \(i + 1 < j\)
-			\[x_{i, j} = 
+		\item \(x_{i, i+1} = a_i\) for \(i \in \set{1, \dots, n - 1}\).
+		\item For \(i, j \in \set{1, \dots, n}\) with \(i + 1 < j\),
+			\[x_{i, j} =
 			\begin{cases}
-				\max(a_{j-1}, x_{i, j - 1}) & \textrm{if } x_{i, j-1} \leq b_{j-1}\\
-				\infty &\textrm{otherwise}
+				\max(a_{j-1}, x_{i, j - 1}) & \textrm{if } x_{i, j-1} \leq b_{j-1},\\
+				\infty &\textrm{otherwise}.
 			\end{cases}\]
   \end{enumerate}
 \end{observation}
 
-To compute \(\mu_j\) we maintain the set of all relevant pairs \(S_j = \set{(\lambda_i, x_{i, j}) \mid i < j, x_{i, j} \neq \infty}\). At each iteration \(j\) we update this set of pairs by removing unnecessary ones and possibly adding new ones. It is \(\mu_j = \lambda\) where \((\lambda, x) \in S_j\) with \(\lambda\) minimal and \(x \in I_{j-1}\).
+To compute \(\mu_j\), we maintain a set of relevant pairs \(S_j = \set{(\lambda_i, x_{i, j}) \mid i < j, x_{i, j} \neq \infty}\). At each iteration \(j\), we update this set by removing unnecessary pairs and possibly adding new ones. Then, \(\mu_j\) is the minimal \(\lambda\) among pairs \((\lambda, x) \in S_j\) for which \(x \in I_{j-1}\).
 
 \begin{lemma}\label{lem:asc-desc}
 	Let \((\lambda_i, x_{i, j}), (\lambda_{i'}, x_{i', j}) \in S_j\) for a fixed \(j \in \set{1, \dots, n-1}\). If \(x_{i, j} \leq x_{i', j}\) and \(\lambda_i \leq \lambda_{i'}\), we can safely remove \((\lambda_{i'}, x_{i', j'})\) from all \(S_{j'}\) with \(j' \geq j\) without affecting any \(\mu_{j'}\).
 \end{lemma}
 \begin{proof}
-	Suppose that \(\mu_{j'} = \lambda_{i'}\). By following the construction of \cref{obs:recursive_x}, we see that \(x_{i, j'} \leq x_{i', j'}\) as \(x_{i, j} \leq x_{i', j}\) and thus \((x_{i, j'}, \lambda_i) \in S_{j'}\) but \(\mu_{j'} \leq \lambda_i \leq \lambda_{i'}\). Thus \(\lambda_i = \lambda_{i'}\) but \(\lambda_i\) has the smaller first reachable point \(x\) so we can use that pair wherever \((x_{i', j}, \lambda_{i'})\) would be used to arrive at the minimum.
+	Suppose that \(\mu_{j'} = \lambda_{i'}\). By following the construction in \cref{obs:recursive_x}, we see that \(x_{i, j'} \leq x_{i', j'}\), since \(x_{i, j} \leq x_{i', j}\). Thus, \((\lambda_i, x_{i, j'}) \in S_{j'}\), and \(\mu_{j'} \leq \lambda_i \leq \lambda_{i'}\). Therefore, \(\lambda_i = \lambda_{i'}\), but \(\lambda_i\) has the smaller first reachable point \(x\), so we can use that pair wherever \((\lambda_{i'}, x_{i', j})\) would be used to achieve the minimum.
 \end{proof}
 
-By \cref{lem:asc-desc} sorting according to the first component of the tuples ascendingly and sorting according to the second coordinate descendingly is equivalent. This motivates storing the tuples in a sorted list which allows retrieving \(\mu_j\) by accessing the last element whose first component is in the interval \(I_{j-1}\). Note that there can be no pair whose first coordinate \(x > b_{j-1}\) is it would have been impossible for it to pass through interval \(I_{j-1}\). Thus \(\mu_j\) is the first component of the last entry of the sorted sequence. 
+By \cref{lem:asc-desc}, sorting the tuples in ascending order by their first component (\(\lambda\)) is equivalent to sorting them in descending order by their second component (\(x\)). This motivates storing the tuples in a sorted list, which allows retrieving \(\mu_j\) by accessing the last element whose second component lies within the interval \(I_{j-1}\). Note that no pair with \(x > b_{j-1}\) can be in \(S_j\), as it would have been impossible to pass through interval \(I_{j-1}\). Thus, \(\mu_j\) is the first component of the last entry in the sorted sequence.
 
-This also gives us another way to update the sequence: When updating the sequence for \(I_{j-1}\) we can remove the last entries that lie outside the interval. Similarly we must update the first entries that are before the interval as the new first reachable point cannot lie before it. We can use this step to merge all such pairs to one with the least \(\lambda\). This already concludes the construction of the algorithm. To account for empty intervals, it suffices to empty the whole current sequence. The implementation in \cref{algo:cell_reachability} is written to reuse the queue in the simplification algorithm to avoid unnecessary allocation and initialization.
+This also gives us a way to update the sequence: when updating for \(I_{j-1}\), we can remove entries from the end that lie outside the interval (\(x > b_{j-1}\)). Similarly, we must update entries from the beginning that are below the interval (\(x < a_{j-1}\)), as the new first reachable point cannot be less than \(a_{j-1}\). We can merge all such pairs into one with the least \(\lambda\). This concludes the construction of the algorithm. To account for empty intervals, it suffices to clear the entire current sequence. The implementation in \cref{algo:cell_reachability} is written to reuse the queue from the simplification algorithm to avoid unnecessary allocation and initialization.
 
-The necessary operations are queue operations which can be implemented in constant time using an array. For each \(\lambda_i\) we add at most one element to the queue so te total size is bounded by \(n\). By preallocating an array of size \(2n - 1\) and starting in the middle, we can guarantee that we avoid reaching either end of the array so we can avoid modulo operations, allowing for a simple and fast queue implementation.
+The necessary queue operations can be implemented in constant time using an array. For each \(\lambda_i\), we add at most one element to the queue, so the total size is bounded by \(n\). By preallocating an array of size \(2n - 1\) and starting in the middle, we can guarantee that we avoid reaching either end of the array, allowing for a simple and fast queue implementation without modulo operations.
 
-As a practical note, we mention that the two early returns in line 7,8 and 28, 29 can be improved somewhat. The second return can be completely removed as it is only to prevent undefined behaviour. The value of the interval is never actually used as the loop would finish immediately after. Extending the array of intervals by one is the faster and more elegant solution. The first condition can be pulled out of the innermost loop and put just before the update of the interval (but it is necessary to compare against \(n\) instead of \(n-1\)). We only need to guarantee that the just artificially added last entry is a non-empty interval. 
+As a practical note, the two early returns in lines 5-6 in \cref{algo:cell_reachability_empty} and 20-21 in \cref{algo:cell_reachability} can be improved. The second return can be removed entirely, as it only prevents undefined behavior; the value of the interval is never used, as the loop would finish immediately after. Extending the array of intervals by one is a faster and more elegant solution. The first condition can be moved out of the innermost loop and placed just before the interval update (but it is necessary to compare against \(n\) instead of \(n-1\)). We only need to guarantee that the artificially added last entry is a non-empty interval.
 
 \begin{algorithm}[htb]
   \DontPrintSemicolon
-	\KwData{Entry-costs \(\lambda_0, \dots, \lambda_{n-1}\), intervals \(I_0 = [a_0, b_0], \dots, I_{n-2} = [a_{n-2}, b_{n-2}], Queue\ queue\)}
+	\KwData{Entry-costs \(\lambda_0, \dots, \lambda_{n-1}\), intervals \(I_0 = [a_0, b_0], \dots, I_{n-2} = [a_{n-2}, b_{n-2}]\), Queue \(queue\)}
 	\KwResult{Sequence \(\angl{\mu_0, \dots, \mu_{n-1}}\)}
   \BlankLine
 	\(last\_interval \gets \emptyset\) \;
-	\For{\(j=0 \dots n - 1\)} {
+	\For{\(j=0\) \KwTo \(n - 1\)} {
 		HandleEmptyIntervals\;
 		\(k_{left} \gets \lambda_{j-1}\)\;
 		\While{\(\lnot queue.empty()\)}{
 			\((k, t) \gets queue.peek\_front()\)\;
 			\If{\(k < \lambda_{j-1} \land t > last\_interval.left\) }{\Break}
-			\(k\_left \gets \min(k\_left, k)\)\;
+			\(k_{left} \gets \min(k_{left}, k)\)\;
 			\(queue.pop\_front()\)
 		}
-		\(queue.push\_front((k\_left, last\_interval.left))\) \;
+		\(queue.push\_front((k_{left}, last\_interval.left))\) \;
 		\While{\(\lnot queue.empty()\)}{
 			\((k, t) \gets queue.peek\_back()\)\;
 			\If{\(t \leq last\_interval.right\) }{\Break}
-			\(k\_left \gets \min(k\_left, k)\)\;
+			\(k_{left} \gets \min(k_{left}, k)\)\;
 			\(queue.pop\_back()\)
 		}
 		\((k, t) \gets queue.peek\_back()\) \;
@@ -95,7 +95,7 @@ As a practical note, we mention that the two early returns in line 7,8 and 28, 2
 
 \begin{algorithm}[htb]
   \DontPrintSemicolon
-	\KwResult{Handles the empty intervals and sets respective \(\mu_j\), updates data as necessary}
+	\KwResult{Handles the empty intervals and sets the respective \(\mu_j\), updates data as necessary}
   \BlankLine
 	\If{\(last\_interval = \emptyset\)}{
 		\(queue.reset()\) \;
@@ -115,7 +115,7 @@ As a practical note, we mention that the two early returns in line 7,8 and 28, 2
 \subsection{Cell Reachability Example}
 \label{ssec:cell_reachability_ex}
 
-For practical intuition into \cref{algo:cell_reachability}, we perform an example run with the example given in \cref{fig:ex_cell_reachability_statement}. The intervals are given in \cref{tab:cell_reachability_intervals}, the entry-costs are already given in \cref{fig:ex_cell_reachability_statement}.
+To build practical intuition for \cref{algo:cell_reachability}, we perform an example run using the instance from \cref{fig:ex_cell_reachability_statement}. The intervals are given in \cref{tab:cell_reachability_intervals}, and the entry-costs are shown in \cref{fig:ex_cell_reachability_statement}.
 
 \begin{table}[htb]
   \centering
@@ -127,7 +127,7 @@ For practical intuition into \cref{algo:cell_reachability}, we perform an exampl
 		\(I_3\) & \(=\) & \([0.23, 0.90]\) \\
 		\(I_4\) & \(=\) & \([0.12, 0.80]\) \\
 		\(I_5\) & \(=\) & \([0.34, 0.68]\) \\
-		\(I_6\) & \(=\) & \(\emptyset\) \\ 
+		\(I_6\) & \(=\) & \(\emptyset\) \\
 		\(I_7\) & \(=\) & \(\emptyset\) \\
 		\(I_8\) & \(=\) & \(\emptyset\) \\
 		\hline
@@ -136,28 +136,28 @@ For practical intuition into \cref{algo:cell_reachability}, we perform an exampl
 	\label{tab:cell_reachability_intervals}
 \end{table}
 
-We iterate from \(j = 0\) to \(j = n - 1 = 9\). The initial \(last\_interval\) is the empty set \(\emptyset\). Thus we go into the branch from lines 3 to 11 and the queue is reset. This always happens initially so we can reuse the queue throughout all calls to this algorithm and don't need to explicitly reset the queue. 
+We iterate from \(j = 0\) to \(j = n - 1 = 9\). The initial \(last\_interval\) is the empty set \(\emptyset\). Thus, we enter theempty-interval branch, and the queue is reset. This always happens initially, so we can reuse the queue throughout all calls to this algorithm without needing an explicit reset.
 
-The loop in lines 5 to 10 skips over all empty intervals until we reach the next non-empty one. If the interval before a cell is empty, the exit-cost must be \(\infty\) as we have an empty minimization in the definition of the exit-cost. In this example, we set \(\mu_1 = \infty\) and can already stop with the inner loop after the first iteration. Hereafter, \(j = 1\) and \(last\_interval = [0.70, 1.00]\). 
+The loop in lines 3 to 8 in \cref{algo:cell_reachability_empty} skips over all empty intervals until it reaches the next non-empty one. If the interval before a cell is empty, the exit-cost must be \(\infty\), as the minimization is over an empty set. In this example, we set \(\mu_0 = \infty\) and increment \(j\). After the first iteration, \(j = 1\) and \(last\_interval = I_0 = [0.70, 1.00]\).
 
-Lines 12 to 18 update all values in the queue whose first reachable point is before the interval. In this case, the queue is empty, so we only need to add the tuple \((1, 0.7)\) to the queue. This entry in the queue means that we can reach the current cell \(j = 1\) with at most cost \(1\) where with its first reachable point being \(0.7\). For all further iterations this first reachable point can only be put later or the tuple can be removed completely. 
+Lines 12 to 18 update values in the queue whose first reachable point is before the current interval. In this case, the queue is empty, so we only need to add the tuple \((1, 0.7)\) to the queue. This entry means that we can reach the current cell \(j = 1\) with a cost of at most \(1\), and the first reachable point within the cell is \(0.7\). For all further iterations, this first reachable point can only be shifted later, or the tuple can be removed.
 
-Now we need to remove the pairs whose first reachable point is after the current interval. In this case, there is none. We set \(\mu_2 = 1\) and update the last interval to \(I_2 = [0.44, 0.90]\).
+Now, we remove pairs whose first reachable point is after the current interval. In this case, there are none. We set \(\mu_1 = 1\) and update \(last\_interval\) to \(I_1 = [0.44, 0.90]\).
 
-In the next iteration, the last interval was not empty. We set \(k_{left} = 3\) but as the queue is non-empty, we need to check if any elements need to be updated at the front. As \(0.44 \leq 0.7 \leq 0.9\), the queue does not change in lines 13 to 18. We push the new pair \((3, 0.44)\) to the front. The current queue consists of the two elements \((3, 0.44)\) and \((1, 0.7)\) in that order. Notice again that the first components are descending but the second ones are ascending. This will hold true for all iterations of the queue. 
+In the next iteration (\(j=2\)), the last interval was not empty. We set \(k_{left} = \lambda_1 = 3\). Since the queue is non-empty, we check if any elements at the front need updating. Because \(0.44 \leq 0.7 \leq 0.9\), the queue remains unchanged in lines 5 to 10. We push the new pair \((3, 0.44)\) to the front. The queue now contains the elements \((3, 0.44)\) and \((1, 0.7)\) in that order. Notice that the first components (costs) are in descending order from front to back, while the second components (points) are in ascending order. This invariant will hold for all iterations.
 
-Lines 20 to 25 do not affect the queue at all as \(0.7\) is still in bounds. We set \(\mu_3 = 1\). 
+Lines 20 to 25 do not affect the queue, as \(0.7\) is still within the interval bounds. We set \(\mu_2 = 1\).
 
-Iteration \(j = 3\) is similar to the previous one, so we look at \(j = 4\). The last interval is \([0.23, 0.90]\) and the current queue consists of \((5, 0), (3, 0.44), (1, 0.7)\). We skip the branch in lines 3 to 11 and set \(k_{left} = 10\). The first element of the queue is \((5, 0)\) and in fact, \(\lnot(0 > 0.23)\), so we remove it from the front and set \(k_{left} = \min(5, 10) = 5\). This concludes the first while loop from line 13 to 18. We push the new updated pair \((5, 0.23)\) to the front. This can be seen in \cref{fig:ex_cell_reachability_statement} by the merging of the two lines between the cells with entry-costs 10 and 7. 
+Iteration \(j = 3\) is similar to the previous one. Let's examine \(j = 4\) in detail. The last interval is \(I_3 = [0.23, 0.90]\), and the current queue is \([(5, 0), (3, 0.44), (1, 0.7)]\). We skip the empty-interval branch and set \(k_{left} = \lambda_3 = 10\). The first element of the queue is \((5, 0)\). Since \(0 \not> 0.23\), we remove it from the front and update \(k_{left} = \min(5, 10) = 5\). This concludes the first while loop (lines 5-10). We push the new updated pair \((5, 0.23)\) to the front. This update corresponds to the merging of paths from cells with entry-cost 10 and 7 in \cref{fig:ex_cell_reachability_statement}.
 
-As all currently stored second components are in bounds, the second while loop does nothing. We set \(\mu_4 = 1\).
+Since all remaining stored points are within the interval bounds, the second while loop does nothing. We set \(\mu_4 = 1\).
 
-Eventually, the additional return condition on lines 7 and 8 is triggered as the last interval is empty. A full list of all iterations can be found in \cref{tab:cell_reachability_execution}
+Eventually, the return condition for empty intervals is triggered. A complete list of all iterations can be found in \cref{tab:cell_reachability_execution}.
 
 \begin{table}[htb]
 	\centering
 	\begin{tabular}{|llcl|} \hline
-		iteration \(j\) & \(last\_interval\) & queue & performed actions \\ \hline
+		Iteration \(j\) & \(last\_interval\) & Queue & Performed Actions \\ \hline
 		\(j=0\) & \(\emptyset\) & undefined & reset queue \\
 		        & \(\emptyset\) & \([]\) & \(\mu_0 = \infty\) \\
 		\(j=1\) & \([0.70, 10]\)  & \([]\) & pushfront \((1, 0.7)\) \\
@@ -182,92 +182,85 @@ Eventually, the additional return condition on lines 7 and 8 is triggered as the
 		\(j=9\) & \(\emptyset\)    & \([]\) & \(\mu_9 = \infty\)\\
 		\hline 
   \end{tabular}
-	\caption{All iterations that would be performed on \cref{fig:ex_cell_reachability_statement} using \cref{algo:cell_reachability}}
+	\caption{Iterations performed on the instance from \cref{fig:ex_cell_reachability_statement} using \cref{algo:cell_reachability}}
 	\label{tab:cell_reachability_execution}
 \end{table}
 
 \subsection{Simplification Algorithm}
 \label{ssec:simplification_algo_cubic}
 
-The \(\Oh(n^3)\) algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} is a modification of the original polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} that improves the computations of each table entry. The cubic runtime per entry is brought down to amortized constant time per entry resulting (with some restructuring of the algorithm) in total cubic runtime. 
+The \(\Oh(n^3)\) algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} is a modification of the original polyline simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} that improves the computation of each table entry. The cubic runtime per entry in the na"ive algorithm is reduced to amortized constant time per entry, resulting (with some restructuring) in total cubic runtime.
 
-Similar to the Fréchet distance decision algorithm outlined earlier, we separate the two cases of subpolylines that consist of one or multiple line segments. We motivate this separation both by the specialized algorithm we have presented, as well as our exploration of implicit polyline simplification. We recall the setting of the specialized Fréchet distance decision problem. Given a subpolyline \(P[j' + t' \dots j + 1]\), a line segment \(e = \overline{P(i')P(i)}\), and \(\varepsilon > 0\). We want to determine if there is some point \(t \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], e) \leq \varepsilon\) and if so return the smallest one, in the implicit version we return the respective restriction point. We have seen that the restriction point depends on \(j' = j\), i.e., we compare a single line segment against \(e\), or \(j' < j\), i.e., we have a proper subpolyline. 
-In the case of \(j' < j\), there are two possible restriction points (if there is a solution): \(i'\) and \(r'\) where \(r'\) was the given restriction point that bounds \(t'\). If \(j' = j\) only \(i'\) can be the restriction point. This suggests that the two cases behave inherently different and should be treated separately. Instead of minimizing over all \(i' < i\) and \(j' \leq j\), we minimize separately over the cases \(i' < i, j' < j\) and \(i' < i, j' = j\) and finally combine the two results.
+Similar to the Fréchet distance decision algorithm outlined earlier, we separate the two cases of subpolylines that consist of one or multiple line segments. We recall the setting of the specialized Fréchet distance decision problem: given a subpolyline \(P[j' + t' \dots j + 1]\), a line segment \(e = \overline{P(i')P(i)}\), and \(\varepsilon > 0\), we want to determine if there exists \(t \in [0, 1]\) such that \(\delta^F(P[j' + t' \dots j + t], e) \leq \varepsilon\), and if so, return the smallest such \(t\) (or the respective restriction point in the implicit version). We have seen that the restriction point depends on whether \(j' = j\) (comparing a single line segment against \(e\)) or \(j' < j\) (comparing a proper subpolyline).
+In the case of \(j' < j\), there are two possible restriction points (if a solution exists): \(i'\) and \(r'\), where \(r'\) bounds \(t'\). If \(j' = j\), only \(i'\) can be the restriction point. This suggests the two cases behave inherently differently and should be treated separately. Instead of minimizing over all \(i' < i\) and \(j' \leq j\) simultaneously, we minimize separately over the cases \(i' < i, j' < j\) and \(i' < i, j' = j\), and finally combine the results.
 
-We introduce two additional tables \(DP_1\) and \(DP_2\) with the same dimensions as \(DP\) which store the result of minimization over \(j'=j\) and \(j' < j\) respectively. It holds \(DP[k, i, j] = \min(DP_1[k,i,j], DP_2[k,i,j])\) trivially. 
+We introduce two additional tables, \(DP_1\) and \(DP_2\), with the same dimensions as \(DP\), which store the results of the minimization over \(j'=j\) and \(j' < j\), respectively. It holds trivially that \(DP[k, i, j] = \min(DP_1[k,i,j], DP_2[k,i,j])\).
 
 \subsubsection{Case \(j' = j\)}
 
-In this case we start and end on the same line segment \(e = \overline{P(j)P(j+1)}\) when traversing the whole polyline while we traverse the shortcut \(\overline{P{i'}P(i)}\). Let \(t'\) be the start on \(e\) and \(t\) be the end then \(t'\) must be some entry \(DP[k-1, \cdot, j']\) because of the way the algorithm works. As \(j' = j\), we only need to determine the respective \(i'\) such that \(t' = DP[k-1, i', j]\).
+In this case, we start and end on the same line segment \(e = \overline{P(j)P(j+1)}\) when traversing the polyline, while we traverse the shortcut \(\overline{P(i')P(i)}\). Let \(t'\) be the start on \(e\) and \(t\) the end. Then \(t'\) must be some entry \(DP[k-1, \cdot, j']\), because of the algorithm's construction. As \(j' = j\), we only need to determine the respective \(i'\) such that \(t' = DP[k-1, i', j]\).
 
-Recall that Property 4 from \cref{lem:distance_properties} gives us a characterization of the Fréchet distance decision problem when comparing two line segments. 
-	\[\delta^F(P[j + t' \dots j + t], e) \leq \varepsilon \quad \iff \quad \delta(P(j+t'), P(j)) \leq \varepsilon \land \delta(P(j+t), P(j+1)) \leq \varepsilon\]
+Recall that Property 4 from \cref{lem:distance_properties} characterizes the Fréchet distance when comparing two line segments:
+	\[\delta^F(P[j + t' \dots j + t], e) \leq \varepsilon \quad \iff \quad \delta(P(j+t'), P(i')) \leq \varepsilon \land \delta(P(j+t), P(i)) \leq \varepsilon.\]
 	
-\(\delta(P(j+t'), P(j)) \leq \varepsilon\) already holds by construction of \(t'\) during the algorithm. Thus the only requirements on \(t\) are 
+The condition \(\delta(P(j+t'), P(i')) \leq \varepsilon\) already holds by the construction of \(t'\) in the algorithm. Thus, the only requirements on \(t\) are:
 \begin{enumerate}
-	\item \(t' \leq t\) as we cannot go backwards on the line and 
-	\item \(\delta(P(j + t), P(i)) \leq \varepsilon\).  
+	\item \(t' \leq t\) (monotonicity on the polyline), and
+	\item \(\delta(P(j + t), P(i)) \leq \varepsilon\).
 \end{enumerate}
 
-We write \(t_i = \hat t_i'(e, P(i))\) for \(i \in \set{0, 1}\). A solution exists if and only if \([t_0, t_1] \cap [t', 1] \neq \emptyset\) by combining these two conditions. Thus, a solution exists if and only if \(t' \leq t_1 \) and the minimal solution is \(\max(t_0, t')\). 
+Let \(t_0 = \hat t_0'(e, P(i))\) and \(t_1 = \hat t_1'(e, P(i))\). A solution exists if and only if \([t_0, t_1] \cap [t', 1] \neq \emptyset\). Thus, a solution exists if and only if \(t' \leq t_1\), and the minimal solution is \(\max(t_0, t')\). 
 
 \begin{observation}
-	\(DP_1[k, i, j] = \min \set{ \max(\hat t'_0(e, P(i)), t') \mid i' \in \set{0 \dots, i - 1}, t' = DP[k-1, i', j], t' \leq \hat t_1'(e, P(i)) }\)
+	\(DP_1[k, i, j] = \min \set{ \max(\hat t'_0(e, P(i)), t') \mid i' \in \set{0, \dots, i - 1},\ t' = DP[k-1, i', j],\ t' \leq \hat t_1'(e, P(i)) }\)
 \end{observation}
 
-Define the function \(f_{i,j}: \R \cup \set{\infty} \to [0, 1] \cup \set{\infty}\) with 
-	\[f_{i,j}(x) = 
+Define the function \(f_{i,j}: \R \cup \set{\infty} \to [0, 1] \cup \set{\infty}\) by
+	\[f_{i,j}(x) =
 	\begin{cases}
-		\max(x, \hat t'_0(e, P(i))) &\textrm{if } x \leq \hat t'_1(e, P(i)) \\
-		\infty &\textrm{otherwise}
-	\end{cases}.\]
-	
-This allows us rewriting the above as \(DP_1[k, i, j] = f_{i, j}(\min \set{DP[k-1, i', j] \mid i' \in \set{0 \dots, i - 1} })\). We denote the inner term that is minimized as \(\overline{DP}_1[k,i,j] = \min \set{DP[k-1, i', j] \mid i' \in \set{0 \dots, i - 1}}\). 
+		\max(x, \hat t'_0(e, P(i))) &\textrm{if } x \leq \hat t'_1(e, P(i)), \\
+		\infty &\textrm{otherwise}.
+	\end{cases}\]
+
+This allows us to rewrite the above as \(DP_1[k, i, j] = f_{i, j}(\min \set{DP[k-1, i', j] \mid i' \in \set{0, \dots, i - 1} })\). Denote the inner minimized term as \(\overline{DP}_1[k,i,j] = \min \set{DP[k-1, i', j] \mid i' \in \set{0, \dots, i - 1}}\).
 
 \begin{observation}
 	\[\overline{DP}_1[k,i,j] = \min (DP[k-1, i - 1, j], \overline{DP}_1[k, i - 1, j])\]
 \end{observation}
 
-This allows us computing \(DP_1\) in constant time as \(f_{i, j}\) and \(\overline{DP}_1\) can be computed in constant time.
+This recurrence allows us to compute \(DP_1\) in constant time per entry, as both \(f_{i, j}\) and \(\overline{DP}_1\) can be computed in constant time.
 
-% TODO: Images for proofs and such 
+% TODO: Images for proofs and such
 
 \subsubsection{Case \(j' < j\)}
 
-In the minimization over all \(j' < j\) and \(i' < i\) there are quadratically many entries to consider. To achieve amortized constant runtime, we need to investigate the structure of these. 
+In the minimization over all \(j' < j\) and \(i' < i\), there are quadratically many entries to consider. To achieve amortized constant runtime, we need to exploit the structure of these computations.
 
-We already have noted that \(DP_2[k,i,j]\) can either take on the value \(\hat t_0'(\overline{P(j)P(j+1)}, P(i))\) or it does not exist. Once we have found a \(k\) such that it exists, it will propagate to all higher \(k\). The the only relevant information for \(DP_2[\cdot, i, j]\) is the least \(k\) such that \(DP_2[k,i,j]\) exists thus it suffices to compute the function \(\kappa_2(i,j)\) which is the such least \(k\) if it exists and \(\infty\) otherwise. Similarly, we define \(\kappa_1(i,j)\) through \(DP_1\) and \(\kappa(i,j)\) via \(DP\) as the smallest \(k\) such that the respective entry in its table exists. 
+We have noted that \(DP_2[k,i,j]\) can only take the value \(\hat t_0'(\overline{P(j)P(j+1)}, P(i))\) if it exists. Once we have found a \(k\) for which it exists, it will propagate to all higher \(k\). Thus, the only relevant information for \(DP_2[\cdot, i, j]\) is the least \(k\) such that \(DP_2[k,i,j]\) exists. It suffices to compute the function \(\kappa_2(i,j)\), defined as this minimal \(k\) if it exists, and \(\infty\) otherwise. Similarly, we define \(\kappa_1(i,j)\) via \(DP_1\) and \(\kappa(i,j)\) via \(DP\) as the smallest \(k\) such that the respective table entry exists.
 
-Fix \(i\) and \(j\). We set \(t = \hat t_0'(\overline{P(j)P(j+1)}, P(i))\) which is \(DP_2[k, i, j]\) for a large enough \(k\). The Fréchet distance decision problem to test for valid \(i'\) and \(j'\)in the minimization simplifies to testing 
+Fix \(i\) and \(j\). Set \(t = \hat t_0'(\overline{P(j)P(j+1)}, P(i))\), which equals \(DP_2[k, i, j]\) for a sufficiently large \(k\). The condition for valid \(i'\) and \(j'\) in the minimization simplifies to testing:
 \begin{equation}\label{eq:dp2-ag}
 	\delta^F(P[j' + DP[\kappa(i', j'),i', j'] \dots j + t], \overline{P(i')P(i)}) \leq \varepsilon
 \end{equation}
-which makes the result of minimization the smallest of all these valid \(\kappa(i', j')\). For the correctness of this, note that if \(t' \coloneq DP[k, i', j']\) exists then \(\delta(P(j' + 1), P(i') ) \leq \varepsilon\), i.e., we can proceed on the line segment \(\overline{P(j' + t')P(j' + 1)}\) while standing still on the point \(P(i')\). Thus the exact value of \(t'\) does not matter, only its existance which is why we can use the smallest possible \(k\) such that this \(t'\) exists which is \(\kappa(i',j')\). 
+The result of the minimization is then the smallest \(\kappa(i', j')\) among all valid pairs. For the correctness of this, note that if \(t' \coloneq DP[k, i', j']\) exists, then \(\delta(P(j' + t'), P(i')) \leq \varepsilon\), meaning we can proceed on the line segment \(\overline{P(j' + t')P(j' + 1)}\) while standing still at \(P(i')\). Thus, the exact value of \(t'\) does not matter, only its existence, which is captured by the minimal \(k\) such that it exists, namely \(\kappa(i',j')\).
 
-% TODO: Image, illustration of above 
-	
-Similarly to \(\overline{DP}_1\) we aim to organize the computations in \cref{eq:dp2-ag} in a way that performs the same computation only once for all entries. For this, we investigate the procedure to solve the Fréchet distance decision problem for the case of \(j' < j\). The procedure has three steps:
+% TODO: Image, illustration of above
+
+Similarly to \(\overline{DP}_1\), we aim to organize the computations in \cref{eq:dp2-ag} so that the same computation is performed only once for multiple entries. For this, we examine the procedure for solving the Fréchet distance decision problem when \(j' < j\). The procedure has three steps:
 \begin{enumerate}
 	\item Test that the initial points of the line segment and subpolyline are within distance \(\varepsilon\).
-	\item Test all inner points of the subpolyline while proceeding on the line segment. If it is not possible to proceed at any point, we return that there is no reachable point.
-	\item We compute the first reachable point on the last line segment of the subpolyline as the restriction caused by the end of the line segment. 
+	\item Test all inner points of the subpolyline while proceeding on the line segment. If it is not possible to proceed at any point, return that no reachable point exists.
+	\item Compute the first reachable point on the last line segment of the subpolyline as the restriction caused by the endpoint of the line segment.
 \end{enumerate}
 
-The first of these three steps can be skipped altogether as it is guaranteed by the simplification algorithm. The third step can be trivially done in constant time. The second step is the nontrivial one. We need to traverse the line segment \(\overline{P(i')P(i)}\) which is required for all \(j' < j\). For example, all \(j' \leq 2 < j\) need to test if we can proceed through point \(2\) on the same line segment \(\overline{P(i')P(i)}\) motivating the computations of \(\kappa_2(i, j)\) that use the shortcut \(\overline{P(i')P(i)}\) for all \(j\) at once. 
+The first step can be skipped, as it is guaranteed by the simplification algorithm. The third step can be done in constant time. The second step is the nontrivial one. We need to traverse the line segment \(\overline{P(i')P(i)}\), which is required for all \(j' < j\). For example, all \(j' \leq 2 < j\) need to test if we can proceed through point \(P(2)\) on the same line segment \(\overline{P(i')P(i)}\), motivating the computation of \(\kappa_2(i, j)\) for all \(j\) at once using the same shortcut. 
 
-We reuse \cref{lem:ag-neq}. More specifically, we only incorporate its third condition as the other two are trivial. This means we need to find \(x_i \in [\hat t_0'(e, P(i)), \hat t_1'(e, P(i))]\) such that \(x_1 \leq \cdots \leq x_{n-1}\) for \(i \in \set{1, \dots, p - 1}\) and \(e = \overline{P(i')P(i)}\). This almost looks like an instance of cell reachability, we only have to determine the entry-costs and discover how to use the exit-costs. 
+We reuse \cref{lem:ag-neq}, specifically incorporating its third condition (the other two are trivial). This means we need to find \(x_i \in [\hat t_0'(e, P(i)), \hat t_1'(e, P(i))]\) for \(i \in \set{1, \dots, p - 1}\) such that \(x_1 \leq \cdots \leq x_{p-1}\), where \(e = \overline{P(i')P(i)}\). This resembles an instance of the cell reachability problem; we need to determine the entry-costs and understand how to use the exit-costs.
 
-We are interested in the least \(k\) for given \(i\) and \(i'\) such that \(e\) is a valid shortcut by which we can proceed on the subpolyline to \(j\). This \(k\) is exactly one more than the least \(k'\) such that we can find some \(j' < j\) and traverse the subpolyline from \(j' + t'\) to \(j\) where \(t' = DP[k', i', j']\). By setting the entry costs as \(\kappa(i',j')\) for each cell \(j'\) and the intervals between cells as the respective \(\hat t_0'\) and \(\hat t_1'\) as \cref{lem:ag-neq} suggests we can retrieve the solutions for \(j\) as the successor of the exit-cost of the respective cell. 
+We are interested in the least \(k\) for given \(i\) and \(i'\) such that \(e\) is a valid shortcut allowing us to proceed along the subpolyline to \(j\). This \(k\) is exactly one more than the least \(k'\) such that we can find some \(j' < j\) and traverse the subpolyline from \(j' + t'\) to \(j\), where \(t' = DP[k', i', j']\). By setting the entry-cost for each cell \(j'\) as \(\kappa(i',j')\), and the intervals between cells as \([\hat t_0'(e, P(j')), \hat t_1'(e, P(j'))]\) as suggested by \cref{lem:ag-neq}, we can retrieve the solution for \(j\) as the successor of the exit-cost from the respective cell.
 
-Thus, we can find for fixed \(i'\) and \(i\) the least \(k\) for all \(j\) in linear time. To determine \(\kappa_2(i, j)\) we only need to minimize the just computed values over all \(i'\) in linear time per \(j\), so for all \(j\) we need quadratic runtime. In total, each cell entry is only used an amortized constant amount of times resulting in total cubic runtime. 
+Thus, for fixed \(i'\) and \(i\), we can find the least \(k\) for all \(j\) in linear time using the cell reachability algorithm. To determine \(\kappa_2(i, j)\), we minimize these computed values over all \(i'\), which takes linear time per \(j\). For all \(j\), this results in quadratic runtime. In total, each cell entry is used an amortized constant number of times, resulting in an overall cubic runtime.
 
-Note that we need to restructure the algorithm: The outermost iteration is now over \(i\) and the innermost over \(k\) because of the data requirements of the just outlined procedure. 
+Note that this requires restructuring the algorithm: the outermost iteration is now over \(i\), and the innermost over \(k\), due to the data dependencies of the procedure outlined above. 
 
-One might ask, if it is possible to achieve a runtime of \(\Oh(k^*n^2)\), i.e., an algorithm that gains massive speedup for small simplifications. This is likely not the case. \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} gave conditional lower bounds showing that in high dimensions for all \(\delta_\ell\) with \(\ell \in [1, \infty)\), \(\ell \neq 2\) no subcubic algorithm exists. Their reduction constructs a polyline that always has a constant size simplification so it is not even possible to construct a general \(\Oh(f(k^*)n^{3-\varepsilon})\) algorithm for any function \(f\) and \(\varepsilon > 0\).
-
-
-
-
-
-
-
+One might ask if a runtime of \(\Oh(k^*n^2)\) is possible, i.e., an algorithm that gains significant speedup for small simplifications. This is likely not the case. \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} provided conditional lower bounds showing that in high dimensions for all \(\delta_\ell\) with \(\ell \in [1, \infty)\), \(\ell \neq 2\), no subcubic algorithm exists. Their reduction constructs a polyline that always has a simplification of constant size, implying that it is not possible to construct a general \(\Oh(f(k^*)n^{3-\varepsilon})\) algorithm for any function \(f\) and \(\varepsilon > 0\).
