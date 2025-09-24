@@ -106,6 +106,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 					"Perfomes measurments for all simple algorithms on the data in a directory."
 					"The directory must have a specific structure.");
 
+  options("measure-suite-local",
+					po::value<std::string>(&suite_dir)->value_name("directory"),
+					"Perfomes measurments for all local algorithms on the data in a directory."
+					"The directory must have a specific structure.");
+
   options("ses",
 					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
           "Uses the Van Kreveld et al. algorithm to simplify the polyline with "
@@ -189,6 +194,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 		exit(0);
 	} else if (map.count("measure-suite-simple")) {
 		Log::measure_suite_simple(suite_dir);
+		exit(0);
+	} else if (map.count("measure-suite-local")) {
+		Log::measure_suite_local(suite_dir);
 		exit(0);
 	}
 

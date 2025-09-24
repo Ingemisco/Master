@@ -53,7 +53,8 @@ Simplification simplification_imai_iri_euclidean(Polyline const &polyline, float
 	if (config.logger.has_value()) {
 		auto end = std::chrono::high_resolution_clock::now();
 		if (config.logger.has_value()) {
-			config.logger.value().add_data(sizes[polyline.point_count-1], end - start, "");
+			// last entry is number how many shortcuts are needed, + 1 because point is one more
+			config.logger.value().add_data(sizes[polyline.point_count-1] + 1, end - start, "");
 		}
 	}
 
