@@ -1,44 +1,44 @@
-\section{Implicit Polyline Simplification}\label{sec:implicit_polyline_simplification} 
-In this section, we review the polyline simplification algorithm and all of its dependencies in order to avoid explicitly computing the solutions of distance equations. We abstract the instances which need explicit solutions to these equations in \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification and the required Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} to a small set of decision problems. 
-We show how these decision problems can be solved for the Euclidean distance without square roots or even divisions, meaning, only addition, subtraction, and multiplication are required. Correctness for the implicit algorithms follows directly from the correctness of the explicit version as only the comparison is abstracted while the actual logic is unaffected. 
+\section{Implicit Polyline Simplification}\label{sec:implicit_polyline_simplification}
+In this section, we review the polyline simplification algorithm and all of its dependencies in order to avoid explicitly computing the solutions of distance equations. We abstract the instances in \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm for polyline simplification and the required Fréchet distance decision algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} that require explicit solutions to these equations, reducing them to a small set of decision problems.
+We show how these decision problems can be solved for the Euclidean distance without using square roots or even divisions, meaning only addition, subtraction, and multiplication are required. The correctness of the implicit algorithms follows directly from the correctness of the explicit version, as only the method of comparison is abstracted while the underlying logic remains unaffected.
 
 \subsection{Related Works}
-To our knowledge, all existing algorithms that make use of the Fréchet distance use the real RAM \cite{computational_geometry_shamos} as their computational model which enables storing real numbers and operating on them with the operations addition, subtraction, multiplication, and division in constant time. Further, for the Euclidean distance, it is assumed that square roots can be performed in constant time and when extending results to arbitrary distance functions, it is assumed that the necessary equations can be solved. \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves}, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, and \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} all present their algorithms in this model as well as many more.
+To our knowledge, all existing algorithms that make use of the Fréchet distance employ the real RAM \cite{computational_geometry_shamos} as their computational model. This model enables storing real numbers and operating on them with addition, subtraction, multiplication, and division in constant time. Furthermore, for the Euclidean distance, it is assumed that square roots can be computed in constant time, and when extending results to arbitrary distance functions, it is assumed that the necessary equations can be solved. \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves}, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, and \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}~\cite{polyline_simplification_has_cubic_complexity_bringmannetal} all present their algorithms in this model, as do many others.
 
-We review the structure of these equation solutions and observe that arbitrary real numbers are not necessary. The implicit approach is the one that requires the least powerful computational model in theory by abstracting the equation solving away to the necessary comparisons. Using fitting representations for the involved numbers allows to assume the regular RAM at least for the Euclidean, Manhattan, and Chebyshev distance. Wether this suffices for arbtirary Minkowski distances remains an open problem.
+We review the structure of these equation solutions and observe that arbitrary real numbers are not strictly necessary. The implicit approach requires the least powerful computational model in theory by abstracting the equation solving away into the necessary comparisons. Using suitable representations for the involved numbers allows us to assume the regular RAM, at least for the Euclidean, Manhattan, and Chebyshev distances. Whether this suffices for arbitrary Minkowski distances remains an open problem.
 
 \subsection{Decision Problems}
-We introduce three decision problems, each based on a relation. 
+We introduce three decision problems, each based on a relation.
 \begin{definition}[Implicit Decision Relations]\label{def:implicit_relations}
-  Let \(e = \overline{e_1e_2}\) be a line segment, and \(u, v\) with \(e_1, e_2, u\) and \(v\) having the same dimension. 
+  Let \(e = \overline{e_1e_2}\) be a line segment, and let \(u, v\) be points, with \(e_1, e_2, u, v\) all having the same dimension.
   \begin{itemize}
-    \item We say \(u\) \emph{reaches} \(e\) (in symbols \(u \leftrightarrow e\)) if there is a point \(x\) on \(e\) with \(\delta(u,x)\leq \varepsilon\). This is equivalent to the existence of \(\hat t_0'(e, u)\).
-    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{proceeds to} \(v\) \emph{in} \(e\) (in symbols \(u \overset{e}\rightarrow v\)) if and only if 
+    \item We say \(u\) \emph{reaches} \(e\) (denoted \(u \leftrightarrow e\)) if there exists a point \(x\) on \(e\) with \(\delta(u,x)\leq \varepsilon\). This is equivalent to the existence of \(\hat t_0'(e, u)\).
+    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{proceeds to} \(v\) \emph{on} \(e\) (denoted \(u \overset{e}\rightarrow v\)) if and only if
       \begin{itemize}
-        \item \(v \leftrightarrow e\), 
-        \item \(\hat t_0'(e, u) \leq \hat t_0'(e, v)\)
+        \item \(v \leftrightarrow e\),
+        \item \(\hat t_0'(e, u) \leq \hat t_0'(e, v)\).
       \end{itemize}
 
-    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{waits for} \(v\) \emph{on} \(e\) (in symbols \(u \overset{e}\leftarrow v\)) if and only if
+    \item Let \(u \leftrightarrow e\). We say \(u\) \emph{waits for} \(v\) \emph{on} \(e\) (denoted \(u \overset{e}\leftarrow v\)) if and only if
       \begin{itemize}
-        \item \(v \leftrightarrow e\), 
-        \item \(\hat t_0'(e, v) \leq \hat t_0'(e, u) \leq \hat t_1'(e, v)\)
+        \item \(v \leftrightarrow e\),
+				\item \(\hat t_0'(e, v) \leq \hat t_0'(e, u) \leq \hat t_1'(e, v)\).
       \end{itemize}
   \end{itemize}
-  For \(u \overset e\rightarrow v\), we say that \(v\) becomes the new \emph{restriction point} and similarly if \(u \overset e\leftarrow v\) we say that \(u\) remains the restriction point.
+  For \(u \overset e\rightarrow v\), we say that \(v\) becomes the new \emph{restriction point}. Similarly, if \(u \overset e\leftarrow v\), we say that \(u\) remains the restriction point.
 \end{definition}
 
-As a note, for \(e = \overline{e_1e_2}\) and a point \(u\) it holds \(u \leftrightarrow e\) if and only if \(e_1 \overset{e}\rightarrow u\). Thus it is not necessary to provide an implementation for \(\leftrightarrow\) directly. We separate the relations because \(\rightarrow\) is more complex but often the simpler \(\leftrightarrow\) relation suffices and is geometrically more intuitive.
+As a note, for \(e = \overline{e_1e_2}\) and a point \(u\), it holds that \(u \leftrightarrow e\) if and only if \(e_1 \overset{e}\rightarrow u\). Thus, it is not necessary to provide a separate implementation for \(\leftrightarrow\). We separate the relations because \(\rightarrow\) is more complex, but often the simpler \(\leftrightarrow\) relation suffices and is geometrically more intuitive.
 
-We will see how we can implement the previous algorithms using procedures to decide these relations for a line segment and points. The idea is, instead of computing the solutions to the required equations and then comparing them throughout the algorithms, we have procedures to compare them directly. This allows us to only maintain the point that causes the solution of the equation, which we call the restriction point as it restricts the earliest reachable point on a line segment. A visual example of these relations can be seen in \cref{fig:restrictions}.
+We will see how we can implement the previous algorithms using procedures to decide these relations for a given line segment and points. The idea is that instead of computing the solutions to the required equations and then comparing them throughout the algorithms, we use procedures to compare them directly. This allows us to only maintain the point that causes the most restrictive solution, which we call the restriction point, as it restricts the earliest reachable point on a line segment. A visual example of these relations can be seen in \cref{fig:restrictions}.
 
-A trivial fact we will use to find initial restrictions is that \(u \overset e\rightarrow v\) always holds if \(v \leftrightarrow e\) and \(u\) is the starting point of \(e\). Also, if both \(u \overset e\rightarrow v\) and \(u \overset e\leftarrow v\) then the first solutions of both are the same, i.e., \(\hat t_0'(e, u) = \hat t_0'(e,v)\), thus either is a restriction. 
+A trivial fact we will use to find initial restrictions is that \(u \overset e\rightarrow v\) always holds if \(v \leftrightarrow e\) and \(u\) is the starting point of \(e\). Also, if both \(u \overset e\rightarrow v\) and \(u \overset e\leftarrow v\), then the first solutions for both are the same, i.e., \(\hat t_0'(e, u) = \hat t_0'(e,v)\); thus, either point can serve as the restriction.
 
 \begin{figure}[ht]
   \centering
   \begin{subfigure}[t]{0.3\textwidth}
     \includegraphics[width=\linewidth]{tikz-fig/restrictions-1.pdf}
-    \caption{\(u \overset e\rightarrow v\). We go from \(\hat t_0'(e, u)\) to \(\hat t_0'(e, v)\) and \(v\) becomes the new restriction point.}
+    \caption{\(u \overset e\rightarrow v\). We go from \(\hat t_0'(e, u)\) to \(\hat t_0'(e, v)\), and \(v\) becomes the new restriction point.}
   \end{subfigure}
   \begin{subfigure}[t]{0.3\textwidth}
     \includegraphics[width=\linewidth]{tikz-fig/restrictions-2.pdf}
@@ -46,27 +46,27 @@ A trivial fact we will use to find initial restrictions is that \(u \overset e\r
   \end{subfigure}
   \begin{subfigure}[t]{0.3\textwidth}
     \includegraphics[width=\linewidth]{tikz-fig/restrictions-3.pdf}
-    \caption{\(u \overset e\leftarrow v\). We cannot go backward but \(v\) is reachable so we can wait for it and \(u\) remains the restriction point. }
+    \caption{\(u \overset e\leftarrow v\). We cannot go backward, but \(v\) is reachable, so we can wait for it and \(u\) remains the restriction point.}
   \end{subfigure}
-  \caption{Illustration of the relations and how to interpret them. }
+  \caption{Illustration of the relations and how to interpret them.}
   \label{fig:restrictions}
 \end{figure}
 
 \subsection{Fréchet Distance Decision}
-We review the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and adapt it to use the relations from \cref{def:implicit_relations} instead of solving equations. This can be done both for the general problem of deciding for two polylines if their Fréchet distance is at most \(\varepsilon\) as well as for the modified version we are interested in which returns the earliest reachable point on the last line segment\footnote{Obviously, this requires modifications to the statement of the algorithm as we cannot explicitly compute the solution. These modifications will be mentioned later.}. 
+We review the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and adapt it to use the relations from \cref{def:implicit_relations} instead of solving equations explicitly. This can be done both for the general problem of deciding whether the Fréchet distance between two polylines is at most \(\varepsilon\), as well as for the modified version we are interested in, which returns the earliest reachable point on the last line segment\footnote{Obviously, this requires modifications to the statement of the algorithm, as we cannot explicitly compute the solution. These modifications will be mentioned later.}.
 
-For the general Fréchet distance decision problem fix two given polylines \(P\) of length \(p\) and \(Q\) of length \(q\) with a fixed \(\varepsilon > 0\) and \(p \geq q\) (otherwise swap the two polylines). We decide if \(\delta^F(P, Q) \leq \varepsilon\) by using the dynamic programming approach from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}. 
+For the general Fréchet distance decision problem, fix two given polylines \(P\) of length \(p\) and \(Q\) of length \(q\) with a fixed \(\varepsilon > 0\) and \(p \geq q\) (otherwise, swap the two polylines). We decide if \(\delta^F(P, Q) \leq \varepsilon\) by using the dynamic programming approach from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
 
-We start by explaining only the version needed where \(q = 1\), meaning the second polyline is a single line segment. As we cannot return an explicit solution to the equation we return the restriction point \(r\) on the last line segment that causes the solution instead. Furthermore, the input also takes an initial restriction point \(r'\) for the line segment \(\overline{P(0)P(1)}\) so that we do not have to compute the initial point of the subpolyline. 
+We start by explaining only the version needed where \(q = 1\), meaning the second polyline is a single line segment. As we cannot return an explicit solution to the equation, we return the restriction point \(r\) on the last line segment that determines the solution. Furthermore, the input also takes an initial restriction point \(r'\) for the line segment \(\overline{P(0)P(1)}\) so that we do not have to compute the initial point of the subpolyline.
 
-The start of the algorithm is similar, we first need to test if the initial points match and if so we can distinguish the two cases where \(p = 1\) or \(p > 1\). To test if the initial points match is equivalent to testing \(r \overset e\leftarrow Q(0)\) for \(e = \overline{P(0)P(1)}\) as the initial point on \(P\) is \(P(\hat t_0'(e, r))\) so the initial points of the polylines have a distance of at most \(\varepsilon\) if this point is in the interval \([\hat t_0'(e, Q(0)), \hat t_1'(e, Q(0))]\).
+The start of the algorithm is similar; we first need to test if the initial points match. If so, we can distinguish the two cases where \(p = 1\) or \(p > 1\). Testing if the initial points match is equivalent to testing \(r \overset e\leftarrow Q(0)\) for \(e = \overline{P(0)P(1)}\), as the initial point on \(P\) is \(P(\hat t_0'(e, r))\). The initial points of the polylines have a distance of at most \(\varepsilon\) if this point lies within the interval \([\hat t_0'(e, Q(0)), \hat t_1'(e, Q(0))]\).
 
 \begin{itemize}
-  \item[Case \(p = 1\): ] Set \(e = \overline{Q(0)Q(1)}\). The first points of the two line segments already match so we only need to fully traverse \(Q\). We either need to proceed on \(P\) from the restriction or wait, so the result is \(r\) if \(r \overset e\leftarrow Q(1)\) and \(Q(1)\) if \(r \overset e\rightarrow Q(1)\). If neither case occurs there is no solution. 
+  \item[Case \(p = 1\): ] Set \(e = \overline{Q(0)Q(1)}\). The first points of the two line segments already match, so we only need to fully traverse \(Q\). We either need to proceed on \(P\) from the restriction or wait; thus, the result is \(r\) if \(r \overset e\leftarrow Q(1)\), and \(Q(1)\) if \(r \overset e\rightarrow Q(1)\). If neither case occurs, there is no solution.
     See \cref{fig:alt_godau_implicit_eq} for visual examples of this.
-  \item[Case \(p > 1\): ] We first traverse the line segment \(e = \overline{Q(0)Q(1)}\) and maintain the current restriction \(r'\) which is initially \(r\). We iterate through \(P(1), P(2), \dots, P(p-1)\) and for each point \(P(i)\) we test if \(r' \overset e\rightarrow P(i)\). If so we update \(r'\) to \(P(i)\). If \(r' \overset e\leftarrow P(i)\) there is no need to update \(r'\). If neither occurs there is no solution. 
+  \item[Case \(p > 1\): ] We first traverse the line segment \(e = \overline{Q(0)Q(1)}\) and maintain the current restriction \(r'\), which is initially \(r\). We iterate through \(P(1), P(2), \dots, P(p-1)\), and for each point \(P(i)\), we test if \(r' \overset e\rightarrow P(i)\). If so, we update \(r'\) to \(P(i)\). If \(r' \overset e\leftarrow P(i)\), there is no need to update \(r'\). If neither occurs, there is no solution.
 
-    Finally, \(P[0\dots p-1]\) is traversed and we determine the restriction on the line \(e'=\overline{P(p-1)P(p)}\). As the only possible restriction on this line segment we get \(Q(1)\) as we only need to fully traverse \(e\). If \(Q(1) \leftrightarrow e'\) we can return \(Q(1)\) otherwise there is no solution.
+    Finally, after \(P[0\dots p-1]\) is traversed, we determine the restriction on the line segment \(e'=\overline{P(p-1)P(p)}\). The only possible restriction on this line segment is \(Q(1)\), as we need to fully traverse \(e\). If \(Q(1) \leftrightarrow e'\), we can return \(Q(1)\); otherwise, there is no solution.
 \end{itemize}
 
 \begin{figure}
@@ -81,27 +81,27 @@ The start of the algorithm is similar, we first need to test if the initial poin
     \end{subfigure}
     \begin{subfigure}[t]{0.3\textwidth}
       \includegraphics[width=\linewidth]{tikz-fig/alt-godau-implicit-eq-3.pdf}
-      \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\leftarrow Q(1)\) so we can proceed on \(\overline{Q(0)Q(1)}\) while remaining on the same restriction point \(r\) on \(e = \overline{P(0)P(1)}\)}
+      \caption{\(r \overset e\leftarrow Q(0)\) and \(r \overset e\leftarrow Q(1)\), so we can proceed on \(\overline{Q(0)Q(1)}\) while remaining on the same restriction point \(r\) on \(e = \overline{P(0)P(1)}\).}
     \end{subfigure}
 
     \caption{Modified implicit Fréchet distance, case \(p = 1\).}
     \label{fig:alt_godau_implicit_eq}
 \end{figure}
 
-The general algorithm can be adapted with the same ideas, replacing the first reachable points with the respective restrictions in the dynamic program. 
+The general algorithm can be adapted with the same ideas, replacing the computations of the first reachable points with the maintenance of the respective restrictions in the dynamic program.
 
 \subsection{Simplification Algorithm}
-Now that we have already modified the Fréchet distance decision algorithm for the implicit case, adapting the Simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} is relatively simple. 
+Now that we have modified the Fréchet distance decision algorithm for the implicit case, adapting the simplification algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} is relatively straightforward.
 
-The dynamic programming table \(DP\) stores point indices from \(\set{0, \dots, n}\) or a value that indicates that there is no solution for that entry, e.g., \(\infty\). The point index stored at \(DP[k,i,j]\) is the restriction point \(r\) on the line segment \(\overline{P(j)P(j+1)}\) that would create the solution in the explicit case. 
+The dynamic programming table \(DP\) now stores point indices from \(\set{0, \dots, n}\) or a value that indicates that there is no solution for that entry (e.g., \(\infty\)). The point index stored at \(DP[k,i,j]\) is the restriction point \(r\) on the line segment \(\overline{P(j)P(j+1)}\) that would determine the solution in the explicit case.
 
-The initialization remains the same with a slight abuse of data types. The \(0\) that indicates the first reachable point on the line segment for the explicit approach now indicates that the point \(P(0)\) is the restriction point. This results in the same solution as we only store \(0\) for points that have distance within \(\varepsilon\) from \(P(0)\). Thus the first solution on any line segment that starts with such a point must be \(0\) which is the same as in the explicit approach.
+The initialization remains the same, with a slight abuse of data types. The value \(0\) that indicated the first reachable point on the line segment in the explicit approach now indicates that the point \(P(0)\) is the restriction point. This results in the same solution, as we only store \(0\) for points that have a distance within \(\varepsilon\) from \(P(0)\). Thus, the first solution on any line segment that starts with such a point must be \(0\), which is the same as in the explicit approach.
 
-For \(k > 0\) we only need to adapt how we use the Fréchet distance decision subroutine. During the iteration over \(i\), \(j\), \(i' < i\) and \(j' \leq j\), the explicit approach would retrieve the earliest reachable point \(DP[k-1, i', j']\) which marks the start of the subpolyline that we consider. Then it would compute the earliest reachable point on the line segment \(\overline{P(j)P(j+1)}\) and return this as a solution. Both such points will be replaced with the respective restriction point that bound them. We have already shown how to adapt the algorithm to take as input the restriction point from \(DP[k-1,i',j']\) and returns the new one on the line segment so it only remains to show how to minimize this point. 
+For \(k > 0\), we only need to adapt how we use the Fréchet distance decision subroutine. During the iteration over \(i\), \(j\), \(i' < i\), and \(j' \leq j\), the explicit approach would retrieve the earliest reachable point \(DP[k-1, i', j']\), which marks the start of the subpolyline we consider. It would then compute the earliest reachable point on the line segment \(\overline{P(j)P(j+1)}\) and return this as a solution. In the implicit version, both of these points are replaced with the respective restriction points that bound them. We have already shown how to adapt the algorithm to take as input the restriction point from \(DP[k-1,i',j']\) and return the new one on the line segment. It remains to show how to minimize over these candidate restriction points.
 
-Throughout the inner iterations over \(i'\) and \(j'\) we maintain the restriction on \(e = \overline{P(j)P(j+1)}\) that causes the first reachable point. This is initially \(\infty\) and when we find the first actual point we just store it. Once we have a current minimum restriction \(r\) and a new candidate \(r'\) we need to determine whose solution comes first on \(e\). For this we only need to test \(r \overset e\to r'\). If so, \(r\) remains and otherwise \(r'\) becomes the new current minimum. Note that here the left side of \(\to\) remains the restriction instead of the right side becoming the new one as we minimize the restriction.
+Throughout the inner iterations over \(i'\) and \(j'\), we maintain the restriction on \(e = \overline{P(j)P(j+1)}\) that yields the earliest reachable point. This is initially \(\infty\). When we find the first valid restriction point, we store it. Once we have a current minimum restriction \(r\) and a new candidate \(r'\), we need to determine whose solution comes first on \(e\). For this, we only need to test \(r \overset e\to r'\). If this holds, \(r\) remains the minimum; otherwise, \(r'\) becomes the new current minimum. Note that in this minimization step, the left side of \(\to\) remains the restriction if it is smaller, whereas in the progression step within the Fréchet decision algorithm, the right side becomes the new restriction.
 
-This already concludes the necessary modifications to the algorithm. As a final note, we mention how to apply the optimizations to this approach. The reachability optimization is equivalent to testing \(P(i) \leftrightarrow \overline{P(j)P(j+1)}\). For the minimality conditions we only need to determine the restriction point that causes the boundary we compared against. A brief lookup shows that we only need to compare the restriction against \(i\) in both cases. \cref{algo:simplify_simple_implicit} shows the full algorithm with the optimizations.
+This concludes the necessary modifications to the algorithm. As a final note, we mention how to apply the optimizations to this approach. The reachability optimization is equivalent to testing \(P(i) \leftrightarrow \overline{P(j)P(j+1)}\). For the minimality conditions, we only need to determine the restriction point that causes the boundary we compared against. A brief analysis shows that we only need to compare the restriction against \(P(i)\) in both cases. \cref{algo:simplify_simple_implicit} shows the full algorithm with the optimizations.
 
 \begin{algorithm}[ht]
   \DontPrintSemicolon
@@ -123,17 +123,17 @@ This already concludes the necessary modifications to the algorithm. As a final 
 					\Continue \tcp{Global Minimality}
 				}
 				\(e \gets \overline{P(j)P(j+1)}\)\;
-				\If{\(\lnot P(i) \leftrightarrow e\)} {
+				\If{\(\lnot (P(i) \leftrightarrow e)\)} {
 					\Continue \tcp{Reachability}
 				}
         \For{\(k - 1 \leq i' < i\)}{
           \For{\(j' \leq j\)}{
             Let \(r' \gets DP[k-1, i', j']\)\;
 						\If{\(r' = \infty\)}{
-							\Continue 
+							\Continue
 						}
-            Let \(r \gets AltGodau(P[j' \dots j + 1], r', \overline{P(i')P(i)}, \varepsilon)\)\;
-						\If{\(r \neq \infty \land P(r) \overset e\to P(r')\)} {
+            Let \(r \gets AltGodauImplicit(P[j' \dots j + 1], r', \overline{P(i')P(i)}, \varepsilon)\)\;
+						\If{\(r \neq \infty \land (P(r) \overset e\to P(r'))\)} {
 							\(DP[k, i, j] \gets r\)\;
 							\If{\(r = i\)} {
 								Skip further iterations over \(i', j'\) \tcp{Local Minimality}
@@ -144,130 +144,144 @@ This already concludes the necessary modifications to the algorithm. As a final 
       }
     }
   }
-  \caption{PolylineSimplification(\(P, \varepsilon\))}
+  \caption{PolylineSimplificationImplicit(\(P, \varepsilon\))}
   \label{algo:simplify_simple_implicit}
 \end{algorithm}
 
 
 \subsection{Euclidean Implementation}\label{ssec:euclidean-impl}
-Having seen how we can use these decision problems to implement the algorithms, we make use of them in the Euclidean case. By avoiding the explicit computation of solutions of \cref{eq:eq_solve_main} we can avoid computing square roots and even avoid divisions leading us to the following results. 
+Having seen how we can use these decision problems to implement the algorithms, we now apply them to the Euclidean case. By avoiding the explicit computation of solutions to \cref{eq:eq_solve_main}, we can avoid computing square roots and even divisions, leading to the following results.
 
 \begin{theorem}
-  For \(d\)-dimensional polylines \(P\) and \(Q\) of length \(p\) and \(q\) respectively, it is possible to decide if \(\delta_2^F(P, Q) \leq \varepsilon\) in runtime \(\O(d p q)\) with the only arithmetical operations necessary being addition, subtraction and multiplication. 
+  For \(d\)-dimensional polylines \(P\) and \(Q\) of length \(p\) and \(q\) respectively, it is possible to decide if \(\delta_2^F(P, Q) \leq \varepsilon\) in time \(\O(d p q)\) using only addition, subtraction, and multiplication.
 \end{theorem}
 
 \begin{theorem}\label{thm:euclidean_implicit_simplification_simple}
-  For a \(d\)-dimensional polyline \(P\) of length \(n\) the problem of global polyline simplification using the Euclidean Fréchet distance can be solved in \(\O(d k^*n^5)\) with the only arithmetical operations necessary being addition, subtraction and multiplication where \(k^*\) is the size of the simplification.
+  For a \(d\)-dimensional polyline \(P\) of length \(n\), the problem of global polyline simplification using the Euclidean Fréchet distance can be solved in time \(\O(d k^*n^5)\) using only addition, subtraction, and multiplication, where \(k^*\) is the size of the simplification.
 \end{theorem}
 
-Although we have not explained it in full detail, we can improve \cref{thm:euclidean_implicit_simplification_simple} by using the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. We have shown how such a rewrite works extensively and we provide \cref{tab:explicit-implicit-translation} as a guide on how to each individual operation needs to be transformed to obtain an implicit algorithm.  
-Further note that we can also extend this to the Manhattan and Chebyshev distance by using explicit computations but storing the results as a numerator-denominator pair. For this, note that we only compare the fractions but do not perform any computations with these thus the magnitudes of numerator and denominator do not explode.
+Although we have not explained it in full detail, we can improve \cref{thm:euclidean_implicit_simplification_simple} by using the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. We have shown extensively how such a rewrite works, and we provide \cref{tab:explicit-implicit-translation} as a guide for transforming each individual operation to obtain an implicit algorithm.
+Furthermore, note that we can also extend this to the Manhattan and Chebyshev distances by using explicit computations but storing the results as numerator-denominator pairs. For this, note that we only compare the fractions but do not perform any further computations with them. Thus, the magnitudes of the numerator and denominator do not explode.
 
 \begin{theorem}\label{thm:euclidean_implicit_simplification_advanced}
-  For a \(d\)-dimensional polyline \(P\) of length \(n\) the problem of global polyline simplification using the Euclidean, Chebyshev, or Manhattan Fréchet distance can be solved in \(\O(d n^3)\) with the only arithmetical operations necessary being addition, subtraction and multiplication.
+  For a \(d\)-dimensional polyline \(P\) of length \(n\), the problem of global polyline simplification using the Euclidean, Chebyshev, or Manhattan Fréchet distance can be solved in time \(\O(d n^3)\) using only addition, subtraction, and multiplication.
 \end{theorem}
 
-The decision problems for the relations \(\leftrightarrow, \leftarrow\) and \(\rightarrow\) are simple to implement without division and square roots but quite technical. We start with \(\leftrightarrow\) which can be implemented as a special case of \(\rightarrow\) but can be solved even simpler. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). \(u \leftrightarrow e\) holds if and only if the distance to the closest point on \(e\) to \(u\) has distance at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\) then \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\)~\cite{linear_algebra}. 
+The decision problems for the relations \(\leftrightarrow, \leftarrow,\) and \(\rightarrow\) are simple to implement without division and square roots, but the implementation is quite technical. We start with \(\leftrightarrow\), which can be implemented as a special case of \(\rightarrow\) but can be solved even more simply. Fix a line segment \(e = \overline{e_1e_2}\) and a point \(u\). The relation \(u \leftrightarrow e\) holds if and only if the distance from \(u\) to the closest point on \(e\) is at most \(\varepsilon\). This closest point with respect to the Euclidean distance is the projection of \(u\) onto \(e\). We write it as \(e_1 + t(e_2 - e_1)\), where \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\)~\cite{linear_algebra}.
 
-To decide \(u \leftrightarrow e\) we only need to test if either of the two end points is reachable from \(u\), i.e., \(\delta_2'(e_i, u) \leq \varepsilon^2\) for \(i = 1\) or \(i = 2\). If both fail we must check the projection. Thus we return true if and only if \(t \in [0, 1]\) and the following inequality is true. 
+To decide \(u \leftrightarrow e\), we first check if either endpoint is reachable from \(u\), i.e., \(\delta_2'(e_i, u) \leq \varepsilon^2\) for \(i = 1\) or \(i = 2\). If both fail, we must check the projection. Thus, we return true if and only if \(t \in [0, 1]\) and the following inequality holds:
 \begin{alignat*}{3}
 &\delta_2'(e_1 + t(e_2 - e_1), u) &&\leq \varepsilon^2 \\
   \iff& \|e_1 - u + t(e_2 - e_1)\|^2 &&\leq \varepsilon^2 \\
-  \iff& \delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}t + \delta_2'(e_1, e_2)t^2 &&\leq \varepsilon^2 \\
-  \iff& \delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}\frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)} + \delta_2'(e_1, e_2)\parenth{\frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}} &&\leq \varepsilon^2 \\
-  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - 2\braket{e_1 - u | e_2 - e_1}^2 + \braket{e_2 - e_1 | u - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2)\\
-  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - \braket{e_1 - u | e_2 - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2)
+  \iff& \delta_2'(e_1, u) + 2\braket{e_1 - u | e_2 - e_1}t + \delta_2'(e_1, e_2)t^2 &&\leq \varepsilon^2.
 \end{alignat*}
-For the other two relations we get very similar procedures. For simplicity we only derive \(u \overset e\rightarrow v\). We define \(a_{0u} \coloneq \delta_2'(e_1, u)\), \(a_{0v} \coloneq \delta_2'(e_1, v)\), \(a_{1u} \coloneq 2\braket{e_2 - e_1 | e_1 - u}\), \(a_{1v} \coloneq 2\braket{e_2 - e_1 | e_1 - v}\), and \(a_{2} \coloneq \delta_2'(e_1, e_2)\) which are the coefficients of the quadratic equation needed to solve for \(\hat t_{0/1}(e, u)\) and \(\hat t_{0/1}(e, v)\). We further denote the discriminants of the solutions \(D_u \coloneq a_{1u}^2 - 4a_{0u}a_2\) and \(D_v \coloneq a_{1v}^2 - 4a_{0v}a_2\). We define \(x  \coloneq a_{1u} - a_{1v}\) and \(y \coloneq D_u + D_v - x^2\). With these we get 
+Substituting \(t = \frac{\braket{e_2 - e_1 | u - e_1}}{\delta_2'(e_1, e_2)}\) and multiplying through by \(\delta_2'(e_1, e_2)\) yields:
+\begin{alignat*}{2}
+  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) + 2\braket{e_1 - u | e_2 - e_1}\braket{e_2 - e_1 | u - e_1} + \delta_2'(e_1, e_2)\left(\frac{\braket{e_2 - e_1 | u - e_1}^2}{\delta_2'(e_1, e_2)}\right) &&\leq \varepsilon^2 \delta_2'(e_1, e_2) \\
+  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) + 2\braket{e_1 - u | e_2 - e_1}\braket{e_2 - e_1 | u - e_1} + \braket{e_2 - e_1 | u - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2).
+\end{alignat*}
+Noting that \(\braket{e_1 - u | e_2 - e_1} = -\braket{e_2 - e_1 | u - e_1}\), the middle term becomes \(-2\braket{e_2 - e_1 | u - e_1}^2\). Simplifying gives:
+\begin{alignat*}{2}
+  \iff& \delta_2'(e_1, u)\delta_2'(e_1, e_2) - \braket{e_2 - e_1 | u - e_1}^2 &&\leq \varepsilon^2 \delta_2'(e_1, e_2).
+\end{alignat*}
+For the other two relations, we get very similar procedures. For simplicity, we only derive the condition for \(u \overset e\rightarrow v\). We define \(a_{0u} \coloneq \delta_2'(e_1, u)\), \(a_{0v} \coloneq \delta_2'(e_1, v)\), \(a_{1u} \coloneq 2\braket{e_2 - e_1 | e_1 - u}\), \(a_{1v} \coloneq 2\braket{e_2 - e_1 | e_1 - v}\), and \(a_{2} \coloneq \delta_2'(e_1, e_2)\), which are the coefficients of the quadratic equations needed to solve for \(\hat t_{0/1}'(e, u)\) and \(\hat t_{0/1}'(e, v)\). We further denote the discriminants of the solutions as \(D_u \coloneq a_{1u}^2 - 4a_{0u}a_2\) and \(D_v \coloneq a_{1v}^2 - 4a_{0v}a_2\). We define \(x  \coloneq a_{1u} - a_{1v}\) and \(y \coloneq D_u + D_v - x^2\). With these, we get:
 \begin{alignat*}{2}
   u \overset e\rightarrow v \iff& v \leftrightarrow e \land \hat t_0'(e, u) \leq \hat t_0'(e, v) \\
   \iff& v \leftrightarrow e \land \frac{-a_{1u} - \sqrt{D_u}}{2a_2} \leq \frac{-a_{1v} - \sqrt{D_v}}{2a_2} \\
   \iff& v \leftrightarrow e \land -a_{1u} - \sqrt{D_u} \leq -a_{1v} - \sqrt{D_v} \\
   \iff& v \leftrightarrow e \land \sqrt{D_v} - \sqrt{D_u} \leq a_{1u} - a_{1v}  \\
-  \iff& v \leftrightarrow e \land \sqrt{D_v} - \sqrt{D_u} \leq x  \\
-  \iff& v \leftrightarrow e \land ((x \geq 0 \land \sqrt{D_v} \leq \sqrt{D_u})\\ & \lor (x \geq 0 \land \sqrt{D_v} \geq \sqrt{D_u} \land \sqrt{D_v} - \sqrt{D_u} \leq x )\lor(x \leq 0 \land \sqrt{D_v} \leq \sqrt{D_u} \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) )  \\
-  \iff& v \leftrightarrow e \land ((x \geq 0 \land D_v \leq D_u)\\ & \lor (x \geq 0 \land D_v \geq D_u \land \sqrt{D_v} - \sqrt{D_u} \leq x )\lor(x \leq 0 \land D_v \leq D_u \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) ).
+  \iff& v \leftrightarrow e \land \sqrt{D_v} - \sqrt{D_u} \leq x.
 \end{alignat*}
-Now we consider only the inequalities \(\sqrt{D_v} - \sqrt{D_u} \leq x\) and \(\sqrt{D_u} - \sqrt{D_v} \geq -x\) where we know that all sides of the inequalities are positive thus squaring them preserves the inequalities. We get 
+We now analyze the inequality \(\sqrt{D_v} - \sqrt{D_u} \leq x\) by considering the signs of \(x\) and the relative sizes of \(D_u\) and \(D_v\):
+\begin{alignat*}{2}
+  \iff& v \leftrightarrow e \land \big[ (x \geq 0 \land D_v \leq D_u) \\
+  & \quad \lor (x \geq 0 \land D_v \geq D_u \land \sqrt{D_v} - \sqrt{D_u} \leq x ) \\
+  & \quad \lor (x \leq 0 \land D_v \leq D_u \land \sqrt{D_u} - \sqrt{D_v} \geq -x ) \big].
+\end{alignat*}
+Now we consider the inequalities \(\sqrt{D_v} - \sqrt{D_u} \leq x\) (when \(x \geq 0, D_v \geq D_u\)) and \(\sqrt{D_u} - \sqrt{D_v} \geq -x\) (when \(x \leq 0, D_v \leq D_u\)). Since both sides of these inequalities are non-negative, squaring preserves the inequalities. For the first case:
 \begin{align*}
   \sqrt{D_v} - \sqrt{D_u} \leq x &\iff D_v + D_u - 2\sqrt{D_uD_v} \leq x^2 \\
+   &\iff D_u + D_v - x^2 \leq 2\sqrt{D_uD_v} \\
    &\iff y \leq 2\sqrt{D_uD_v} \\
-   &\iff (y \leq 0) \lor (y^2 \leq 4D_uD_v)
+   &\iff (y \leq 0) \lor (y^2 \leq 4D_uD_v).
 \end{align*}
-and similarly for the other inequality. With that this problem can be decided without square roots or divisions albeit in a rather technical manner.
+A similar derivation applies to the other inequality. This shows that the problem can be decided without square roots or divisions, albeit in a rather technical manner.
 
 \subsection{General Minkowski Distances}
-Having seen how implicit computations simplifies simplification in the Euclidean case, we want to try to extend this technique to other Minkowski distances. As of writing this we do not know whether it is possible to implement all three decision problems without the use of approximations but implicit computations allows a simpler and possibly more numerically stable way to approximate. 
+Having seen how implicit computation simplifies simplification in the Euclidean case, we now explore extending this technique to other Minkowski distances. As of writing, we do not know whether it is possible to implement all three decision problems without approximations for general \(\ell\), but implicit computation may allow a simpler and possibly more numerically stable way to approximate.
 
-First, we consider the relation \(\leftrightarrow\). Again, we can easily check if \(\delta_\ell'(e_1, u) \leq \nu_\ell(\varepsilon)\) and \(\delta_\ell'(e_2, u) \leq \nu_\ell(\varepsilon)\) when testing \(u \leftrightarrow e\). If neither occurs we need to test \(\hat t_0'(e, u) \in [0,1]\). This can be solved using Sturm's theorem~\cite{algorithms_in_real_algebraic_geometry}. 
+First, we consider the relation \(\leftrightarrow\). Again, we can easily check if \(\delta_\ell'(e_1, u) \leq \nu_\ell(\varepsilon)\) and \(\delta_\ell'(e_2, u) \leq \nu_\ell(\varepsilon)\). If neither holds, we need to test if \(\hat t_0'(e, u) \in [0,1]\). This can be solved using Sturm's theorem~\cite{algorithms_in_real_algebraic_geometry}.
 \begin{theorem}[Sturm's Theorem]
-  Let \(p\) be a polynomial and \(p'\) be its derivative. The number of roots of \(p\) in the interval \((a,b)\) is 
+  Let \(p\) be a polynomial and \(p'\) be its derivative. The number of distinct roots of \(p\) in the interval \((a,b)\) is given by
   \[Var(p_0(a), p_1(a), \dots, p_k(a)) - Var(p_0(b), p_1(b), \dots, p_k(b)),\]
-  where \(p_0 \coloneq p\), \(p_1 \coloneq p'\) and \(p_i \coloneq -Rem(p_{i-2}, p_{i-1})\) for \(i \in \set{2, \dots, k}\) until \(p_{k+1} = 0\). 
-  Here \(Rem\) denote the remainder of the polynomial division and \(Var\) is the number of sign changes of a sequence, i.e., \(Var(a_0,\dots, a_k) = |\set{i \in \set{1, \dots, k} \mid a_ia_{i-1} < 0}|\).
+	where \(p_0 \coloneq p\), \(p_1 \coloneq p'\), and \(p_i \coloneq -\text{Rem}(p_{i-2}, p_{i-1})\) for \(i \in \set{2, \dots, k}\) until \(p_{k+1} = 0\).
+	Here, \(\text{Rem}\) denotes the remainder of polynomial division, and \(Var\) is the number of sign changes in a sequence, i.e., \(Var(a_0,\dots, a_k) = |\set{i \in \set{1, \dots, k} \mid a_i a_{i-1} < 0}|\).
 \end{theorem}
 
-In fact, as the interval is \((0, 1)\) this simplifies the computations as we only need to lookup the constant term and the sum of the coefficients for each polynomial. 
-Multiplicities of roots does not affect the results as we are only interested in the existence of a root in the interval. 
-The only necessary operations needed to implement this are addition, subtraction, multiplication, and division and as the degree of the polynomials is fixed for a given distance function we can estimate the required space for a sufficiently precise representation of the coefficients that occur during the polynomial division. 
+Since our interval is \((0, 1)\), this simplifies the computations, as we only need to evaluate the polynomials at \(0\) and \(1\). Multiplicities of roots do not affect the result, as we are only interested in the existence of a root in the interval.
+The only operations needed to implement this are addition, subtraction, multiplication, and division. Since the degree of the polynomials is fixed for a given distance function, we can estimate the required space for a sufficiently precise representation of the coefficients that occur during the polynomial division.
 
-As for the other two relations, it may be possible to use methods from real algebraic geometry to argue about the position of the roots of the polynomials. 
+As for the other two relations, it may be possible to use methods from real algebraic geometry to reason about the relative positions of the roots of the polynomials.
 
-As a final note on the Minkowski distances we want to note that the absolute values for odd \(\ell\) can be dealt with similarly as with the Manhattan distance by sorting the inner linear terms according to their zero and partitioning the real numbers into intervals for which all absolute values can be simplified. There are at most two intervals in which the root of the polynomial can lie in and those can be found by evaluating the polynomials at the interval bounds. If any interval has a positive and negative bound there must be exactly one zero in that interval by the intermediate value theorem. Otherwise all interval bounds are positive. If there are solutions they must be in the interval with the smallest bounds. This leaves \(\O(d\log d)\) preprocessing to determine a constant amount of candidate intervals and thus a constant amount of polynomials to test. Alternatively, the linear runtime approach from the Manhattan distance can also be adapted to find the appropriate interval. 
+As a final note on Minkowski distances, we mention that the absolute values for odd \(\ell\) can be handled similarly to the Manhattan distance by sorting the inner linear terms according to their zeros and partitioning the real line into intervals where all absolute values can be simplified. There are at most two intervals in which the root of the polynomial can lie, and these can be found by evaluating the polynomials at the interval bounds. If any interval has function values of opposite signs at its endpoints, there must be exactly one root in that interval by the intermediate value theorem. This leaves \(\O(d\log d)\) preprocessing to determine a constant number of candidate intervals and thus a constant number of polynomials to test. Alternatively, the linear-time approach from the Manhattan distance can be adapted to find the appropriate interval.
 
-\subsection{Semiexplit Decisions}
-As a final point of our discussion of implicit simplification we present a method that uses aspects from both explicit computations and implicit decisions which we call semiexplicit. More specifically, we store some precomputed data like in the explicit case but like the implicit case we don't compute the solutions explicitly. We present two practical use cases, one for the Euclidean case and one for general distances. 
+\subsection{Semiexplicit Decisions}
+As a final point in our discussion of implicit simplification, we present a method that uses aspects from both explicit and implicit decisions, which we call \emph{semiexplicit}. More specifically, we store some precomputed data as in the explicit case, but as in the implicit case, we avoid computing the solutions explicitly. We present two practical use cases: one for the Euclidean distance and one for general distances.
 
 \subsubsection{General Distances}
+The idea is to implement the implicit decisions using an estimation of the roots via a bisection method. To test if \(u \overset e\rightarrow v\), we first check for both \(u\) and \(v\) if they are within \(\varepsilon\) of either endpoint of \(e\). If \(\delta(u, e_1) \leq \varepsilon\), then \(u \overset e\rightarrow v\) is true. If \(\delta(v, e_1) \leq \varepsilon\) then \(\lnot(u \overset e\rightarrow v)\) (but \(v \overset e\rightarrow u\) holds). Otherwise, assume both have solutions in the interior of the segment. 
 
-The idea is to implement the implicit decisions with an estimation of the roots. To test if \(u \overset e\rightarrow v\) we use a bisection approach. we test for both \(u\) and \(v\) if they have distance at most \(\varepsilon\) from any of the end points of \(e\). If \(\delta(u, e_1) \leq \varepsilon\) we can say that \(u \overset e\rightarrow v\). Otherwise if \(\delta(v, e_1) \leq \varepsilon\) this is false (but \(v \overset e\rightarrow u\) would be true). Otherwise suppose they both have solutions on the line segment. 
+We perform the following for both \(x \in \set{u, v}\). We start with \(a = 0\), \(b = 1\), and \(t = 0.5\) and iterate until \(d_t \coloneq \delta(e_1 + t(e_2 - e_1), x) \leq \varepsilon\).
+First, we test if \(d_t \leq \varepsilon\); if so, we are done with this step. Otherwise, we examine the behavior of the distance function. Due to the convexity property (\cref{lem:distance_properties}), the distance function is unimodal along the line segment. We compute \(d_a\) and \(d_b\). If \(d_a \leq d_t \leq d_b\), we proceed with \(b \gets t\) and \(t \gets (a + t)/2\). If \(d_a \geq d_t \geq d_b\), we proceed with \(a \gets t\) and \(t \gets (t + b)/2\). If neither pattern holds, the function must have a minimum between \(a\) and \(b\) (i.e., \(d_t\) is less than both \(d_a\) and \(d_b\)). We then compute \(i \coloneq (a + t)/2\) and \(j \coloneq (t + b)/2\). It holds that \(a < i < t < j < b\). We then check the distances at \(i\) and \(j\) to refine the interval containing the minimum. This process narrows the interval believed to contain the first solution \(\hat t_0'(e, x)\).
 
-We performe the following for both \(x \in \set{u, v}\). We start with the following values \(a = 0, b = 1, t = 0.5\) and iterate  until \(d_t \coloneq \delta(e_1 + t(e_2 - e_1), x) \leq \varepsilon\). 
-First, we test if \(d_t \leq \varepsilon\) and if we are done with this step. Otherwise we test if \(d_a \leq d_t \leq d_b\) in which case we proceed with \(b \gets t\) and \(t \gets \frac{a + t}2\). If \(d_a \geq d_t \geq d_b\) we proceed with \(a \gets t\) and \(t \gets \frac{b + t}2\). Otherwise it must be \(d_a \geq d_t \leq d_a\) as \(d_a \leq d_t \geq d_a\) is impossible due to property 3 of \cref{lem:distance_properties}.
-We compute \(i \coloneq \frac{a + t}2\) and \(j \coloneq \frac{t + b}2\). It holds \(a < i < t < j < b\) and there are three different cases for the computed distances. If \(d_a \geq d_i \leq d_t\) we update \(b \gets t\) and \(t \gets i\). If \(d_t \geq d_j \leq d_b\) we update \(b \gets t\) and \(t \gets i\) and otherwise it holds \(d_i \geq d_t \leq d_j\) and we update \(a \gets i\) and \(b \gets j\). By doing this we improve a bound for the interval that contains the solutions and after this step we have found a point \(t\) that separates the two solutions. 
+After this process for both \(u\) and \(v\), we have intervals \((a_u, t_u]\) and \((a_v, t_v]\) that contain their respective solutions. If these intervals are disjoint, we can immediately determine which solution comes first. Otherwise, we restrict both intervals to their intersection and perform a bisection within this shared interval, comparing the distances for \(u\) and \(v\) simultaneously until we find a point that separates their first solutions. There are edge cases to consider, such as when one point has no solution within the interval. While Sturm's theorem could be used to test for solutions exactly, it might be slower than continuing the bisection to a sufficient precision.
 
-At this point we know the first solutions is in the interval \((a, t]\) we have computed for both. If the two intervals have an empty intersection we can directly answer which first solutions comes first. Otherwise we trim both intervals to their intersection and perform another bisection on this interval but compare both \(u\) and \(v\) simultaneously until we find a point that separates the first solution of both distances. This results in the solution. There are a few edge cases that need to be considered as well as the case that there is no solution in the interval for one of the points. We could use Sturm's theorem to test for solutions but this would likely be slower than using the bisection method until some threshold is reached.
+The semiexplicit approach may seem worse than both the explicit approach (as it requires multiple comparisons) and the implicit approach (as it relies on approximating solutions). However, its advantage is generality. The explicit approach requires a distance function and an equation solver. The implicit approach requires the distance function and solvers for the decision problems. The semiexplicit approach only requires the distance function as a black box, with no further information; thus, it also works for general\footnote{The distance function must still be convex in the sense of \cref{lem:distance_properties}.} distance functions on \(\R^d\), not only Minkowski distances. Furthermore, if the first solutions for the two points are easily separable, the approximations can speed up computations. In the worst case, the solutions are close or coincide, requiring many iterations; however, this is unlikely and may not critically affect the overall simplification\footnote{It is possible to construct egenerate polylines where the solutions are arbitrarily close and the result matters.}.
 
-The semiexplicit approach seems like a worse version of both the explicit approach as we need to perform multiple comparisons in the worst case, as well as a worse version of the implicit appraoch as we still rely on approximating solutions instead of comparing them directly. However, it has the advantage that it is the most general of the three approaches in the sense that it requires the least amount of primitives. The explicit approach requires both a distance function and an equation solver for that distance function. The implicit approach requires the distance function and at least solvers for the decision problems \(\leftarrow\) and \(\rightarrow\) and possibly even \(\leftrightarrow\). The semiexplicit only requires the distance function as a black box with no further information of it thus it also works for general\footnote{The distance function still must be convex in the sense of of \cref{lem:distance_properties}} distance functions on \(\R^d\), not only Minkowski distances. Furthermore, the approximations can speed up computations if the first solutions for both points can be separated easily. In the worst case the solutions are close or even coincide which results in many iterations, this however is rather unlikely and may not even affect the overall solution to the simplification at all\footnote{Of course, it is possible to construct a degenerate polyline where the solutions are arbitrarily close and the result matters.}.
-
-It can also be optimized by storing the resulting intervals into the dynamic programming table as a substitute for the earliest reachable point in the explicit approach. The respective restriction point is still required just like in the implicit approach because the interval may need to be improved when comparing agains another one. This allows fewer computations in total while still keeping the advantage of lazy computations with which we mean that the solution is only approximated to a precision that is sufficient allowing fast decisions for sufficiently well behaved polylines.
+It can be optimized by storing the resulting intervals in the dynamic programming table as a substitute for the earliest reachable point. The respective restriction point is still required because the interval may need refinement when compared against another. This allows fewer total computations while retaining the advantage of lazy computation: solutions are only approximated to the precision necessary for the decision, which can be fast for well-behaved polylines.
 
 \subsubsection{Euclidean Distance}
+In the Euclidean case, we have seen that the implicit algorithm primarily involves comparisons of the form \(a - \sqrt{b} \leq c \pm \sqrt{d}\), which is similar to the explicit case but with canceled denominators.
 
-In the case of the Euclidean distance, we have seen that the implicit algorithm only makes comparisons of the form \(a - \sqrt{b} \leq c \pm \sqrt{d}\) which is mostly the same as the respective comparison in the explicit case but the denominators cancel each other out. 
+In the pure implicit approach, we recompute the values \(a, b, c, d\) for each comparison. To reduce computations, we can modify the explicit algorithms to store pairs of the form \((a, b)\) representing the value \(a - \sqrt{b}\) (ignoring the common denominator) and define comparison operators on these pairs directly.
 
-In the implicit case, we always needed to recompute the values \(a, b, c\), and \(d\) in this expression as we only have methods to compare the respective points. To reduce computations, we do not provide methods to compare the points with respect to a line segment but instead to compare expressions like these directly. To do so, we modify the explicit algorithms to store pairs of the form \((a, b)\) instead of the value \(a - \sqrt{b}\) (ignoring the division) and defining comparison operators on them. 
+We have already shown how to solve these comparison decisions in \cref{ssec:euclidean-impl}. In programming languages that allow operator overloading (e.g., for \(\leq\)), the resulting semiexplicit version and the explicit version differ only in the datatype of the stored solutions, making them parametrically polymorphic variants of the same algorithm.
 
-We have already seen how to solve comparison decisions like these in \cref{ssec:euclidean-impl}. In programming languages which allow to overload the comparison operators such as \(\leq\), the resulting semiexplicit version and explicit version only differ in the datatype of the stored solutions and thus are parametrically polymorphic variants of the same algorithm. 
+Note that solutions are always of the form \(a - \sqrt{b}\); the form \(a + \sqrt{b}\) is only used to define the interval \([a - \sqrt{b}, a + \sqrt{b}]\) (again, ignoring the common denominator).
 
-Note again, that solutions are always of the form \(a - \sqrt{b}\) never \(a + \sqrt{b}\). The second version is only ever used to compare if a solution is in an interval which is defined by \([a - \sqrt{b}, a + \sqrt{b}]\) (again, ignoring the common denominator for all involved expressions).
-
-This approch for the Euclidean variant translates more easily to other simplification algorithms than the implicit approach but maintains the same advantages. It acts basically as an implicit version which caches as much of the computations as possible.
+This approach for the Euclidean distance translates more easily to other simplification algorithms than the pure implicit approach but maintains the same advantages. It acts as an implicit version that caches as much of the computation as possible.
 
 \subsection{Conclusion}
-We have seen how to rewrite algorithms to their implicit and semiexplicit version. \cref{tab:explicit-implicit-translation} summarizes how to replace each operation in an explicit algorithm to obtain an implicit version.
+We have seen how to rewrite algorithms into their implicit and semiexplicit versions. \cref{tab:explicit-implicit-translation} summarizes how to replace each operation in an explicit algorithm to obtain an implicit version.
 
 \begin{table}[htb]
   \centering
 	\begin{tabular}{|lll|}
 		\hline
 		Explicit operation & Implicit operation & Comment\\
+		\hline
 		\(t \gets \hat t_0'(e, u)\) & \(r \gets u\) & The restriction \(r\) replaces the solution \(t\)\\
 		\(t_0 \leq t_1\) & \(r_0 \overset e\rightarrow r_1\) & \(t_0, t_1\) are solutions on \(e\), \\
-		& & and \(r_0, r_1\) the respective restrictions\\
+		& & and \(r_0, r_1\) are the respective restrictions\\
 		\(t \gets \min(t_0, t_1)\) & if \(r_0 \overset{e}\rightarrow r_1\) then \(r \gets r_0\) else \(r \gets r_1\) & \(t, t_0, t_1\) are solutions on \(e\) \\
-		& & and \(t, r_0, r_1\) the respective restrictions\\
+		& & and \(r, r_0, r_1\) are the respective restrictions\\
 		\(t \gets \max(t_0, t_1)\) & if \(r_0 \overset{e}\rightarrow r_1\) then \(r \gets r_1\) else \(r \gets r_0\) & \(t, t_0, t_1\) are solutions on \(e\) \\
-		& & and \(t, r_0, r_1\) the respective restrictions\\
-		\(\hat t_0'(e, u) \leq t \leq \hat t_1'(e, u)\) & \(r \overset e\leftarrow u\) & \(r\) is the restrictions for \(t\)\\
+		& & and \(r, r_0, r_1\) are the respective restrictions\\
+		\(\hat t_0'(e, u) \leq t \leq \hat t_1'(e, u)\) & \(r \overset e\leftarrow u\) & \(r\) is the restriction for \(t\)\\
 		\(\hat t_0'(e, u)\) exists & \(u \leftrightarrow e\) & \\
 		\hline
 	\end{tabular}
-	\caption{Explicit-Implicit Translation table}
+	\caption{Explicit-to-Implicit Translation Table}
 	\label{tab:explicit-implicit-translation}
 \end{table}
 
-We conclude this discussion of the implicit approach with the following open question: Can the decision problems be fully answered for general \(\ell\)-Minkowski distances with \(\ell \in \N\) in the regular RAM model? We have already proposed a method to decide the \(\leftrightarrow\) relation using simple methods from real algebraic geometry but failed to solve the other two relations. This requires a more sophisticated approach and will likely involve more properties of the distance polynomials, e.g., that they have at most two roots, or that they are the sum of linear terms to the power \(\ell\). These results will likely be only of theoretical interest as they simplify the required computational model but do not lead to practical algorithms. 
+\begin{enumerate}
+	\item We conclude this discussion of the implicit approach with the following open question: Can the decision problems be solved exactly for general \(\ell\)-Minkowski distances with \(\ell \in \N\) in the regular RAM model? 
 
-Another research question is whether there are good semiexplicit representations for \(\ell\)-Minkowski distances other than the Euclidean distance.
+	We have proposed a method to decide the \(\leftrightarrow\) relation using Sturm's theorem but have not fully solved the other two relations. This likely requires leveraging more specific properties of the distance polynomials, such as that they have at most two roots or are sums of linear terms raised to the power \(\ell\). These results would likely be of theoretical interest, simplifying the required computational model but not necessarily leading to practical algorithms.
+
+	\item Are good semiexplicit representations for \(\ell\)-Minkowski distances other than the Euclidean distance?
+
+	For \(\delta_3\) and \(\delta_4\) it might be possible to create such a representation from the respective solution formulas. Since these formulas are very long and complicated, creating such a representation would be tedious if it is even possible.
+\end{enumerate}
 
