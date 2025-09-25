@@ -18,6 +18,14 @@ an input \(\varepsilon\) we find the smallest simplification within \(\varepsilo
 
 This result is rather unspectacular as it does not give us any indication how to determine these intervals and thus how to construct the datastructure efficiently. Before we go into the construction, we mention that \cref{lem:datastructure-existence} did not make any assumption on how to measure the simplification against the polyline. Thus it also works in the local and Hausdorff cases albeit with different constructions than outlined here. 
 
+\subsection{Related Works}
+This exact problem has not been studied extensively, but a similar problem has been considered by \citeauthor{progressive_simplification_buchinetal}~\cite{progressive_simplification_buchinetal}. They use the local Fréchet distance to compute \emph{progressive} simplifications. Such simplifications have the property that they are subsequences of each other, meaning that any simplifications in a progressive simplification can be gotten from any other one by either only removing vertices or only adding vertices. Their minimization goal is the simplification size sum. 
+
+Their approach is useful as the simplifications at different levels of \(\varepsilon\) are consistent. However, this comes at the cost of runtime. The continuous version requires \(\O(n^5)\) time and the discrete setting requires \(\O(n^3 m)\) time when minimizing for \(m\) levels.
+
+We consider the simpler, non-progressive setting which allows us to solve these problems in runtime \(\O(n^4 \log n)\) for the continuous version in the global setting and \(\O(n^3 \log^2 n)\) in the local one. The discrete setting without the progressive property can be solved simply by computing the simplifications at each level and thus it is trivially possible to solve in \(\O(n^3 m)\) in the global setting and \(\O(n^2 \log n m)\) in the local setting by using suitable simplification algorithms. Thus, we cover only the global setting. 
+
+
 \subsection{Datastructure Construction}
 \label{ssec:ds-construction}
 
@@ -243,7 +251,7 @@ Interestingly, this suggests that in high dimensions distance functions such as 
 	Given a two dimensional polyline \(P\) of length \(n\) in \(d\) dimensions. It is possible to construct a datastructure that requires \(\O(n^2)\) space and allows to query for optimal polyline simplifications for a given \(\varepsilon\) in \(\O(\log n)\) time for both the local and global Fréchet distance. To construct this datastructure, we require \(\O(n^3)\) space and the runtime is \(\O(n^4 \log n)\).
 \end{corollary}
 
-In the local case, both Fréchet and Hausdorff, the algorithm can also be improved as there are, in fact, only quadratically many events which are exactly the distances of the shortcuts to the respective subpolyline. This is independent of the distance used and only quadratically many shortcuts can exist. This improves the search through the events to a runtime of \(\O(f(n)n\log n)\) where \(\O(f(n))\) is the runtime for a local simplification. In total, this allows also for runtimes of \(\O(n^3\log n)\) or \(\O(n^3\log^2 n)\) for the Euclidean, Chebyshev, and Manhattan distance in two dimensions using appropriate algorithms.
+In the local case, both Fréchet and Hausdorff, the algorithm can also be improved as there are, in fact, only quadratically many events which are exactly the distances of the shortcuts to the respective subpolyline. This is independent of the distance used and only quadratically many shortcuts can exist. This improves the search through the events to a runtime of \(\O(f(n)n\log n)\) where \(\O(f(n))\) is the runtime for a local simplification. In total, this allows also for runtimes of \(\O(n^3\log n)\) generally or \(\O(n^3\log^2 n)\) for the Euclidean, Chebyshev, and Manhattan distance in two dimensions using appropriate algorithms.
 
 % TODO: Compare in table 
 
