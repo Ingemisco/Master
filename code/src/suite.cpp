@@ -104,10 +104,10 @@ void measure_suite_advanced(std::filesystem::path path) {
 	process_category(well_behaved_path, w_polylines);
 	process_category(non_well_behaved_path, n_polylines);
 
-	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_MANHATTAN, Simplification::simplification_advanced_manhattan_explicit>(w_polylines, n_polylines, log, _epsilon);
-	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV, Simplification::simplification_advanced_chebyshev_explicit>(w_polylines, n_polylines, log, _epsilon);
+	// use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_MANHATTAN, Simplification::simplification_advanced_manhattan_explicit>(w_polylines, n_polylines, log, _epsilon);
+	// use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_CHEBYSHEV, Simplification::simplification_advanced_chebyshev_explicit>(w_polylines, n_polylines, log, _epsilon);
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_EUCLIDEAN, Simplification::simplification_advanced_euclidean_explicit>(w_polylines, n_polylines, log, _epsilon);
-	use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_advanced_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon2);
+	// use_algorithm<Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN, Simplification::simplification_advanced_euclidean_semiexplicit>(w_polylines, n_polylines, log, _epsilon2);
 }
 
 void measure_suite_simple(std::filesystem::path path) {

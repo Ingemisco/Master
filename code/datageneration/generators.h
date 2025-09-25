@@ -14,7 +14,7 @@ make_polyline(PointCount, Dimension, float, float, float, std::mt19937 &);
 void make_integral(DataStructures::Polyline &);
 void write_to_file(DataStructures::Polyline const &, std::filesystem::path);
 
-bool make_test_suite(std::string &, size_t, size_t, size_t, size_t, std::mt19937 &);
+bool make_test_suite(std::string &, size_t, size_t, size_t, size_t, std::mt19937 &, float = 2.0, float = 10.0);
 
 } // namespace DataGeneration
 

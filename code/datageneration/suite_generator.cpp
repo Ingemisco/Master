@@ -9,7 +9,8 @@ namespace fs = std::filesystem;
 
 namespace DataGeneration {
 
-bool make_test_suite(std::string &path, size_t start, size_t step, size_t end, size_t cases, std::mt19937 &rd) {
+bool make_test_suite(std::string &path, size_t start, size_t step, size_t end, size_t cases, std::mt19937 &rd,
+										 float min_length, float max_length) {
 	if (fs::exists(path)) {
 		return false;
 	}
@@ -27,9 +28,9 @@ bool make_test_suite(std::string &path, size_t start, size_t step, size_t end, s
 			fs::create_directory(non_well_behaved  / std::to_string(i));
 
 			for (unsigned int j = 0; j < cases; j++) {
-				auto const polyline_w = DataGeneration::make_polyline(i, 2, 2, 10, 60 / 180.0 * std::numbers::pi, rd);
+				auto const polyline_w = DataGeneration::make_polyline(i, 2, min_length, max_length, 60 / 180.0 * std::numbers::pi, rd);
 				DataGeneration::write_to_file(*polyline_w, well_behaved / std::to_string(i) / std::to_string(j));
-				auto const polyline_n = DataGeneration::make_polyline(i, 2, 2, 10, 180 / 180.0 * std::numbers::pi, rd);
+				auto const polyline_n = DataGeneration::make_polyline(i, 2, min_length, max_length, 180 / 180.0 * std::numbers::pi, rd);
 				DataGeneration::write_to_file(*polyline_n, non_well_behaved / std::to_string(i) / std::to_string(j));
 			}
 		}
