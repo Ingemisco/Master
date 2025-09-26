@@ -1,49 +1,43 @@
 \section{Conclusions and Future Work}
 \label{sec:discussion_conclusion}
 
-We explored intricacies of the global Fréchet distance in depth and discussed multiple simplification algorithms. 
-The implicit and semiexplicit approaches we have introduced present a new perspective on the computational model required to solve Fréchet distance related algorithms and are sufficient to show that square roots are not necessary in the Euclidean case. The resulting algorithms are competetive with the explicit versions albeit still slower.
+We have explored the intricacies of the global Fréchet distance in depth and discussed multiple polyline simplification algorithms.
+The implicit and semiexplicit approaches we introduced present a new perspective on the computational model required to solve Fréchet distance-related problems and are sufficient to show that square roots are not necessary in the Euclidean case. The resulting algorithms are competitive with the explicit versions, albeit still slower.
 
-Our discussion, implementations, and evaluation of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm showed that minimal optimizations make the algorithm highly performant while still being simple to implement. 
+Our discussion, implementations, and evaluation of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm showed that minimal optimizations make the algorithm highly performant while remaining relatively simple to implement.
 
-\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm inevitably becomes faster than the optimized \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} algorithm however it has worse parallelizability. Thus the exact polyline length at which it becomes the faster algorithm is system dependent. 
+\citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s algorithm inevitably becomes faster than the optimized \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} algorithm for sufficiently large polylines; however, it has worse parallelizability. Thus, the specific polyline length at which it becomes the faster algorithm is system-dependent.
 
-The Chebyshev distance seems to be a practical alternative for the Euclidean distance as the runtimes for both algorithms differ only negligibly. The necessary solving algorithm is simple to implement and fast and unlike the explicit Euclidean variant does not require square roots thus making it more numerically stable. 
+The Chebyshev distance appears to be a practical alternative to the Euclidean distance, as the runtimes for both algorithms differ only negligibly. The necessary equation-solving algorithm for Chebyshev is simple to implement, fast, and, unlike the explicit Euclidean variant, does not require square roots, making it more numerically stable.
 
-A surprising experimental result is that local and global simplifications do not differ at all in practice but only on artificially crafted counterexamples. As currently local simplification algorithms are much simpler to implement and faster than their global counterparts\footnote{In our implementations, the main logic of the Imai-Iri algorithm was implemented in around 50 lines of code while the simple algorithm took approximately 200 lines of code and the advanced one required around 300 lines of code. We have not reported on the runtime of the Imai-Iri algorithm as we are interested in global algorithms but according to our tests it was around 370 times faster.} this suggests that in practice global simplification is hardly useful. Positively interpreted, this means that local simplifications are in practice just as good as global ones. 
+A surprising experimental result is that local and global simplifications do not differ meaningfully in practice, differing significantly only on artificially crafted counterexamples. As local simplification algorithms are currently much simpler to implement and faster than their global counterparts\footnote{In our implementations, the main logic of the Imai-Iri algorithm was implemented in around 50 lines of code, while the simple algorithm required approximately 200 lines and the advanced one around 300 lines. We have not reported the runtime of the Imai-Iri algorithm as we focused on global algorithms, but according to our tests, it was around 370 times faster.}, this suggests that global simplification is of limited practical utility for many applications. Positively interpreted, this means that local simplifications are, in practice, just as good as global ones.
 
-By exploring the size of simplifications we discovered that the well-behavedness of the polyline affects the simplification more than the distance used. This also implies that different types of distances share a common class of well-behaved polylines. 
+By exploring simplification sizes, we discovered that the well-behavedness of the polyline has a greater impact on the result than the specific distance function used. This also implies that different distance functions share a common class of well-behaved polylines for which simplification behaves similarly.
 
-We have developed an algorithm that finds all simplifications in \(\Oh(n^4\log n)\) runtime and \(\O(n^3)\) space. Using this we were able to explore the effect of the used \(\varepsilon\) on the simplification size. It seems that the size follows a rectangular hyperbola function.
+We developed an algorithm that finds all optimal simplifications in \(\Oh(n^4\log n)\) time and \(\O(n^3)\) space. Using this, we were able to explore the relationship between \(\varepsilon\) and the simplification size, which appears to follow a rectangular hyperbola-like function.
 
-Finally, our attempt at adapting the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} lead to an alternative, and in our optinion more visually intuitive, derivation of the algorithm from \citeauthor{global_curve_simplification}.
+Finally, our attempt to adapt the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} led to an alternative, and in our opinion more visually intuitive, derivation of the algorithm from \citeauthor{global_curve_simplification}.
 
-We conclude with open research questions and possibilities for future work that our thesis presents.
+We conclude by presenting open research questions and possibilities for future work that our thesis highlights.
 
 \begin{itemize}
-  \item Is it possible to achieve subcubic runtime when using the global Fréchet distance for simplification?
+  \item Is it possible to achieve subcubic runtime for global Fréchet distance simplification?
 
-	This is an open problem since \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} discovered a cubic algorithm. For high dimensions this is likely not the case as they showed but for the more interesting two dimensional case nothing is currently known. In the local case this was answered already in the affermative.
+	This is an open problem since \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} discovered a cubic algorithm. For high dimensions, subcubic runtime is likely impossible due to their conditional lower bounds, but for the more practically relevant two-dimensional case, nothing is currently known. In the local Fréchet case, subcubic algorithms already exist.
 
-	\item Is it possible to achieve subcubic space consumption when using the global Fréchet distance for simplification?
+	\item Is it possible to achieve subcubic space consumption for global Fréchet distance simplification?
 
-	All cubic runtime algorithms currently require cubic space consumption. Our tests of the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} was finally stopped because of a lack of space so this is indeed a practical issue. \citeauthor{global_curve_simplification}'s algorithm can be implemented in quadratic space but incurs a logarithmic factor to the runtime but a cubic runtime algorithm with subcubic space consumption is currently not know.
+	All known cubic-time algorithms currently require cubic space. Our tests of the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm were ultimately halted due to memory constraints, confirming this as a practical issue. \citeauthor{global_curve_simplification}'s algorithm can be implemented in quadratic space but incurs a logarithmic factor increase in runtime. A cubic-time algorithm with subcubic space consumption is currently unknown. Note that a subcubic-time algorithm would also positively answer this question.
 
-	Note that a subcubic runtime algorithm also answers this question positively.
+	\item Can the optimized \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} algorithm be reanalyzed to prove a better average-case runtime?
 
-	\item Can \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm with our optimizations be reanalyzed to achieve a better runtime? 
-
-	Our tests show that our optimizations affect the runtime massively and make it competetive with the cubic runtime algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. Experimental data makes it likely that subquintic runtime is already achieve if not subquartic. However, it almost certainly scales worse than cubically. 
-
-	It may be possible to bound how often the optimizations are triggered and how many iterations are skipped on average to show lower runtime bounds but this involves a more sophisticated analysis of the algorithm's choices.
+	Our tests show that our optimizations massively improve runtime, making it competitive with the cubic algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} on a range of inputs. Experimental data suggest that subquintic, if not subquartic, average-case runtime might be achievable, though it almost certainly scales worse than cubically in the worst case. It may be possible to bound how often the optimizations are triggered and how many iterations are skipped on average to prove lower runtime bounds, but this requires a more sophisticated average-case analysis.
 
 	\item Are there good approximation algorithms for global Fréchet simplification?
 
-	This is an approach to achieve subcubic runtime and space consumption in the case that this is not possible for exact algorithms. As polyline simplifications are themselves just visual approximations it is reasonable to allow non-optimal simplifications that come with a guaranteed approximation factor.
+	This is a promising approach to achieve subcubic runtime and space consumption if exact algorithms are impossible. Since polyline simplifications are themselves approximations for visualization, it is reasonable to allow non-optimal simplifications that come with a guaranteed approximation factor.
 
-	\item Can the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} be parallelized?
+	\item Can the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} be effectively parallelized?
 
-	Due to parallelization the algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} is faster than this algorithm on small data. Using parallelization it could become the definitively better algorithm and improve simplification times for large polylines.
+	Due to parallelization, the \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} algorithm is faster on smaller datasets. Effective parallelization of the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm could make it definitively superior and significantly improve simplification times for large polylines.
 \end{itemize}
-
-

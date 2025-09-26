@@ -1,7 +1,7 @@
 \section{Experimental Evaluation}
 \label{sec:evaluation}
 
-In this section, we evaluate all implemented algorithms extensively and report on the insights gained. For this section, the algorithm from van Kreveld et al. will be referred to as the \emph{simple algorithm}, while the algorithm from Bringmann et al. will be referred to as the \emph{advanced algorithm}.
+In this section, we evaluate all implemented algorithms extensively and report on the insights gained. For this section, the algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} will be referred to as the \emph{simple algorithm}, while the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} will be referred to as the \emph{advanced algorithm}.
 
 \subsection{Data and Hardware}
 \label{subsec:hardware}
@@ -58,7 +58,7 @@ We test the following nine variants:
 	\item Advanced Semiexplicit Euclidean Algorithm
 \end{itemize}
 
-We have not implemented an implicit version of the advanced algorithm, as it would require a complete rewrite of the complex Bringmann et al. algorithm and its dependencies. All non-implicit variants (including the semiexplicit ones) can be implemented as a single algorithm where the necessary changes are abstracted using C++ templates to reduce code duplication.
+We have not implemented an implicit version of the advanced algorithm, as it would require a complete rewrite of the complex \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm and its dependencies. All non-implicit variants (including the semiexplicit ones) can be implemented as a single algorithm where the necessary changes are abstracted using C++ templates to reduce code duplication.
 
 Due to the extensive parameter space, a comprehensive evaluation of every possibility is infeasible. We thus must select specific criteria to test. We encourage the interested reader to experiment with different variations, as we observed that even minor changes can lead to different results.
 
@@ -163,7 +163,7 @@ We present the results of our experimental evaluation in two parts. First, in \c
 
 It is notable that we were able to perform experiments on polylines of this size given the poor theoretical runtimes of \(\O(n^3)\) for the advanced and up to \(\O(n^6)\) for the simple algorithm\footnote{As shown in \cref{ssubsec:simplification_size}, the output sizes scale approximately linearly on the tested polylines, so the runtime of the simple algorithm is closer to \(\O(n^6)\) than \(\O(n^5)\).}. This can be explained by the fact that the individual operations are simple arithmetic operations that can be performed very quickly on modern hardware.
 
-Furthermore, the stability of the data for the advanced variants is remarkable. The Bringmann et al. algorithm always performs the same computations regardless of the input polyline, but this degree of stability is surprising.
+Furthermore, the stability of the data for the advanced variants is remarkable. The \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm always performs the same computations regardless of the input polyline, but this degree of stability is surprising.
 
 We extended the evaluation of the advanced variants to polylines of up to 800 points to gain further insights into their scaling. Given their observed stability, we reduced the test cases per polyline length to 2 to reduce total testing time. The results can be seen in \cref{fig:res_advanced800}. Even with more variance in individual data points, the trend remains stable and unsurprising. The variants are also insensitive to the well-behavedness of the data, as expected.
 

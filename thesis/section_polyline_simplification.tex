@@ -29,7 +29,7 @@ These distances measure the similarity between the simplification and the origin
 
 A common alternative for both the Hausdorff and Fréchet distances is to compare the simplification only \emph{locally}.
 
-To understand local simplification, we need to define the allowed points for the simplification. \citeauthor{global_curve_simplification} distinguish three types of point selection:
+To understand local simplification, we need to define the allowed points for the simplification. \Citeauthor{global_curve_simplification} distinguish three types of point selection:
 \begin{itemize}
   \item \emph{Vertex-restricted}: Only the original vertices of the polyline are allowed. For a polyline \(P = \angl{u_0, \dots, u_n}\), a simplification must be a subsequence of \(u_0, \dots, u_n\) preserving the order.
 	\item \emph{Curve-restricted}: Any point lying on the polyline is allowed. For a polyline \(P\) of length \(p\), any point \(P(t)\) for \(t \in [0, p]\) is valid. The sequence of parameters \(t\) must be increasing.
@@ -45,7 +45,7 @@ In contrast to the local setting, we study the \emph{global} Fréchet distance i
 In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet variants. For more information on other global variants, we refer to \citeauthor{global_curve_simplification}'s paper.
 
 \subsection{Hausdorff Distance}
-In this thesis, we study only the Fréchet distance. The global Hausdorff distance is the least useful among the four variants discussed here. \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} showed that finding such simplifications is NP-hard~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, making it impractical for applications. Furthermore, it does not capture the contour of a polyline well, as the order of points is not considered. This can lead to oversimplifications. See \cref{fig:polyline-ex-hausdorff} for an example illustrating why the Hausdorff distance may be problematic for measuring similarity.
+In this thesis, we study only the Fréchet distance. The global Hausdorff distance is the least useful among the four variants discussed here. Van Kreveld et al. showed that finding such simplifications is NP-hard~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, making it impractical for applications. Furthermore, it does not capture the contour of a polyline well, as the order of points is not considered. This can lead to oversimplifications. See \cref{fig:polyline-ex-hausdorff} for an example illustrating why the Hausdorff distance may be problematic for measuring similarity.
 
 \begin{figure}[b]
   \centering
@@ -63,7 +63,7 @@ The local Fréchet variant enforces locality constraints similar to the local Ha
 
 This algorithm also applies to the local Fréchet distance. A full implementation requires testing whether the Fréchet distance between two polylines is within a given bound. This can be done using the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}~\cite{computing_the_frechet_distance_between_two_polygonal_curves}, which we discuss in \cref{sec:algorithm_implementation}. This test generally takes \(\O(pq)\) time for polylines of length \(p\) and \(q\). However, when one polyline is a single line segment (the shortcut), the test can be performed in linear time. The complete algorithm thus runs in cubic time.
 
-The local Fréchet variant has seen runtime improvements in low dimensions. \citeauthor{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}~\cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal} present an algorithm that solves the problem in \(\O(n^2 \log n)\) time, achieving quadratic runtime for the Manhattan or Chebyshev distances, or when the polyline satisfies certain well-behavedness properties. Their algorithm works in two dimensions and is a refinement of the algorithm by \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
+The local Fréchet variant has seen runtime improvements in low dimensions. \Citeauthor{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}~\cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal} present an algorithm that solves the problem in \(\O(n^2 \log n)\) time, achieving quadratic runtime for the Manhattan or Chebyshev distances, or when the polyline satisfies certain well-behavedness properties. Their algorithm works in two dimensions and is a refinement of the algorithm by \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
 
 \subsection{Global Fréchet}
 Unlike its local counterpart, the global Fréchet variant has received less attention. To our knowledge, only three papers have specifically researched this topic.
