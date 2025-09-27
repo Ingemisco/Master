@@ -252,7 +252,7 @@ We conclude with a summary of the results of this section.
 \end{theorem}
 
 \begin{proof}
-  The global case is what we have extensively analyzed. By substituting the simplification algorithm with one for the local Fréchet distance, the same algorithm works for the local case. It can be seen that both variants depend on the same set of critical events because, for example, the Imai and Iri algorithm also relies on the Fréchet distance decision problem used by the global version.
+  The global case is what we have extensively analyzed. By substituting the simplification algorithm with one for the local Fréchet distance, the same algorithm works for the local case. It can be seen that both variants depend on the same set of critical events because, for example, the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm also relies on the Fréchet distance decision problem used by the global version.
 \end{proof}
 
 Interestingly, this suggests that in high dimensions, distance functions such as \(\delta_4\) might be preferable to both the Manhattan and Chebyshev distances because the number of events does not scale with the dimension. However, this also depends on the time required to solve the necessary equations. In practice, \(\delta_4\) is generally inferior to \(\delta_2\), and \(\delta_1\) and \(\delta_\infty\) have the advantage of allowing fast, stable, and exact solution algorithms. Furthermore, high dimensions are rarely used in practice.

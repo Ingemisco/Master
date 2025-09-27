@@ -1,6 +1,8 @@
 \section{Adapting Imai and Iri to the Global Fréchet Distance}
 \label{sec:global_imai_iri}
 
+In this section, we revisit the well-known \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm for local Fréchet polyline simplification and demonstrate how to adapt it to the global Fréchet setting. In doing so, we rediscover the simplification algorithm from \citeauthor{global_curve_simplification}. This presents a new perspective on their algorithm and the link to the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm might allow to adapt optimizations from the local setting.
+
 Throughout this section we fix \(\varepsilon > 0\) and a distance \(\delta\). Further, let \(P\) be a polyline of length \(n\).
 
 In this section we try to adapt the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} for the global Fréchet distance. 
@@ -13,7 +15,7 @@ In the global case the structure of these shortcuts is more complicated necessit
   For a shortcut \(e = \overline{P(i')P(i)}\) we say that \((t', t) \in [0, n]^2\) with \(t' \leq t\) is \emph{\(e\)-admissible} if and only if \(\delta^F(P[t' \dots t], e) \leq \varepsilon\). We denote \(\mathcal{A}_e = \set{(t', t) \mid (t', t) \textrm{ is } e\textrm{-admissible}}\) as the set of \(e\)-admissible subpolylines.
 \end{definition}
 
-With this, we can formulate a first version of the global Imai and Iri algorithm: Construct the shortcut graph and compute with each edge \(e\) the set \(\mathcal{A}_e\). A global simplification of size \(k\) corresponds to a sequence \(e_1, \dots, e_k\) with \(e_1 = (0, i')\) and \(e_k = (i, n)\) for suitable \(i'\) and \(i\) such that there are \(x_0, x_1, \dots, x_{k-1}, x_k\) with \((x_{i-1}, x_{i}) \in \mathcal{A}_{e_i}\) for \(i \in \set{1, \dots, k}\) and \(x_0 = 0\) and \(x_k = n\).
+With this, we can formulate a first version of the global \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm: Construct the shortcut graph and compute with each edge \(e\) the set \(\mathcal{A}_e\). A global simplification of size \(k\) corresponds to a sequence \(e_1, \dots, e_k\) with \(e_1 = (0, i')\) and \(e_k = (i, n)\) for suitable \(i'\) and \(i\) such that there are \(x_0, x_1, \dots, x_{k-1}, x_k\) with \((x_{i-1}, x_{i}) \in \mathcal{A}_{e_i}\) for \(i \in \set{1, \dots, k}\) and \(x_0 = 0\) and \(x_k = n\).
 
 For an implementation we need to find an efficient way to store and compute the \(e\)-admissible subpolylines as well as a way to find the \(x_i\) quickly. 
 
