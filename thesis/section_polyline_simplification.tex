@@ -29,7 +29,7 @@ These distances measure the similarity between the simplification and the origin
 
 A common alternative for both the Hausdorff and Fréchet distances is to compare the simplification only \emph{locally}.
 
-To understand local simplification, we need to define the allowed points for the simplification. \Citeauthor{global_curve_simplification} distinguish three types of point selection:
+To understand local simplification, we need to define the allowed points for the simplification. Van de Kerkhof et al. distinguish three types of point selection:
 \begin{itemize}
   \item \emph{Vertex-restricted}: Only the original vertices of the polyline are allowed. For a polyline \(P = \angl{u_0, \dots, u_n}\), a simplification must be a subsequence of \(u_0, \dots, u_n\) preserving the order.
 	\item \emph{Curve-restricted}: Any point lying on the polyline is allowed. For a polyline \(P\) of length \(p\), any point \(P(t)\) for \(t \in [0, p]\) is valid. The sequence of parameters \(t\) must be increasing.
