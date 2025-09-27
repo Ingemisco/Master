@@ -5,84 +5,88 @@ In this section, we revisit the well-known \citeauthor{computational_geometric_m
 
 Throughout this section we fix \(\varepsilon > 0\) and a distance \(\delta\). Further, let \(P\) be a polyline of length \(n\).
 
-In this section we try to adapt the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} for the global Fréchet distance. 
+\subsection{Local Case}
 
-We recall how the algorithm works for local simplifications. As a first step a shortcut graph is constructed where the nodes are the points of the polyline and a directed edge is added between two points if the subpolyline between has Fréchet distance within \(\varepsilon\) from the line segment between the two points. In a second step a shortest path search from the first to the last point of the polyline is performed. This corresponds directly to the simplification.
+We recall the algorithm in the local setting to identify where modifications are needed to adapt it to the global setting. 
 
-In the global case the structure of these shortcuts is more complicated necessitating a more sophisticated approach. To confront this problem we store for each shortcut the set of all subpolylines for which it is a valid shortcut. 
+The algorithm consists of two main parts: first, a shortcut graph is constructed and then, a shortest path computation yields the simplification.
+
+The shortcut graph is a directed acyclic graph whose vertices correspond to the polyline vertices. A directed edge \((P(i), P(j))\) with \(i < j\) exists if \(\delta^F(P[i \dots j], \overline{P(i)P(j)}) \leq \varepsilon\) (i.e., \(\overline{P(i)P(j)}\) is a shortcut for the subpolyline \(P[i \dots j]\)). 
+
+To determine whether \(\delta^F(P[i \dots j], \overline{P(i)P(j)}) \leq \varepsilon\), we use the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}, modified versions of which are outlined in \cref{ssec:alt_godau,ssec:implicit_frechet_decision}. Here, the simpler classical version suffices. This test requires \(\Oh(n)\) time and as there are \(\O(n^2)\) many pairs to test, constructing the shortcut graph requires \(\Oh(n^3)\) time.
+
+Each path from \(P(0)\) to \(P(n)\) corresponds to a valid, not necessarily optimal, local simplification of the polyline by construction and it is obvious that all such simplifications are captured in the shortcut graph. Thus, computing the shorted \(P(0)-P(n)\) path in this graph yields an optimal local simplification. This can be done easily in \(\O(n^2)\).
+
+The total runtime is determined by the cubic graph construction phase thus the total runtime is \(\Oh(n^3)\).
+
+\subsection{The Global Shortcut Graph}
+In the global case the structure of these shortcuts is more complicated, necessitating a more sophisticated approach. To confront this problem, we store for each shortcut the set of all subpolylines for which it is a valid shortcut. 
 
 \begin{definition}
   For a shortcut \(e = \overline{P(i')P(i)}\) we say that \((t', t) \in [0, n]^2\) with \(t' \leq t\) is \emph{\(e\)-admissible} if and only if \(\delta^F(P[t' \dots t], e) \leq \varepsilon\). We denote \(\mathcal{A}_e = \set{(t', t) \mid (t', t) \textrm{ is } e\textrm{-admissible}}\) as the set of \(e\)-admissible subpolylines.
 \end{definition}
 
-With this, we can formulate a first version of the global \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm: Construct the shortcut graph and compute with each edge \(e\) the set \(\mathcal{A}_e\). A global simplification of size \(k\) corresponds to a sequence \(e_1, \dots, e_k\) with \(e_1 = (0, i')\) and \(e_k = (i, n)\) for suitable \(i'\) and \(i\) such that there are \(x_0, x_1, \dots, x_{k-1}, x_k\) with \((x_{i-1}, x_{i}) \in \mathcal{A}_{e_i}\) for \(i \in \set{1, \dots, k}\) and \(x_0 = 0\) and \(x_k = n\).
+The following observation might seem complicated, but it follows directly from the definitions of admissibility and Fréchet distance. It captures our intuition that global simplifications are constructed of only admissible subpolylines.
 
-For an implementation we need to find an efficient way to store and compute the \(e\)-admissible subpolylines as well as a way to find the \(x_i\) quickly. 
+\begin{observation}
+	Let \(Q=\angl{P(u_0), \dots, P(u_q)}\) be a (not nessarily optimal) global simplification of \(P\) which means there are parameterizations increasing, continuous \(f, g\) with \(f([0, 1]) = [0, n]\) and \(g([0,1]) = [0, q]\) with \(\delta(P(f(\alpha)), Q(g(\alpha))) \leq \varepsilon\) for all \(\alpha \in [0, 1]\).
+
+	Then, for \(i \in \set{1, \dots, q}\) and \(x \leq y \in [0, 1]\) such that \(g(x) = i - 1\) and \(g(y) = i\) it holds that 
+	\[\delta^F(P[f(x) \dots f(y)], \overline{P(g(x)), P(g(y))}) \leq \varepsilon.\]
+	This means \((f(x), f(y))\) is \(e\)-admissible for \(e = \overline{P(g(x), P(g(y)))} = \overline{Q(i-1), Q(i)}\).
+\end{observation}
+
+Next, we explore the set of admissible subpolylines \(\mathcal{A}_e\) with the goal of establishing an efficient representation.
+
+\begin{lemma}\label{lem:admissible_are_intervals}
+	Let \(e = \overline{P(i')P(i)}\).
+  \begin{enumerate}
+		\item Let \((r, t)\in \mathcal{A}_e\) and \(r \leq t' \leq t\) with \(\delta(P(t'), P(i')) \leq \varepsilon\). Then \((t', t) \in \mathcal{A}_e\).
+		\item Let \((t', r)\in \mathcal{A}_e\) and \(t' \leq t \leq r\) with \(\delta(P(t), P(i)) \leq \varepsilon\). Then \((t', t) \in \mathcal{A}_e\).
+  \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+	We show the first statement. The second one is analogous. We create suitable parameterizations \(f\) and \(g\) to show \(\delta^F(P[t' \dots t], e) \leq \varepsilon\). As \((r,t)\) is \(e\)-admissible, there are functions increasing, bijective parameterizations \(f':[0,1] \to [r \dots t]\) and \(g':[0,1] \to [0,1]\) (here we shift the range of \(f'\) to be consistent with \(P\) and not the subpolyline \(P[r \dots t]\)).
+
+	Since \(f'\) is surjective onto \([r, t]\) and \(t' \in [r, t]\), there is \(x \in [0, 1]\) with \(f'(x) = t'\). This means that \(\delta(P(t'), e(g'(x))) \leq \varepsilon\). By the convexity property in \cref{lem:distance_properties}, \(\delta(P(t'), e(\lambda)) \leq \varepsilon\) for all \(\lambda \in [0, g'(x)]\). With this, we construct the parameterizations \(f\) and \(g\) such that \(f\) is the zero function until \(g\) assumes the value \(g'(x)\). After this point both functions are identical to \(f'\) and \(g'\) respectively (up to a shift in the range).
+\end{proof}
 
 \begin{definition}
 	For sets \(A\) and \(B\) we define \(A \times_{\leq} B\) to be 
 		\[A \times_{\leq} B = \set{(a, b) \in A \times B \mid a \leq b}.\]
 \end{definition}
 
-\begin{lemma}\label{lem:admissible-rep}
-	There are closed intervals \(I_1, \dots, I_k\) and \(J_1, \dots, J_l\) with \(k + l \in \O(n)\) and 
-	\[\mathcal{A}_e =  \bigcup_{i=1}^h I_{a_i} \times_{\leq} J_{b_i}\] 
-	where \(h \in \O(n^2)\) and \(a_i\) and \(b_i\) are suitable integers.
-\end{lemma}
-
-\begin{proof}
-	Fix any \(e\)-admissible subpolyline \((t', t)\) then it holds trivially that \(\delta(P(i'), P(t')) \leq \varepsilon\) and \(\delta(P(i), P(t)) \leq \varepsilon\) where \(e = \overline{P(i')P(i)}\). Find the unique maximal closed intervals \(I\) and \(J\) such that \(t' \in I\), \(t \in J\) and \(\delta(P(x'), P(i')) \leq \varepsilon\) and \(\delta(P(x), P(i)) \leq \varepsilon\) for all \(x' \in I\) and \(x \in J\), i.e., the boundaries of these intervals are either \(0\), \(n\) are a point on the polyline that has distance exactly \(\varepsilon\) from \(P(i')\) (in the case of \(I\)) or \(P(i)\) (in the case of \(J\)).
-
-	Trivially, it holds that \((t', t) \in I \times_{\leq} J\) and that there are only \(\O(n)\) many such intervals for both \(I\) and \(J\) resulting in at most \(\O(n^2)\) many such combinations. Now we only need to show that all pairs in \(I \times_{\leq} J\) are \(e\)-admissible. Pick any pair \((s', s) \in I \times_{\leq} J\). We need to show that \(\delta^F(P[s' \dots s], e) \leq \varepsilon\). This follows by applying \cref{lem:ag-neq} once to get a sequence of suitable \(x_i\) for the subpolyline \((t', t)\), extending or trimming it to fit \((s', s)\) and using Property 4 from \cref{lem:distance_properties} for the beginning and end.
-\end{proof}
-
-This gives us a representation of the \(e\)-admissible subpolylines but for efficiency we want a linear representation. The main problem that causes quadratically many intervals is that multiple intervals \(I\) can be paired with multiple intervals \(J\) causing a quadratic number of pairs. 
+Using \cref{lem:admissible_are_intervals}, we define an efficient representation of \(\mathcal{A}_e\).
 
 \begin{lemma}\label{lem:admissible-rep-1}
-	Let \(I_1, \dots, I_k\) and \(J_1, \dots, J_l\) be the intervals from \cref{lem:admissible-rep}. Then 
-	\begin{enumerate}
-		\item The \(I_i\) intervals are pairwise disjoint 
-		\item The \(J_j\) intervals are pairwise disjoint 
-		\item There are numbers \(a_i, b_i\) such that 
-			\[\mathcal{A}_e = \bigcup_{i=1}^k \bigcup_{j=a_i}^{b_i} I_i \times_\leq J_j,\]	
-			or alternatively, there are numbers \(c_i, d_i\) such that 
-			\[\mathcal{A}_e = \bigcup_{j=1}^l \bigcup_{i=c_i}^{d_i} I_i \times_\leq J_j,\]	
-		where both sets of intervals are sorted by their left boundary (or equivalently by 1. and 2. by their right boundary)
-	\end{enumerate}
+	Let \(e = \overline{P(i')P(i)}\) be a line segment. Denote \(\mathcal{I} = \set{t \in [0,n] \mid \delta(P(i'), P(t)) \leq \varepsilon}\) and \(\mathcal{J} = \set{t \in [0,n] \mid \delta(P(i), P(t)) \leq \varepsilon}\). There are closed intervals \(I \subseteq [\min \mathcal{I}, \max \mathcal{I}]\) and \(J \subseteq [\min \mathcal{J}, \max \mathcal{J}]\) such that 
+	\[\mathcal{A}_e = \parenth{\mathcal{I} \cap I} \times_\leq \parenth{\mathcal{J} \cap J}.\]
 \end{lemma}
 
 \begin{proof}
-  \begin{enumerate}
-		\item If they are not, the intervals are not maximal and can be merged. Correctness follows from the proof of \cref{lem:admissible-rep}
-		\item Same as 1.
-		\item Fix an interval \(I_i\). We need to show that the \(J_j\) intervals with which it must be paired via \(\times_\leq\) are all consecutive with none missing inbetween. Let \(I_i \times_\leq J_x\) and \(I_i \times_\leq J_y\) be nonempty and subsets of \(\mathcal{A}_e\) and \(x \leq z \leq y\). We show that \(I_i \times_\leq J_z \subseteq \mathcal{A}_e\).
+	The lemma is trivial if \(\mathcal{A}_e\) is empty. Suppose it is not empty. 
+	Let \(m_I \in [0, n]\) be minimal such that there is \(n \geq m_I\) with \((m_I, n)\) is \(e\)-admissible and similarly let \(M_I\) be maximal such that a suitable \(n\) exists. Furthermore, let \(m_J \in [0,n]\) be minimal such that \((m_I, m_J)\) is \(e\)-admissible and \(M_J\) be maximial such that \((m_I, M_J)\) is \(e\)-admissible. 
 
-			Pick \((t', t) \in I_i \times_\leq J_z\). TODO: Complete proof, but follows trivially by looking at free space diagram. Becomes basically instance of cell reachability.
-  \end{enumerate}
+	We set \(I = [m_I, M_I]\) and \(J = [m_J, M_J]\) and show both inclusions separately.
+
+	(\(\subseteq\)) Let \((t', t)\) be \(e\)-admissible. Then \(t' \in \mathcal{I}\), \(t \in \mathcal{J}\), and \(t' \leq t\) by definition. By definition of \(m_I, M_I, m_J, M_J\) and using \cref{lem:admissible_are_intervals} it follows that \(t' \in I\) and \(t \in J\).
+
+	(\(\supseteq\)) Let \((t', t)\) satisfy \(t' \leq t\), \(m_I \leq t' \leq M_I\), \(t' \in \mathcal{I}\), \(m_J \leq t \leq M_J\), and \(t \in \mathcal{J}\). We repeatedly utilize \cref{lem:admissible_are_intervals} in the following. As \(m_I \leq t' \leq M_J\), \(t' \in \mathcal{I}\), and \((m_I, M_J)\) is \(e\)-admissible, \((t', M_J)\) is \(e\)-admissible. Similarly, as \(t' \leq t \leq M_J\), \(t \in \mathcal{J}\), and \((t', M_J)\) is \(e\)-admissible, so must \((t', t)\) be.
 \end{proof}
+
 
 \begin{definition}[Global Shortcut Graph]
 	For a polyline \(P = \angl{v_0, \dots, v_n}\) and \(\varepsilon > 0\) we define the global shortcut graph as the directed acyclic graph \(G = (V, E)\) with \(V = \set{v_0, \dots, v_n}\) and \(E = \set{(v_i, v_j) \mid i < j, e = \overline{v_iv_j}, \mathcal{A}_e \neq \emptyset}\).
 
 	We define a labelling function on the edges 
-	\[S(e) = ((I_1, \dots, I_k), (J_1, \dots, J_l), ((a_1, b_1), \dots, (a_k, b_k)), ((c_1, d_1), \dots, (c_l, d_l)))\] 
-	where \(I_i\) and \(J_j\) are the intervals from which we can construct \(\mathcal{A}_e\) and \(a_i, b_i, c_j, d_j\) are the boundaries of intervals that need to be paired as in \cref{lem:admissible-rep-1}.
+	\[S(e) = (I = [m_I, M_I], J = [m_J, M_J]),\]
+	where \(m_i, M_I, m_J, M_J\) are taken from the proof of \cref{lem:admissible-rep-1}.
 \end{definition}
 
-Any global simplification corresponds to a path through the graph from \(0\) to \(n\) using the edges \(e_1, \dots, e_r\) such that there are \(I_i \times_\leq J_i \subseteq \mathcal{A}_{e_i}\) such that \(J_i \cap I_{i+1} \neq \emptyset\) for all \(i\) and \(0 \in I_1\) and \(n \in J_r\).
+Let us briefly analyze the space consumption of the global shortcut graph: for each line segment, we only need to store 4 interval boundaries, resulting in total \(\O(n^2)\) space consumption for the edges. The vertices require only linear space, so in total this requires \(\O(n^2)\) space. 
 
-\begin{lemma}
-	\(Q=\angl{v_{i_0}, \dots, v_{i_k}}\) is a simplification of \(P=\angl{v_0, \dots, v_n}\) if and only if 
-	\begin{itemize}
-		\item \(v_{i_0} = 0 \) and \(v_{i_k} = n\)
-		\item There are \(x_0 \leq x_1 \leq \cdots \leq x_k\) such that \(x_0 = 0\), \(x_k = n\) and \((x_{j-1}, x_j) \in \mathcal{A}_e\) with \(e = \overline{v_{i_{j-1}}v_{i_j}}\) for \(j = 1, \dots, k\).
-	\end{itemize}
-\end{lemma}
-
-\begin{proof}
-	Let \(\delta^F(P, Q) \leq \varepsilon\). By definition it must hold \(v_{i_0} = 0\) and \(v_{i_k} = n\). To find the sequence of \(x_i\) set \(x_i =\)
-\end{proof}
-
+However, we did not consider the solution intervals \(\mathcal{I}\) and \(\mathcal{J}\) (see \cref{lem:admissible_are_intervals}). For each line segment there are in the worst case linearly many such intervals which would require in total cubic space. However, these intervals are only dependent on the points, not the line segments themselves, meaning there are linearly many closed intervals per polyline vertex and thus in total quadratically many. Thus, the total information of the global shortcut graph requires \(\O(n^2)\) space, with potentially less space if the graph is sparse (many \(\mathcal{A}_e\) are empty) and each point has only few such intervals. 
 
 
 

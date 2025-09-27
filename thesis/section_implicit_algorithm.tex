@@ -52,7 +52,7 @@ A trivial fact we will use to find initial restrictions is that \(u \overset e\r
   \label{fig:restrictions}
 \end{figure}
 
-\subsection{Fréchet Distance Decision}
+\subsection{Fréchet Distance Decision}\label{ssec:implicit_frechet_decision}
 We review the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} and adapt it to use the relations from \cref{def:implicit_relations} instead of solving equations explicitly. This can be done both for the general problem of deciding whether the Fréchet distance between two polylines is at most \(\varepsilon\), as well as for the modified version we are interested in, which returns the earliest reachable point on the last line segment\footnote{Obviously, this requires modifications to the statement of the algorithm, as we cannot explicitly compute the solution. These modifications will be mentioned later.}.
 
 For the general Fréchet distance decision problem, fix two given polylines \(P\) of length \(p\) and \(Q\) of length \(q\) with a fixed \(\varepsilon > 0\) and \(p \geq q\) (otherwise, swap the two polylines). We decide if \(\delta^F(P, Q) \leq \varepsilon\) by using the dynamic programming approach from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves}.
