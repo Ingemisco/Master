@@ -115,15 +115,19 @@ We now investigate elementary properties of polylines and their simplifications.
   \end{enumerate}
 \end{proof}
 
+\begin{definition}
+	Let \(P\) be a polyline, \(\varepsilon > 0\) and \(\hat \delta\) be any distance function between a polyline and a simplification. We define \(S(\hat \delta; S, \varepsilon)\) to be the size of the \(\varepsilon\)-simplification \(P\) using \(\hat \delta\).
+\end{definition}
+
 \begin{corollary}[Simplification Size Monotonicity]\label{cor:size_monotonicity}
-	Let \(d \in \N_+\) be a dimension, \(1 \leq k \leq \ell \leq \infty\),
-  \(P\) be a \(d\)-dimensional polyline, and \(\varepsilon \geq 0\). Denote the size of the \(\varepsilon\)-simplification of \(P\) using \(\delta_k\) or \(\delta_\ell\) as \(S_k\) or \(S_\ell\) respectively. Then \(S_\ell \leq S_k\).
+	Let \(1 \leq k \leq \ell \leq \infty\),
+	\(P\) be polyline, and \(\varepsilon \geq 0\). Then \(S(\delta^F_\ell; P, \varepsilon) \leq S(\delta_k^F; P, \varepsilon)\).
 \end{corollary}
 
 \cref{cor:size_monotonicity} provides a simple sanity check that is fast to implement and use for automated testing.
 
 \begin{proof}
-	By \cref{lem:monotonicity_minkowski}, for any non-optimal simplification \(Q\) of \(P\), \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\). Thus, if \(Q\) is a valid non-optimal \(\varepsilon\)-simplification under \(\delta_\ell\), it is also valid under \(\delta_k\). Since we minimize the number of points, the inequality \(S_\ell \leq S_k\) follows.
+	By \cref{lem:monotonicity_minkowski}, for any non-optimal simplification \(Q\) of \(P\), \(\delta_\ell^F(P, Q) \leq \delta_k^F(P, Q)\). Thus, if \(Q\) is a valid non-optimal \(\varepsilon\)-simplification under \(\delta_\ell\), it is also valid under \(\delta_k\). Since we minimize the number of points, the stated inequality follows.
 \end{proof}
 
 \begin{lemma}[Translation Invariance]\label{lem:translation_invariant}
@@ -159,6 +163,49 @@ Due to \cref{lem:translation_invariant}, we can fix the first point of each poly
 \begin{remark}
 	\cref{cor:size_monotonicity}, \cref{lem:translation_invariant}, \cref{cor:rot_inv}, and \cref{lem:scaling} also apply to the curve-restricted and non-restricted settings.
 \end{remark}
+
+\subsection{Comparing Local and Global Fréchet Simplification Sizes}
+Let us briefly explore, how different the local and global Fréchet simplifications can be. We have already provided an example in \cref{fig:polyline-ex-local-global-f} where the simplifications differ. Here, we want to expand upon a result from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}. 
+
+\begin{theorem}[Van Kreveld et al.~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}]
+	There exist constant \(c_1 > 1, c_2 > 1\), a polyline \(P\) with \(n\) vertices, and an \(\varepsilon > 0\) such that \(S(\delta^{LF}_2; P, c_1 \varepsilon) > c_2 S(\delta^F_2; P, \varepsilon)\).
+\end{theorem}
+
+\begin{theorem}\label{thm:lg-approx}
+	Let \(N_0 \in \N\) and \(c > 0\). There is a polyline with at least \(N_0\) vertices, \(\varepsilon >0\), and \(c_1 > 1, c_2 > 1\) such that \(S(\delta^{LF}_2; P, c_1 \varepsilon) > (c_2 - 1/c)S(\delta^F_2; P, \varepsilon)\).
+
+	The constant can be chosen as \(c_1 \in (1, \sqrt{2})\), \(c_2 = 2\) and \(\varepsilon = 2\).
+\end{theorem}
+
+This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s theorem in two aspects: first, our construction can be arbitraily long, and second, our construction has greater constants \(c_1\) and \(c_2\), even if we account for that we only approach the values \(c_1 = \sqrt{2}\) and \(c_2 = 2\) but do not reach them. Furthermore, as we will see shortly, our construction is simpler and also works for the Manhattan distance (albeit with a different range for \(c_1\)).
+
+\begin{proof}
+	For any \(i \in \N\), we construct a two-dimensional polyline \(P_i\) with \(4 \cdot i + 2\) points with \(S(\delta^{LF}; P_i, \varepsilon) = 4i + 2\) for any \(\varepsilon \in [2, 2\sqrt{2})\), but \(S(\delta^F; P_i, \varepsilon) = 2i + 2\). Such a construction satisfies all properties states. 
+
+	Choose the points \(P(0) = (0,0)\), \(P(1) = (0, 8)\) and for all \(j \in \set{0,\dots, i-1}\) we set:
+	\begin{align*}
+		P(4j+2) &= (-2 + 4j, 6 + 4j), \\
+		P(4j+3) &= (6 + 4j, 6 + 4j), \\
+		P(4j+4) &= (4 + 4j, 4 + 4j), \\
+		P(4j+5) &= (4 + 4j, 12 + 4j).
+	\end{align*}
+	Refer to \cref{fig:local-global-bigdiff} for an example. It is easy to verify that the global simplification has a size of at most \(2i + 2\) by selecting the points \(0,1, 4, 5, 8, 9, \dots, 4j, 4j + 1\). This is a valid global simplification as we can ``wait" on the simplification at the point where the polyline self-intersects. This point has distance at most \(2\) from the points in the loop. Other than that, it is trivial to traverse the simplification and polyline while guaranteeing to stay within \(\varepsilon\). 
+
+	To see that the local simplification requires all points we analyze all possible, non-trivial shortcuts (i.e., those shortcuts between non-consecutive points). Because of the repeating structure of the polyline, there are not many unique possibilities. For any point with index \(4j\) (bottom point of the ``4" shape) there are no non-trivial shortcuts, as no point following point can create a shortcut that is within \(\varepsilon\) of \(P(4j+1)\). For the point \(P(4j+1)\) (the top point of the ``4"), it is even more obvious, as all shortcuts go to the right and thus are too far away from \(P(4j+2)\). For \(P(4j+2)\) (the left point of the ``4") and \(P(4j+3)\) (the right end of the ``4") the same holds with their respective following point.
+
+	Thus, the shortcut graph is a path and the local simplification requires all points. One can similarly verify that the smallest \(\varepsilon\) for which a shortcut is added, is \(\varepsilon = 2\sqrt2\) at which point the local and global simplification coincide. 
+
+	The local simplification using the Manhattan distance does not change as it already contains all points and cannot reduce in size because of \cref{cor:size_monotonicity}. The global simplification also has the same size as when using the Euclidean distance with the same argument as before.
+\end{proof}
+
+\begin{figure}[h!tbp]
+  \centering
+	\includegraphics[scale=0.3]{./figures/local-global-bigdiff.png}
+	\caption{Construction from \cref{thm:lg-approx} with \(i = 5\). The local simplification contains all points and the global one is marked in red. The circle in blue has radius \(\varepsilon = 2\) and is centered around the self-intersection of the polyline.}
+  \label{fig:local-global-bigdiff}
+\end{figure}
+
+Interestingly, in our example, if we were to define the size of a simplification to not count the start and end point then a factor of \(c_2 = 2\) would be achieved. Every simplification must contain the start and endpoint, thus, when comparing their sizes, it could make sense to ignore those points.
 
 \subsection{A First Simplification Algorithm}
 We conclude this section with a simple simplification algorithm for both the local and global Fréchet variants under any distance. This, however, only covers the case \(\varepsilon = 0\).
