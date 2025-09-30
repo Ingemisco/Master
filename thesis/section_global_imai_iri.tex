@@ -58,21 +58,26 @@ Next, we explore the set of admissible subpolylines \(\mathcal{A}_e\) with the g
 \end{definition}
 
 Using \cref{lem:admissible_are_intervals}, we define an efficient representation of \(\mathcal{A}_e\).
-
 \begin{lemma}\label{lem:admissible-rep-1}
-	Let \(e = \overline{P(i')P(i)}\) be a line segment. Denote \(\mathcal{I} = \set{t \in [0,n] \mid \delta(P(i'), P(t)) \leq \varepsilon}\) and \(\mathcal{J} = \set{t \in [0,n] \mid \delta(P(i), P(t)) \leq \varepsilon}\). There are closed intervals \(I \subseteq [\min \mathcal{I}, \max \mathcal{I}]\) and \(J \subseteq [\min \mathcal{J}, \max \mathcal{J}]\) such that 
-	\[\mathcal{A}_e = \parenth{\mathcal{I} \cap I} \times_\leq \parenth{\mathcal{J} \cap J}.\]
+	Let \(e = \overline{P(i')P(i)}\) be a line segment. Denote \(\mathcal{I} = \set{t \in [0,n] \mid \delta(P(i'), P(t)) \leq \varepsilon}\) and \(\mathcal{J} = \set{t \in [0,n] \mid \delta(P(i), P(t)) \leq \varepsilon}\). There exist \(k \leq n\) and families of closed intervals \(I_1 \leq \cdots \leq I_k\) and closed intervals \(J_1 \leq \cdots \leq J_k\) such that 
+	\[\mathcal{A}_e = \parenth{\mathcal{I} \times_\leq \mathcal{J}} \cap \bigcup_{j=1}^k I_j \times J_j.\]
+
+	Here, the ordering on the intervals is defined by their lower bounds or equivalently by their upper bounds. It is further possible to achieve that the family \(I_j\) is pairwise disjoint or that the family \(J_j\) is pairwise disjoint (but not necessarily both).
 \end{lemma}
 
 \begin{proof}
-	The lemma is trivial if \(\mathcal{A}_e\) is empty. Suppose it is not empty. 
-	Let \(m_I \in [0, n]\) be minimal such that there is \(n \geq m_I\) with \((m_I, n)\) is \(e\)-admissible and similarly let \(M_I\) be maximal such that a suitable \(n\) exists. Furthermore, let \(m_J \in [0,n]\) be minimal such that \((m_I, m_J)\) is \(e\)-admissible and \(M_J\) be maximial such that \((m_I, M_J)\) is \(e\)-admissible. 
+	The lemma is trivial if \(\mathcal{A}_e\) is empty. Suppose it is not empty. It holds by definition that \(\mathcal{A}_e \subseteq \mathcal{I} \times_\leq \mathcal{J}\). 
 
-	We set \(I = [m_I, M_I]\) and \(J = [m_J, M_J]\) and show both inclusions separately.
+	For any \(e\)-admissible subypolline \((t', t)\) there exist closed maximal intervals \(I\) and \(J\) with \(t' \in I\), \(t' \in J\), and \(I \subseteq \mathcal{I}\) and \(J \subseteq \mathcal{J}\) by the distance constraints on the endpoints by the definition of the Fréchet distance. 
 
-	(\(\subseteq\)) Let \((t', t)\) be \(e\)-admissible. Then \(t' \in \mathcal{I}\), \(t \in \mathcal{J}\), and \(t' \leq t\) by definition. By definition of \(m_I, M_I, m_J, M_J\) and using \cref{lem:admissible_are_intervals} it follows that \(t' \in I\) and \(t \in J\).
+	We show that \(I \times_\leq J \subseteq \mathcal{A}_e\): pick any \(s' \leq s\) with \(s' \in I\) and \(s \in J\). If \(s' \leq t'\) then \(\delta^F(P[s' \dots t'], P[y \dots y]) \leq \varepsilon\) for any \(y \in J\) by construction of \(I\) and \(J\), and thus, we can extend any admissible \(t', y\) subpolyline to an admissible \((s', y)\). Similarly, if \(s \geq t\), for any \(x \in I\), we can extend admissible \((x, t)\) subpolylines to admissible \((x, s)\) subpolylines. Therefore, we can assume \(s' \geq t'\) and \(t \leq s\). Under these conditions, it follows that \((s', s)\) is admissible by using \cref{lem:admissible_are_intervals}.
 
-	(\(\supseteq\)) Let \((t', t)\) satisfy \(t' \leq t\), \(m_I \leq t' \leq M_I\), \(t' \in \mathcal{I}\), \(m_J \leq t \leq M_J\), and \(t \in \mathcal{J}\). We repeatedly utilize \cref{lem:admissible_are_intervals} in the following. As \(m_I \leq t' \leq M_J\), \(t' \in \mathcal{I}\), and \((m_I, M_J)\) is \(e\)-admissible, \((t', M_J)\) is \(e\)-admissible. Similarly, as \(t' \leq t \leq M_J\), \(t \in \mathcal{J}\), and \((t', M_J)\) is \(e\)-admissible, so must \((t', t)\) be.
+	We now have seen that admissibility is a property shared by pairs of intervals, not only points. Thus, we will say \((I, J)\) is admissible if all point pairs \((t', t)\) with \(t' \leq t\) in \(I \times J\) are admissible.
+
+
+	This shows that \(\mathcal{A}_e\) has almost such a structure. We need to show that \(k \leq n\) many interval pairs suffice. For this, we merge intervals: Let \(I < I'\) disjoint and \(J\) be closed intervals that we have already selected for the construction. Furthermore, assume that \((I, J)\) and \((I', J)\) are admissible. By \cref{lem:admissible_are_intervals}, for any point \(x \in [\min I, \max I'] \cap \mathcal{I}\) any \(y \in J\) with \(x \leq y\) must form an admissibily subpolyline \((x, y)\). Thus we merge all such intervals \(I'\) and \(I\) to form an interval of intervals per interval \(J\). This does not introduce no inadmissible subpolylines, as we already filter by \(\mathcal{I} \times_\leq \mathcal{J}\). As each interval \(J\) has a unique range of intervals \(I\), the \(J_j\) are disjoint. By merging the \(J\) per \(I\) instead, we can achieve disjointness of \(I_j\).
+
+	The total number of interval pairs is bounded by the number of possible closed intervals that make up \(\mathcal{I}\) and \(\mathcal{J}\). There can be at most one closed interval per line segment of the polyline, thus \(k \leq n\), concluding the proof.
 \end{proof}
 
 
@@ -80,13 +85,44 @@ Using \cref{lem:admissible_are_intervals}, we define an efficient representation
 	For a polyline \(P = \angl{v_0, \dots, v_n}\) and \(\varepsilon > 0\) we define the global shortcut graph as the directed acyclic graph \(G = (V, E)\) with \(V = \set{v_0, \dots, v_n}\) and \(E = \set{(v_i, v_j) \mid i < j, e = \overline{v_iv_j}, \mathcal{A}_e \neq \emptyset}\).
 
 	We define a labelling function on the edges 
-	\[S(e) = (I = [m_I, M_I], J = [m_J, M_J]),\]
-	where \(m_i, M_I, m_J, M_J\) are taken from the proof of \cref{lem:admissible-rep-1}.
+	\[S(e) = ((I_1, J_1), (I_2, J_2), \dots, (I_k, J_k)),\]
+	where the intervals \(I_i, J_i\) are taken from the proof of \cref{lem:admissible-rep-1}. We extend this labelling on the vertices by \(S(v) = (I_1 < \cdots < I_k)\), which are the intervals that make up \(\mathcal{I}\) from the lemma.
 \end{definition}
 
-Let us briefly analyze the space consumption of the global shortcut graph: for each line segment, we only need to store 4 interval boundaries, resulting in total \(\O(n^2)\) space consumption for the edges. The vertices require only linear space, so in total this requires \(\O(n^2)\) space. 
+Let us briefly analyze the space consumption of the global shortcut graph: for each line segment, we may need to store up to \(n\) interval pairs, which in total requires cubic space. There are at most \(n\) solution intervals in \(\mathcal{I}\) per point, thus requiring total quadratic space. Thus, the total information of the global shortcut graph requires \(\O(n^3)\) space. This, however is only the worst case. Since intervals can span multiple line segments and because we merge them there may be fewer intervals. For further analysis, we denote \(\mathcal{E}\) the total number intervals used for the edges and \(\mathcal{V}\) for the number of intervals for the vertices. The total space thus is \(\O(n^2 + \mathcal{E})\).
 
-However, we did not consider the solution intervals \(\mathcal{I}\) and \(\mathcal{J}\) (see \cref{lem:admissible_are_intervals}). For each line segment there are in the worst case linearly many such intervals which would require in total cubic space. However, these intervals are only dependent on the points, not the line segments themselves, meaning there are linearly many closed intervals per polyline vertex and thus in total quadratically many. Thus, the total information of the global shortcut graph requires \(\O(n^2)\) space, with potentially less space if the graph is sparse (many \(\mathcal{A}_e\) are empty) and each point has only few such intervals. 
+We finally consider the runtime of constructing the global shortcut graph. For the point \(u\), the intervals \(S(e)\) can be determined by solving the necessary equation for each line segment of \(P\) and potentially merging ones that span multiple line segments. This takes runtime \(\Oh(n)\) per point and thus in total \(\Oh(n^2)\). 
+
+To determine the intervals in \(S(e)\) for the line segment \(e = \overline{P(i')P(i)}\), we use a modified version of \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s cell reachability algorithm that we have outlined in \cref{ssec:cell_reachability}.
+
+\subsection{Modified Cell Reachability}
+We outline how to modify the cell reachability problem to construct the intervals in \(S(e)\). We are given the ordered lists of intervals \(S(i')\) and \(S(i)\) and want to find the merged intervals. 
+
+The setting is rather similar with few differences. First, there are no entry- or exit-costs, we only track admissibility. Second, the result is an interval \(J_j\) for each admissible interval \(I_j\). The passages between cells are the solution intervals of the \(e\) and the respective point. For an example instance refer to \cref{fig:ex_cr_globalii}.
+
+Only few modifications are needed: For each passge, we remove all queue entries at the front with a value below the lower bower bound of the passage and reinsert them with them as a single entry whose value is the lower bound. Each entry is now associated with an interval of indices which correspond to the intervals in \(S(i')\). When merging, we update the upper bound of the indices interval. If an interval in \(S(i')\) starts before the cell passage, it must be accounted for during the merging step.
+
+Then, we remove all entries that lie above the upper end of the passage. Each of them contains an indices interval that represent  the intervals for which the last seen \(S(j')\) interval is the upper end. For all of these intervals we update their upper bound.
+
+The intervals in \(S(i)\) can be ignored, if we are only interested to compute maximal intervals \(J_j\) for each \(I_j\). We can consider them to only store discrete intervals that represent the intervals in \(S(i)\) that are to be used.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=1, width=0.9\linewidth]{./tikz-fig/ex_cr_globalii.pdf}
+	\caption{Cell reachability example for computing \(S(\overline{P(0)P(1)})\). Here, \(S(0) = ([0, 0.5], [2.5, 2.5]), [3.59, 4.36]\) are marked in blue, and \(S(1) = ([0.5, 1.70], [2.5, 2.5], [4.64, 5])\) are marked in red. The one point interval \([2.5,2.5]\) is shared by both and is marked in purple. It is not a vertex of the polyline. We can see that \(S(\overline{P(0)P(1)}) = (([0,0.5], [0.5,5]), ([2.5,2.5],[2.5,5]), ([3.59,4.36],[4.64,5]))\).}
+  \label{fig:ex_cr_globalii}
+\end{figure}
+
+A small optimization that can be applied is to skip cells when the queue becomes empty and resume at the next \(S(i')\) interval. Using this, the total runtime per line shortcut is proportional to the total length of the intervals which extends to the construction of the shortcut graph.
+
+\subsection{Simplification Construction}
+
+
+
+
+
+
+
 
 
 

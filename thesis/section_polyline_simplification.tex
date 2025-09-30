@@ -180,7 +180,7 @@ Let us briefly explore, how different the local and global Fréchet simplificati
 This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s theorem in two aspects: first, our construction can be arbitraily long, and second, our construction has greater constants \(c_1\) and \(c_2\), even if we account for that we only approach the values \(c_1 = \sqrt{2}\) and \(c_2 = 2\) but do not reach them. Furthermore, as we will see shortly, our construction is simpler and also works for the Manhattan distance (albeit with a different range for \(c_1\)).
 
 \begin{proof}
-	For any \(i \in \N\), we construct a two-dimensional polyline \(P_i\) with \(4 \cdot i + 2\) points with \(S(\delta^{LF}; P_i, \varepsilon) = 4i + 2\) for any \(\varepsilon \in [2, 2\sqrt{2})\), but \(S(\delta^F; P_i, \varepsilon) = 2i + 2\). Such a construction satisfies all properties states. 
+	For any \(i \in \N\), we construct a two-dimensional polyline \(P_i\) with \(4 i + 2\) points with \(S(\delta^{LF}; P_i, \varepsilon) = 4i + 2\) for any \(\varepsilon \in [2, 2\sqrt{2})\), but \(S(\delta^F; P_i, \varepsilon) = 2i + 2\). Such a construction satisfies all properties states. 
 
 	Choose the points \(P(0) = (0,0)\), \(P(1) = (0, 8)\) and for all \(j \in \set{0,\dots, i-1}\) we set:
 	\begin{align*}
@@ -189,7 +189,7 @@ This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausd
 		P(4j+4) &= (4 + 4j, 4 + 4j), \\
 		P(4j+5) &= (4 + 4j, 12 + 4j).
 	\end{align*}
-	Refer to \cref{fig:local-global-bigdiff} for an example. It is easy to verify that the global simplification has a size of at most \(2i + 2\) by selecting the points \(0,1, 4, 5, 8, 9, \dots, 4j, 4j + 1\). This is a valid global simplification as we can ``wait" on the simplification at the point where the polyline self-intersects. This point has distance at most \(2\) from the points in the loop. Other than that, it is trivial to traverse the simplification and polyline while guaranteeing to stay within \(\varepsilon\). 
+	Refer to \cref{fig:local-global-bigdiff} for an example. It is easy to verify that the global simplification has a size of at most \(2i + 2\) by selecting the points \(0,1, 4, 5, 8, 9, \dots, 4j, 4j + 1, \dots, 4i, 4i+1\). This is a valid global simplification as we can ``wait" on the simplification at the point where the polyline self-intersects. This point has distance at most \(2\) from the points in the loop. Other than that, it is trivial to traverse the simplification and polyline while guaranteeing to stay within \(\varepsilon\). 
 
 	To see that the local simplification requires all points we analyze all possible, non-trivial shortcuts (i.e., those shortcuts between non-consecutive points). Because of the repeating structure of the polyline, there are not many unique possibilities. For any point with index \(4j\) (bottom point of the ``4" shape) there are no non-trivial shortcuts, as no point following point can create a shortcut that is within \(\varepsilon\) of \(P(4j+1)\). For the point \(P(4j+1)\) (the top point of the ``4"), it is even more obvious, as all shortcuts go to the right and thus are too far away from \(P(4j+2)\). For \(P(4j+2)\) (the left point of the ``4") and \(P(4j+3)\) (the right end of the ``4") the same holds with their respective following point.
 
