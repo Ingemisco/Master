@@ -3,7 +3,7 @@
 
 In this section, we revisit the well-known \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm for local Fréchet polyline simplification and demonstrate how to adapt it to the global Fréchet setting. In doing so, we rediscover the simplification algorithm from \citeauthor{global_curve_simplification}. This presents a new perspective on their algorithm and the link to the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm might allow to adapt optimizations from the local setting.
 
-Throughout this section we fix \(\varepsilon > 0\) and a distance \(\delta\). Further, let \(P\) be a polyline of length \(n\).
+Throughout this section we fix \(\varepsilon > 0\) and a distance \(\delta\). Further, let \(P\) be a polyline of length \(n\). We note that some of the lemmas in this section can be seen rather trivial in the free space diagram. We have not mentioned it in this thesis because it adds a layer of abstraction which makes the algorithms less intuitive in our opinion. Furtermore, up until this section there was no need for it. An introduction to it is longer than proving the lemmas directly.
 
 \subsection{Local Case}
 
@@ -127,7 +127,16 @@ Let us analyze how many intervals there can be at most that need to be tracked: 
 
 To obtain a better runtime, we traverse the graph only once and track all intervals. For this, each interval needs to track not only the end vertex but also the length of the partial simplification. Similarly to the algorithm by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}, we iterate through the polyline vertices. Doing so, we need to track not only the reachable ranges and the end vertex of the polyline from which the simplification must continue, but also we need to track the size of the partial simplification. This size was previously implicitly tracked as the size corresponds to the iteration in the algorithm by \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}. Na"ively, this does not improve the algorithm as there can be a cubic number of triples to track instead of only quadratically which results in the same runtime. However, we still only need to store a quadratic number of triples still, since we actually only need the same data as previously. This is because we never need to store different triples that share the range and end vertex but only differ in size as we minimize for the size and it is trivial to see that a triple with the same interval and end vertex but higher size can never be used in an optimal simplification. Thus, the total amount of data per vertex is only in \(\O(n^2)\). For each of those we iterate over the respective \(s(e)\) to compute the next ones in total cubic runtime. Thus, the total algorithm has \(\Oh(n^4)\) runtime. This is identical to the \(\Oh(n^4)\) algorithm by \citeauthor{global_curve_simplification}
 
+\subsection{Cubic Runtime}
+Similarly to \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}, \citeauthor{global_curve_simplification} present a cubic runtime algorithm based on the same idea of differentiating two cases that behave differently. 
 
+
+
+
+
+
+\subsection{Subcubic Runtime}
+Finally, we want to reanalyze the runtime more closely to investigate under which conditions this algorithm can achieve subcubic runtime. We have already seen, that the runtime to construct the global shortcut graph can be subcubic if the total amount of points that need to be considered in the intervals is small. Let us first formalize this idea.
 
 
 
