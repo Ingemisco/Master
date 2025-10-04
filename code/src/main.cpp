@@ -154,6 +154,11 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
           "Uses the Imai and Iri algorithm to (locally) simplify the polyline with "
           "a distance of at most epsilon using Euclidean distance.");
 
+  options("gii",
+					po::value<std::vector<std::string>>()->multitoken()->value_name("filename epsilon"),
+          "Uses global Imai and Iri algorithm to (locally) simplify the polyline with "
+          "a distance of at most epsilon using Euclidean distance.");
+
   options("bes",
 					po::value<std::string>(&poly_line_file_name)->value_name("filename"),
           "Builds the datastructure to allow fast simplification queries"
@@ -254,6 +259,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 	}	else if (map.count("ii")) {
     _flag_action_simplify<Simplification::simplification_imai_iri_euclidean,
                           Log::Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN>(map, "ii", config);
+	}	else if (map.count("gii")) {
+    _flag_action_simplify<Simplification::simplification_global_imai_iri_euclidean,
+                          Log::Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN>(map, "gii", config);
 	}	else if (map.count("aes")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_semiexplicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>(map, "aes", config);
