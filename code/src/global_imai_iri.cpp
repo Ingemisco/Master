@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -34,25 +35,29 @@ struct ShortcutMappings {
 	std::vector<IntervalMapping> shortcut_mappings;
 };
 
-class GlobalShortcutGraph final {
-private:
-	PointCount const point_count;
-	float const epsilon;
-	SolutionIntervals *solution_intervals;
-	ShortcutMappings *global_shortcut_mappings;
 
 	struct QueueData final {
 		PointIndex first_interval_index;
 		PointIndex last_interval_index;
 		float first_reachable;
+
 	};
 
+		std::ostream& operator<<(std::ostream& os, const QueueData& qd) {
+				os << "("<< qd.first_interval_index << ", "
+					 << qd.last_interval_index << ", "
+					 << qd.first_reachable << ")";
+				return os;
+}
 
 
+struct GlobalShortcutGraph final {
+	PointCount const point_count;
+	float const epsilon;
+	SolutionIntervals *solution_intervals;
+	ShortcutMappings *global_shortcut_mappings;
 
-	
 
-public:
 	GlobalShortcutGraph(Polyline const &polyline, float epsilon) : point_count(polyline.point_count), epsilon(epsilon) {
 		this->solution_intervals = new SolutionIntervals[polyline.point_count];
 		this->global_shortcut_mappings = new ShortcutMappings[polyline.point_count * (polyline.point_count - 1)];
@@ -64,6 +69,11 @@ public:
 	~GlobalShortcutGraph() {
 		delete[] this->solution_intervals;
 		delete[] this->global_shortcut_mappings;
+	}
+
+	inline ShortcutMappings const &interval_mappings(PointIndex start, PointIndex end) const {
+		PointIndex const index = (this->point_count - 1) * start - start * (start + 1) / 2 + end - 1;
+		return this->global_shortcut_mappings[index];
 	}
 
 	inline void initialize_solution_intervals(Polyline const &polyline) {
@@ -136,15 +146,16 @@ public:
 				ReachabilityData const solution = current_vertex == this->point_count? DataStructures::EMPTY_INTERVAL_EXPLICIT : DataStructures::solve_euclidean(polyline, shortcut_start, shortcut_end, current_vertex, this->epsilon);
 
 				// possibly merge starting intervals
-				unsigned int const merged_interval_start_index = queue.peek_front().first_interval_index;
-				unsigned int merged_interval_end_index = this->point_count + 1;
+				unsigned int merged_interval_start_index = this->point_count + 1;
+				unsigned int merged_interval_end_index = queue.peek_front().last_interval_index;
 				while (!queue.is_empty() && queue.peek_front().first_reachable < solution.first) {
-					merged_interval_end_index = queue.peek_front().last_interval_index;
+					merged_interval_start_index = queue.peek_front().first_interval_index;
 					queue.pop_front();
 				}
 
 				// new interval may start in current line segment so needs to be considered for merging 
 				if(start_interval_index < start_interval_number && start_intervals[start_interval_index].start_vertex == current_vertex - 1) {
+					merged_interval_start_index = std::min(start_interval_index, merged_interval_start_index);
 					merged_interval_end_index = start_interval_index; 
 					start_interval_index++;
 				}
@@ -172,14 +183,14 @@ public:
 						if (end_interval_index >= end_interval_number) {
 							// no more intervals to map to
 							return;
-						} else if(end_intervals[end_interval_index].end_vertex >= current_vertex) {
+						} else if(end_intervals[end_interval_index].start_vertex >= current_vertex) {
 							continue;
 						}
 
-						for (; end_interval_index_end < end_interval_number - 1 && 
-							end_intervals[end_interval_index_end+1].start_vertex + end_intervals[end_interval_index_end+1].rel_interval_start
-							>= start_intervals[i].end_vertex + start_intervals[i].rel_interval_end 
+						for (; end_interval_index_end < end_interval_number && 
+							end_intervals[end_interval_index_end].end_vertex + end_intervals[end_interval_index_end].rel_interval_end <= current_vertex 
 							; end_interval_index_end++) ;
+							end_interval_index_end--;
 
 						// otherwise use the end interval 
 						bool const use_start_interval_as_bound_for_start = start_intervals[i].start_vertex + start_intervals[i].rel_interval_start >= end_intervals[end_interval_index].start_vertex + end_intervals[end_interval_index].rel_interval_start;
@@ -191,19 +202,8 @@ public:
 							.rel_interval_start = use_start_interval_as_bound_for_start? start_intervals[i].rel_interval_start: end_intervals[end_interval_index].rel_interval_start,
 							.rel_interval_end = end_intervals[end_interval_index_end].rel_interval_end,
 						});
-
-
-
 					}
-
-
-
-
-
-
-
 				}
-
 				current_vertex++;
 			}
 		}
@@ -234,20 +234,80 @@ public:
 	}
 };
 
+
+#define BINARY_SEARCH_MIN_SIZE 64
+static inline bool is_local_shortcut(GlobalShortcutGraph const &graph, PointIndex start, PointIndex end) {
+	// only need to find mapping that contains start in the start->end mappings and check if end is in mapped range. 
+	// if number of intervals is small use linear search, else binary search (can also be done in constant time with more precomputations but those are not needed in global case and require cubic time)
+	auto const &mappings = graph.interval_mappings(start, end).shortcut_mappings;
+	auto left = 0u; // inclusive
+	auto right = mappings.size(); // exclusive
+	while(right - left >= BINARY_SEARCH_MIN_SIZE) {
+		auto mid = (left + right) / 2;
+		if (mappings[mid].first.end_vertex < start) {
+			left = mid + 1;
+		} else {
+			right = mid + 1;
+		}
+	}
+
+	for (auto i = left; i < right; i++) {
+		if (mappings[i].first.end_vertex + mappings[i].first.rel_interval_end >= start) {
+			auto map_interval = mappings[i].second;
+			return map_interval.start_vertex + map_interval.rel_interval_start <= end 
+				&& end <= map_interval.end_vertex + map_interval.rel_interval_end 
+			&& mappings[i].first.start_vertex + mappings[i].first.rel_interval_start <= start;
+		}
+	}
+	return false;
+}
+
+Simplification simplification_local_imai_iri_from_gsg(GlobalShortcutGraph const &graph) {
+	unsigned int *sizes = new unsigned int[graph.point_count];
+	unsigned int *path  = new unsigned int[graph.point_count];
+	sizes[0] = 0;
+	for (unsigned int i = 1; i < graph.point_count; i++) {
+		sizes[i] = sizes[i-1] + 1;
+		path[i] = i - 1;
+		for (unsigned int j = 0; j < i; j++) {
+			if (sizes[j] + 1 < sizes[i] && is_local_shortcut(graph, j, i)) {
+				sizes[i] = sizes[j] + 1;
+				path[i] = j;
+			}
+		}
+	}
+
+	unsigned int k = graph.point_count - 1;
+	unsigned int index = sizes[k];
+	Simplification result = std::make_unique<std::vector<size_t>>(index + 1);
+	while (index > 0) {
+		(*result)[index] = k;
+		k = path[k];
+		index--;
+	}
+	
+	(*result)[0] = 0;
+	return result;
+}
+
+
+
+
 Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
 	auto time_start = std::chrono::high_resolution_clock::now();
 
 	GlobalShortcutGraph graph(polyline, epsilon);
-	graph.print();
-
+	// graph.print();
+	auto local_simplification = simplification_local_imai_iri_from_gsg(graph);
 	// assumes test case was started before calling this function
 	if (config.logger.has_value()) {
 		auto end = std::chrono::high_resolution_clock::now();
 		if (config.logger.has_value()) {
-			//config.logger.value().add_data(simplification->size(), end - time_start, "");
+			// config.logger.value().add_data(simplification->size(), end - time_start, "");
+			config.logger.value().add_data(0, end - time_start, "");
 		}
 	}
 
-	return std::make_unique<std::vector<size_t>>();
+	return local_simplification;
 }
 }
