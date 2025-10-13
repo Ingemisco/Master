@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <generator>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -272,11 +273,46 @@ Simplification simplification_local_imai_iri_from_gsg(GlobalShortcutGraph const 
 
 Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
 	auto time_start = std::chrono::high_resolution_clock::now();
-
 	GlobalShortcutGraph graph(polyline, epsilon);
 	// graph.print();
 
-	auto local_simpl = simplification_local_imai_iri_from_gsg(graph);
+	//auto local_simpl = simplification_local_imai_iri_from_gsg(graph);
+
+	struct SimplifificationData final {
+		size_t size;
+		size_t parent_vertex;
+		size_t parent_interval;
+	};
+
+	// offset_array[i] is offset in simplification_data array at which data for the vertex i can be found. 
+	size_t *offset_array = new size_t[polyline.point_count + 1];
+	offset_array[0] = 0;
+	for (auto i = 0u; i < polyline.point_count; i++) {
+		offset_array[i + 1] = offset_array[i] + graph.solution_intervals[i].intervals.size(); 
+	}
+
+	SimplifificationData *simplification_data = new SimplifificationData[offset_array[polyline.point_count]];
+	for (auto i = 1u; i < offset_array[polyline.point_count]; i++) {
+		simplification_data[i].size = std::numeric_limits<size_t>::max();
+	}
+	simplification_data[0].size = 1; // parentdata for start is never used
+	Queue<QueueData> queue(graph.point_count);
+	
+	for (auto i = 1u; i < polyline.point_count; i++) {
+		for (auto j = 0u; j < i; j++) {
+			for (auto const &[dom, i_start, i_end] : graph.proceeding_interval_mappings(queue, j, i)) {
+				for (auto k = i_start; k <= i_end; k++) {
+					if (simplification_data[offset_array[j] + dom].size < std::numeric_limits<size_t>::max() && 
+						simplification_data[offset_array[i] + k].size > simplification_data[offset_array[j] + dom].size + 1) {
+						simplification_data[offset_array[i] + k].size = simplification_data[offset_array[j] + dom].size + 1;
+						simplification_data[offset_array[i] + k].parent_vertex = j;
+						simplification_data[offset_array[i] + k].parent_interval = dom;
+					}
+				}
+			}
+			queue.reset();
+		}
+	}
 
 	if (config.logger.has_value()) {
 		auto end = std::chrono::high_resolution_clock::now();
@@ -286,6 +322,27 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 		}
 	}
 
-	return local_simpl;
+	auto vertex = simplification_data[offset_array[polyline.point_count] - 1].parent_vertex;
+	auto interval = simplification_data[offset_array[polyline.point_count] - 1].parent_interval;
+	auto const size = simplification_data[offset_array[polyline.point_count] - 1].size;
+	auto i = size - 1;
+	Simplification result = std::make_unique<std::vector<size_t>>(size);
+	(*result)[i] = polyline.point_count - 1;
+	i--;
+	while (i > 0) {
+		(*result)[i] = vertex;
+		auto const new_vertex = simplification_data[offset_array[vertex] + interval].parent_vertex;
+		interval = simplification_data[offset_array[vertex] + interval].parent_interval;
+		vertex = new_vertex;
+		i--;
+	}
+	
+	(*result)[0] = 0;
+
+	delete[] offset_array;
+	delete[] simplification_data;
+
+	return result;
+	// return local_simpl;
 }
 }
