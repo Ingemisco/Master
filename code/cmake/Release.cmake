@@ -10,7 +10,7 @@ add_compile_options(
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options(-flto)
+    add_compile_options(-flto=8)
     add_link_options(-flto -fuse-ld=gold)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-flto=thin)
