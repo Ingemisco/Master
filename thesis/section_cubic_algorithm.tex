@@ -196,7 +196,7 @@ In the case of \(j' < j\), there are two possible restriction points (if a solut
 
 We introduce two additional tables, \(DP_1\) and \(DP_2\), with the same dimensions as \(DP\), which store the results of the minimization over \(j'=j\) and \(j' < j\), respectively. It holds trivially that \(DP[k, i, j] = \min(DP_1[k,i,j], DP_2[k,i,j])\).
 
-\subsubsection{Case \(j' = j\)}
+\subsubsection{Case \(j' = j\)}\label{ssec:cubic_eq}
 
 In this case, we start and end on the same line segment \(e = \overline{P(j)P(j+1)}\) when traversing the polyline, while we traverse the shortcut \(\overline{P(i')P(i)}\). Let \(t'\) be the start on \(e\) and \(t\) the end. Then \(t'\) must be some entry \(DP[k-1, \cdot, j']\), because of the algorithm's construction. As \(j' = j\), we only need to determine the respective \(i'\) such that \(t' = DP[k-1, i', j]\).
 
