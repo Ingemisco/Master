@@ -314,13 +314,6 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 		}
 	}
 
-	if (config.logger.has_value()) {
-		auto end = std::chrono::high_resolution_clock::now();
-		if (config.logger.has_value()) {
-			// config.logger.value().add_data(simplification->size(), end - time_start, "");
-			config.logger.value().add_data(0, end - time_start, "");
-		}
-	}
 
 	auto vertex = simplification_data[offset_array[polyline.point_count] - 1].parent_vertex;
 	auto interval = simplification_data[offset_array[polyline.point_count] - 1].parent_interval;
@@ -339,10 +332,16 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 	
 	(*result)[0] = 0;
 
+	if (config.logger.has_value()) {
+		auto end = std::chrono::high_resolution_clock::now();
+		if (config.logger.has_value()) {
+			config.logger.value().add_data(result->size(), end - time_start, "");
+		}
+	}
+
 	delete[] offset_array;
 	delete[] simplification_data;
 
 	return result;
-	// return local_simpl;
 }
 }
