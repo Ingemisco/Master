@@ -1,3 +1,4 @@
+#if __has_include(<generator>)
 #include <cassert>
 #include <cstddef>
 #include <generator>
@@ -345,3 +346,5 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 	return result;
 }
 }
+
+#endif

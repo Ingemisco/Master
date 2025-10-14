@@ -36,8 +36,9 @@ Simplification simplification_filter_colinear(Polyline const &, AlgorithmConfigu
 
 Simplification simplification_imai_iri_euclidean(Polyline const &, float, AlgorithmConfiguration &);
 
-
+#if __has_include(<generator>)
 Simplification simplification_global_imai_iri_euclidean(Polyline const &, float, AlgorithmConfiguration &);
+#endif
 
 } // namespace Simplification
 
