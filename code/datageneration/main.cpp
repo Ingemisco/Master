@@ -5,7 +5,8 @@
 #include <boost/program_options/detail/parsers.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
-#include <boost/program_options/positional_options.hpp> #include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/positional_options.hpp> 
+#include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <filesystem>
 #include <iostream>
@@ -177,17 +178,18 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   }
 }
 
+#if testing
 static void test() {
 	std::random_device rd;
 	//uint32_t initial_seed = 4141310102; // = rd();
-	uint32_t initial_seed = 373139026;
-	// uint32_t initial_seed = rd();
-	// std::cout << "Initial seed: " << initial_seed << std::endl;
-	// // 
-	// // Save seed to file for later reproduction
-	// std::ofstream seed_file("data/custom/initial_seed.txt");
-	// seed_file << initial_seed;
-	// seed_file.close();
+	//uint32_t initial_seed = 373139026;
+	uint32_t initial_seed = rd();
+	std::cout << "Initial seed: " << initial_seed << std::endl;
+	// 
+	// Save seed to file for later reproduction
+	std::ofstream seed_file("data/custom/initial_seed.txt");
+	seed_file << initial_seed;
+	seed_file.close();
 
 	std::mt19937 rng(initial_seed);
 	std::uniform_real_distribution<float> epsilon_dist(0.01f, 100.0f);
@@ -220,42 +222,28 @@ static void test() {
 		auto &poly = *poly_;
 
 		float epsilon = epsilon_dist(rng);
-		std::cout << "epsilon: " << epsilon << std::endl;
 
+		// std::cout << "epsilon: " << epsilon << std::endl;
 
-		if (i != 168) {
-			continue;
-		} else if (i > 168) break;
-		DataGeneration::write_to_file(poly, "data/custom/last_poly");
-		try {
-			std::cout << "AE" << std::endl;
-			auto result1 = Simplification::simplification_advanced_euclidean_explicit(poly, epsilon, config);
-			std::cout << "GII" << std::endl;
-			auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
-			std::cout << "AFTER" << std::endl;
+		// DataGeneration::write_to_file(poly, "data/custom/last_poly");
+		auto result1 = Simplification::simplification_advanced_euclidean_explicit(poly, epsilon, config);
+		auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
 
-			int size1 = static_cast<int>(result1->size());
-			int size2 = static_cast<int>(result2->size());
+		int size1 = static_cast<int>(result1->size());
+		int size2 = static_cast<int>(result2->size());
 
-			int diff = size2 - size1;
-			if (diff > max_diff) {
-				std::cout << "Found with diff " << diff << " for epsilon " << epsilon << std::endl;
-				max_diff = diff;
-				best_polyline = std::move(poly_);
-				best_epsilon = epsilon;
-			}
-			count++;
-			total_diff_sum += diff;
-		} catch (const std::exception &e) {
-			std::cerr << "Exception at iteration " << i << ": " << e.what() << "\n";
-			std::filesystem::create_directories("data/custom");
-			DataGeneration::write_to_file(poly, "data/custom/error_poly" + std::to_string(epsilon));
-		} catch (...) {
-			std::cerr << "Unknown exception at iteration " << i << "\n";
+		int diff = size2 - size1;
+		if (diff > max_diff) {
+			std::cout << "Found with diff " << diff << " for epsilon " << epsilon << std::endl;
+			max_diff = diff;
+			best_polyline = std::move(poly_);
+			best_epsilon = epsilon;
 		}
+		count++;
+		total_diff_sum += diff;
 	}
 
-	std::cout << "ratio of total diff to count: " << (double)total_diff_sum / count << std::endl;
+	std::cout << "total diff to count: " << total_diff_sum << std::endl;
 
 	if (best_polyline) {
 		std::filesystem::create_directories("data/custom");
@@ -265,9 +253,10 @@ static void test() {
 		std::cout << "No valid polyline found.\n";
 	}
 }
+#endif
 
 int main(int argc, char *argv[]) {
-	test();
-  // handle_command_line_arguments(argc, argv);
+	//test();
+  handle_command_line_arguments(argc, argv);
   return 0;
 }

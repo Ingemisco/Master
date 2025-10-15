@@ -437,13 +437,17 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 			queue.reset();
 		}
 
-		unsigned int interval_that_contains_vertex = polyline.point_count + 1; // completely invalid. Interval must be found
+		unsigned int interval_that_contains_vertex; // completely invalid. Interval must be found
 		for (unsigned int interval_index = 0u; interval_index < graph.solution_intervals[i].intervals.size(); interval_index++) {
-			if (graph.solution_intervals[i].intervals[interval_index].end_vertex >= i) {
+			if (graph.solution_intervals[i].intervals[interval_index].end_vertex + graph.solution_intervals[i].intervals[interval_index].rel_interval_end >= i) {
 				interval_that_contains_vertex = interval_index;
-				break;
+				goto proceed;
 			}
 		}
+		// should not be reachable
+		std::cout << "ERROR did not find interval for index i = " << i << std::endl; graph.print();
+		exit(0);
+	proceed:
 		if (simplification_data[offset_array[i] + interval_that_contains_vertex].size == std::numeric_limits<size_t>::max()) {
 			simplification_data[offset_array[i] + interval_that_contains_vertex].size = simplification_data[offset_array[i-1] + last_interval_that_contains_vertex].size;
 			simplification_data[offset_array[i] + interval_that_contains_vertex].parent_vertex = i - 1;
