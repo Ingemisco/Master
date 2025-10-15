@@ -166,8 +166,10 @@ local_minimality_skip:
           table.first_reachable(k, i, j) = empty_interval.first;
         }
       }
+    }
 
-			// see comments in advanced algorithm in kappa2 subroutine. 
+		// see comments in advanced algorithm in kappa2 subroutine. 
+		for (unsigned int i = k; i < point_count; i++) {
 			if (k > 0 && i < point_count && table.first_reachable(k - 1, i - 1, i - 1) != empty_interval.first && table.first_reachable(k, i, i) == empty_interval.first) {
 				table.first_reachable(k, i, i) = start;
 				table.dp_point_ref_i(k, i, i) = i - 1;
@@ -178,7 +180,7 @@ local_minimality_skip:
 				table.dp_point_ref_i(k, i, i - 1) = i - 1;
 				table.dp_point_ref_j(k, i, i - 1) = i - 1;
 			}
-    }
+		}
 
 
     if (table.first_reachable(k, point_count - 1, point_count - 2) != empty_interval.first) {
