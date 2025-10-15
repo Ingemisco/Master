@@ -92,7 +92,14 @@ struct GlobalShortcutGraph final {
 					this->solution_intervals[i].intervals.emplace_back(vertex_start, j, interval_start, interval_end);
 				}
 			}
+
+			// just in case of numerical problems, add interval [i, i] for vertex i if no intervals have been found 
+			if (this->solution_intervals[i].intervals.empty()) {
+				this->solution_intervals[i].intervals.emplace_back(i, i, 0, 0);
+			}
 		}
+
+
 	}
 
 	inline std::generator<RangeInterval> proceeding_interval_mappings(Queue<QueueData> &queue, PointIndex shortcut_start, PointIndex shortcut_end) const {
@@ -104,7 +111,7 @@ struct GlobalShortcutGraph final {
 		auto const end_interval_number = end_intervals.size();
 		auto end_interval_index = 0u;
 		auto end_interval_index_end = 0u;
-
+		
 		while(start_interval_index < start_interval_number) {
 			// skip all end intervals that are before *all* starting intervals and thus cannot be the end of admissible subpolylines
 			for (; end_interval_index < end_interval_number && 
@@ -153,7 +160,6 @@ struct GlobalShortcutGraph final {
 					});
 				}
 
-
 				while (!queue.is_empty() && queue.peek_back().first_reachable > solution.second) {
 					auto const [first_index, last_index, _] = queue.peek_back();
 					queue.pop_back();
@@ -173,7 +179,10 @@ struct GlobalShortcutGraph final {
 						for (; end_interval_index_end < end_interval_number && 
 							end_intervals[end_interval_index_end].start_vertex + end_intervals[end_interval_index_end].rel_interval_start < current_vertex ; end_interval_index_end++) ;
 
-						end_interval_index_end--;
+							// I have absolutely no idea how this value can be zero, but it can.
+						if (end_interval_index_end != 0) {
+							end_interval_index_end--;
+						}
 
 						// update solution interval of end to be smaller to avoid ugly mappings
 						if (end_intervals[end_interval_index].start_vertex + end_intervals[end_interval_index].rel_interval_start < start_intervals[i].start_vertex + start_intervals[i].rel_interval_start) {
@@ -250,7 +259,7 @@ Simplification simplification_local_imai_iri_from_gsg(GlobalShortcutGraph const 
 	for (unsigned int i = 1; i < graph.point_count; i++) {
 		sizes[i] = sizes[i-1] + 1;
 		path[i] = i - 1;
-		for (unsigned int j = 0; j < i; j++) {
+		for (unsigned int j = 0; j < i - 1; j++) {
 			if (sizes[j] + 1 < sizes[i] && is_local_shortcut(graph, j, i)) {
 				sizes[i] = sizes[j] + 1;
 				path[i] = j;
@@ -412,6 +421,7 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 	simplification_data[0].size = 1; // parentdata for start is never used
 	Queue<QueueData> queue(graph.point_count + 5);
 	
+	unsigned int last_interval_that_contains_vertex = 0u;
 	for (auto i = 1u; i < polyline.point_count; i++) {
 		for (auto j = 0u; j < i; j++) {
 			for (auto const &[dom, i_start, i_end] : graph.proceeding_interval_mappings(queue, j, i)) {
@@ -426,6 +436,20 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 			}
 			queue.reset();
 		}
+
+		unsigned int interval_that_contains_vertex = polyline.point_count + 1; // completely invalid. Interval must be found
+		for (unsigned int interval_index = 0u; interval_index < graph.solution_intervals[i].intervals.size(); interval_index++) {
+			if (graph.solution_intervals[i].intervals[interval_index].end_vertex >= i) {
+				interval_that_contains_vertex = interval_index;
+				break;
+			}
+		}
+		if (simplification_data[offset_array[i] + interval_that_contains_vertex].size == std::numeric_limits<size_t>::max()) {
+			simplification_data[offset_array[i] + interval_that_contains_vertex].size = simplification_data[offset_array[i-1] + last_interval_that_contains_vertex].size;
+			simplification_data[offset_array[i] + interval_that_contains_vertex].parent_vertex = i - 1;
+			simplification_data[offset_array[i] + interval_that_contains_vertex].parent_interval = last_interval_that_contains_vertex;
+		}
+		last_interval_that_contains_vertex = interval_that_contains_vertex;
 	}
 
 	// printSimplificationDebugInfo(simplification_data, offset_array, polyline.point_count, graph);

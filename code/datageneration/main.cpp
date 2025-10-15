@@ -228,8 +228,11 @@ static void test() {
 		} else if (i > 168) break;
 		DataGeneration::write_to_file(poly, "data/custom/last_poly");
 		try {
+			std::cout << "AE" << std::endl;
 			auto result1 = Simplification::simplification_advanced_euclidean_explicit(poly, epsilon, config);
+			std::cout << "GII" << std::endl;
 			auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
+			std::cout << "AFTER" << std::endl;
 
 			int size1 = static_cast<int>(result1->size());
 			int size2 = static_cast<int>(result2->size());
