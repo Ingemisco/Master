@@ -144,7 +144,7 @@ struct GlobalShortcutGraph final {
 				}
 
 				// merge intervals if there actually is something to merge 
-				if(merged_interval_end_index != this->point_count + 1) {
+				if(merged_interval_start_index != this->point_count + 1) {
 					queue.push_front({
 						.first_interval_index = merged_interval_start_index,
 						.last_interval_index  = merged_interval_end_index,
@@ -166,12 +166,13 @@ struct GlobalShortcutGraph final {
 						if (end_interval_index >= end_interval_number) {
 							// no more intervals to map to
 							co_return;
-						} else if(end_intervals[end_interval_index].start_vertex >= current_vertex) {
+						} else if(end_intervals[end_interval_index].start_vertex + end_intervals[end_interval_index].rel_interval_start > current_vertex) {
 							continue;
 						}
 
 						for (; end_interval_index_end < end_interval_number && 
-							end_intervals[end_interval_index_end].end_vertex + end_intervals[end_interval_index_end].rel_interval_end <= current_vertex ; end_interval_index_end++) ;
+							end_intervals[end_interval_index_end].start_vertex + end_intervals[end_interval_index_end].rel_interval_start < current_vertex ; end_interval_index_end++) ;
+
 						end_interval_index_end--;
 
 						// update solution interval of end to be smaller to avoid ugly mappings
@@ -199,7 +200,7 @@ struct GlobalShortcutGraph final {
 			std::cout << std::endl;
 		}
 
-		Queue<QueueData> queue(this->point_count);
+		Queue<QueueData> queue(this->point_count + 5);
 		for(PointIndex shortcut_start = 0u; shortcut_start < this->point_count - 1; shortcut_start++) {
 			for(PointIndex shortcut_end = shortcut_start + 1; shortcut_end < this->point_count; shortcut_end++) {
 				std::cout << "Line segment " << " (" << shortcut_start << ", " << shortcut_end << ")" << ": ";
@@ -229,7 +230,7 @@ static inline bool is_local_shortcut(GlobalShortcutGraph const &graph, PointInde
 	// only need to find mapping that contains start in the start->end mappings and check if end is in mapped range. 
 	// if number of intervals is small use linear search, else binary search (can also be done in constant time with more precomputations but those are not needed in global case and require cubic time)
 	
-	Queue<QueueData> queue(graph.point_count);
+	Queue<QueueData> queue(graph.point_count + 5);
 	for (auto const &[i, i_start, i_end] : graph.proceeding_interval_mappings(queue, start, end)) {
 		auto const &domain      = graph.solution_intervals[start].intervals[i];
 		auto const &range_start = graph.solution_intervals[end].intervals[i_start];
@@ -270,6 +271,124 @@ Simplification simplification_local_imai_iri_from_gsg(GlobalShortcutGraph const 
 	return result;
 }
 
+	struct SimplifificationData final {
+		size_t size;
+		size_t parent_vertex;
+		size_t parent_interval;
+	};
+
+
+void printSimplificationDebugInfo(SimplifificationData* simplification_data, 
+                                 size_t* offset_array, 
+                                 size_t point_count,
+                                 GlobalShortcutGraph& graph) {
+    std::cout << "\n=== SIMPLIFICATION DEBUG INFO ===" << std::endl;
+    
+    // Print offset array
+    std::cout << "\nOFFSET ARRAY (size: " << point_count + 1 << "):" << std::endl;
+    std::cout << "Index | Offset" << std::endl;
+    std::cout << "------|-------" << std::endl;
+    for (size_t i = 0; i <= point_count; i++) {
+        std::cout << i << "     | " << offset_array[i] << std::endl;
+    }
+    
+    std::cout << "\nTotal simplification_data entries: " << offset_array[point_count] << std::endl;
+    
+    // Print simplification data for each vertex
+    for (size_t vertex = 0; vertex < point_count; vertex++) {
+        size_t start_idx = offset_array[vertex];
+        size_t end_idx = offset_array[vertex + 1];
+        size_t interval_count = end_idx - start_idx;
+        
+        std::cout << "\n--- Vertex " << vertex << " ---" << std::endl;
+        std::cout << "Intervals: " << interval_count << " (indices " << start_idx << " to " << (end_idx - 1) << ")" << std::endl;
+        
+        if (interval_count == 0) {
+            std::cout << "  No intervals for this vertex" << std::endl;
+            continue;
+        }
+        
+        // Print actual intervals from graph
+        auto& intervals = graph.solution_intervals[vertex].intervals;
+        std::cout << "Actual intervals in graph:" << std::endl;
+        for (size_t interval_idx = 0; interval_idx < intervals.size(); interval_idx++) {
+            auto& interval = intervals[interval_idx];
+            std::cout << "  [" << interval_idx << "] (" << interval.start_vertex 
+                      << " + " << interval.rel_interval_start << ", " 
+                      << interval.end_vertex << " + " << interval.rel_interval_end << ")" << std::endl;
+        }
+        
+        // Print simplification data for each interval of this vertex
+        std::cout << "Simplification data:" << std::endl;
+        for (size_t local_idx = 0; local_idx < interval_count; local_idx++) {
+            size_t global_idx = start_idx + local_idx;
+            auto& data = simplification_data[global_idx];
+            
+            std::cout << "  Interval " << local_idx << " (global " << global_idx << "): ";
+            
+            if (data.size == std::numeric_limits<size_t>::max()) {
+                std::cout << "UNREACHABLE";
+            } else {
+                std::cout << "size=" << data.size 
+                          << ", parent_vertex=" << data.parent_vertex 
+                          << ", parent_interval=" << data.parent_interval;
+                
+                // Validate parent indices
+                if (data.parent_vertex < point_count) {
+                    size_t parent_start = offset_array[data.parent_vertex];
+                    size_t parent_end = offset_array[data.parent_vertex + 1];
+                    if (data.parent_interval < (parent_end - parent_start)) {
+                        std::cout << " [VALID PARENT]";
+                    } else {
+                        std::cout << " [INVALID parent_interval: " << data.parent_interval 
+                                  << " >= " << (parent_end - parent_start) << "]";
+                    }
+                } else {
+                    std::cout << " [INVALID parent_vertex: " << data.parent_vertex 
+                              << " >= " << point_count << "]";
+                }
+            }
+            std::cout << std::endl;
+        }
+    }
+    
+    // Print final path reconstruction info
+    std::cout << "\n=== FINAL PATH RECONSTRUCTION ===" << std::endl;
+    size_t final_vertex = point_count - 1;
+    size_t final_offset = offset_array[final_vertex];
+    size_t final_interval_count = offset_array[final_vertex + 1] - final_offset;
+    
+    std::cout << "Final vertex: " << final_vertex << std::endl;
+    std::cout << "Final interval count: " << final_interval_count << std::endl;
+    
+    if (final_interval_count > 0) {
+        size_t last_global_idx = offset_array[point_count] - 1;
+        auto& final_data = simplification_data[last_global_idx];
+        
+        std::cout << "Using simplification_data[" << last_global_idx << "]:" << std::endl;
+        std::cout << "  Size: " << final_data.size << std::endl;
+        std::cout << "  Parent vertex: " << final_data.parent_vertex << std::endl;
+        std::cout << "  Parent interval: " << final_data.parent_interval << std::endl;
+        
+        if (final_data.size == std::numeric_limits<size_t>::max()) {
+            std::cout << "  WARNING: Final vertex is UNREACHABLE!" << std::endl;
+        }
+    } else {
+        std::cout << "ERROR: Final vertex has no intervals!" << std::endl;
+    }
+    
+    std::cout << "==================================\n" << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
@@ -278,12 +397,6 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 	// graph.print();
 
 	//auto local_simpl = simplification_local_imai_iri_from_gsg(graph);
-
-	struct SimplifificationData final {
-		size_t size;
-		size_t parent_vertex;
-		size_t parent_interval;
-	};
 
 	// offset_array[i] is offset in simplification_data array at which data for the vertex i can be found. 
 	size_t *offset_array = new size_t[polyline.point_count + 1];
@@ -297,7 +410,7 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 		simplification_data[i].size = std::numeric_limits<size_t>::max();
 	}
 	simplification_data[0].size = 1; // parentdata for start is never used
-	Queue<QueueData> queue(graph.point_count);
+	Queue<QueueData> queue(graph.point_count + 5);
 	
 	for (auto i = 1u; i < polyline.point_count; i++) {
 		for (auto j = 0u; j < i; j++) {
@@ -315,6 +428,7 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 		}
 	}
 
+	// printSimplificationDebugInfo(simplification_data, offset_array, polyline.point_count, graph);
 
 	auto vertex = simplification_data[offset_array[polyline.point_count] - 1].parent_vertex;
 	auto interval = simplification_data[offset_array[polyline.point_count] - 1].parent_interval;

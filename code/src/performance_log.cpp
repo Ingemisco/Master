@@ -48,6 +48,8 @@ std::string algorithm_name(Algorithm algorithm) {
     return "Minkowski Simplification (Advanced, Implicit)";
   case Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN:
     return "Local Euclidean Simplification (Imai Iri)";
+  case Algorithm::SIMPLIFICATION_GLOBAL_IMAI_IRI_HEURISTIC_EUCLIDEAN:
+    return "Global Euclidean Simplification (Heuristic Imai Iri)";
   case Algorithm::BUILD_DS_EUCLIDEAN:
     return "Datastructure Euclidean";
 

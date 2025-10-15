@@ -108,7 +108,7 @@ static inline Simplification construct_simplification(TABLE &table, PointCount c
 	return result;
 }
 
-template <typename F, typename L, std::pair<F const, L const> empty_interval,
+template <typename F, typename L, std::pair<F const, L const> empty_interval, F const start, 
           std::pair<F const, L const> _solver(Polyline const &, LineStart, LineEnd, PointIndex, float),
           F _alt_godau(Polyline const &, size_t, size_t, F, size_t, size_t, float)>
 static inline Simplification
@@ -166,7 +166,20 @@ local_minimality_skip:
           table.first_reachable(k, i, j) = empty_interval.first;
         }
       }
+
+			// see comments in advanced algorithm in kappa2 subroutine. 
+			if (k > 0 && i < point_count && table.first_reachable(k - 1, i - 1, i - 1) != empty_interval.first && table.first_reachable(k, i, i) == empty_interval.first) {
+				table.first_reachable(k, i, i) = start;
+				table.dp_point_ref_i(k, i, i) = i - 1;
+				table.dp_point_ref_j(k, i, i) = i - 1;
+			}
+			if (k > 0 && i < point_count && table.first_reachable(k - 1, i - 1, i - 1) != empty_interval.first && i == point_count - 1 && table.first_reachable(k, i, i - 1) == empty_interval.first) {
+				table.first_reachable(k, i, i - 1) = start; // should actually be the last point on line segment 
+				table.dp_point_ref_i(k, i, i - 1) = i - 1;
+				table.dp_point_ref_j(k, i, i - 1) = i - 1;
+			}
     }
+
 
     if (table.first_reachable(k, point_count - 1, point_count - 2) != empty_interval.first) {
 			return construct_simplification<DPTable<F, empty_interval.first>>(table, point_count, k);
@@ -269,11 +282,11 @@ Simplification simplification_naive_euclidean_implicit(Polyline const &polyline,
 
   for (unsigned int i = 0; i < point_count; i++) {
 		for (; j < point_count - 1; j++) {
-			//if (DataStructures::is_line_reachable_euclidean(polyline, j, j + 1, i, epsilon2)) {
+			if (DataStructures::is_line_reachable_euclidean(polyline, j, j + 1, i, epsilon2)) {
 				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_UNREACHABLE;
-			// } else {
-			// 	table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
-			// }
+			} else {
+				table.dp_restriction(0, i, j) = DataStructures::IMPLICIT_NEVER_REACHABLE;
+			}
 		}
 		j = 0;
 	}
@@ -371,7 +384,7 @@ static inline Simplification _simplify(Polyline const &polyline, float epsilon, 
 	auto time_start = std::chrono::high_resolution_clock::now();
 
 	_simplification_initialization<F, L, empty_interval, start, _distance>(polyline, epsilon, point_count, table);
-	Simplification simplification = _simplification_main<F, L, empty_interval, _solver, _alt_godau>(polyline, point_count, epsilon, table);
+	Simplification simplification = _simplification_main<F, L, empty_interval, start, _solver, _alt_godau>(polyline, point_count, epsilon, table);
 
 	try_measure_time(config, simplification->size(), time_start);
 

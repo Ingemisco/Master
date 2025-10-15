@@ -199,6 +199,7 @@ struct Simplifier final {
 			}
 
 			cell_reachability_explicit<F, L, EMPTY_INTERVAL>(const_cast<size_t const *>(entry_costs), const_cast<Interval const *>(intervals), exit_costs, queue);
+			
 			size_t temp2 = i * (n - 1);
 			for (size_t j = 0; j < n - 1; j++) {
 				auto const exit = this->exit_costs[j];
@@ -211,6 +212,21 @@ struct Simplifier final {
 				}
 				temp2++;
 			}
+		}
+
+		// from i-1 to i is always valid with j' = i-1, j = i and t' = t = 0. This is sometimes not found for small epsilon so artificially add it if necessary (also ensures that a simplification is always found)
+		// In a just world this would not be necessary...
+		if (i < n - 1 && this->kappa2[i * (n-1) + i].smallest_k - 1 > this->kappa[(i-1) * (n-1) + (i - 1)].smallest_k) {
+			this->kappa2[i * (n-1) + (i)].smallest_k = this->kappa[(i-1) * (n-1) + (i - 1)].smallest_k + 1;
+			this->kappa2[i * (n-1) + (i)].i_ = i - 1;
+			this->kappa2[i * (n-1) + (i)].j_ = i - 1;
+		}
+
+		// ... and because the world hates me, this is also necessary...
+		if (this->kappa2[i * (n-1) + i - 1].smallest_k - 1 > this->kappa[(i-1) * (n-1) + (i - 1)].smallest_k) {
+			this->kappa2[i * (n-1) + (i - 1)].smallest_k = this->kappa[(i-1) * (n-1) + (i - 1)].smallest_k + 1;
+			this->kappa2[i * (n-1) + (i - 1)].i_ = i - 1;
+			this->kappa2[i * (n-1) + (i - 1)].j_ = i - 1;
 		}
 	}
 
@@ -238,7 +254,6 @@ struct Simplifier final {
 					}
 				}
 
-				
 				size_t kappa1 = DataStructures::INDEX_UNREACHABLE;
 				size_t kappa1_ref = DataStructures::INDEX_UNREACHABLE;
 				auto const sij = reachability_data[j + (n-1) * i].second;
@@ -260,6 +275,7 @@ struct Simplifier final {
 					kappa[pos] = kappa2[pos];
 				}
 			}
+
 		}
 
 		// ignore the warning because it is guaranteed by polyline construction that the size is >= 2 (because n > 1)
@@ -274,6 +290,7 @@ struct Simplifier final {
 		size_t i_ = n - 1;
 		size_t j_ = n - 2;
 
+		
 		while (0 < i_) {
 			p[k] = i_;
 			auto const temp = kappa2[i_ * (n-1) + j_];
@@ -285,6 +302,7 @@ struct Simplifier final {
 			}
 			k--;
 		}
+
 
 		p[0] = 0;
 		return result;

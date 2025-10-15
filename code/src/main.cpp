@@ -261,7 +261,7 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
                           Log::Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN>(map, "ii", config);
 	}	else if (map.count("gii")) {
     _flag_action_simplify<Simplification::simplification_global_imai_iri_euclidean,
-                          Log::Algorithm::SIMPLIFICATION_IMAI_IRI_EUCLIDEAN>(map, "gii", config);
+                          Log::Algorithm::SIMPLIFICATION_GLOBAL_IMAI_IRI_HEURISTIC_EUCLIDEAN>(map, "gii", config);
 	}	else if (map.count("aes")) {
     _flag_action_simplify<Simplification::simplification_advanced_euclidean_semiexplicit,
                           Log::Algorithm::SIMPLIFICATION_ADVANCED_SEMIEXPLICIT_EUCLIDEAN>(map, "aes", config);

@@ -19,7 +19,7 @@ endif()
 
 set(DEBUG_VALUE 0)
 file(GLOB SRC_FILES "src/*.cpp")
-file(GLOB DATAGEN_SRC_FILES "datageneration/*.cpp" "src/datastructures.cpp" "src/distance.cpp")
+file(GLOB DATAGEN_SRC_FILES "datageneration/*.cpp" "src/datastructures.cpp" "src/distance.cpp" "src/global_imai_iri.cpp" "src/simplification_advanced.cpp" "src/equation_solvers.cpp" "src/performance_log.cpp")
 
 add_executable(polyline ${SRC_FILES})
 add_executable(datagen ${DATAGEN_SRC_FILES})

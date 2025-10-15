@@ -1,16 +1,18 @@
 #include "generators.h"
+#include "log.h"
+#include "simplification.h"
 #include <boost/program_options.hpp>
 #include <boost/program_options/detail/parsers.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
-#include <boost/program_options/positional_options.hpp>
-#include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/positional_options.hpp> #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <filesystem>
 #include <iostream>
 #include <numbers>
 #include <string>
 #include <vector>
+#include <fstream>
 
 namespace po = boost::program_options;
 
@@ -175,7 +177,94 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   }
 }
 
+static void test() {
+	std::random_device rd;
+	//uint32_t initial_seed = 4141310102; // = rd();
+	uint32_t initial_seed = 373139026;
+	// uint32_t initial_seed = rd();
+	// std::cout << "Initial seed: " << initial_seed << std::endl;
+	// // 
+	// // Save seed to file for later reproduction
+	// std::ofstream seed_file("data/custom/initial_seed.txt");
+	// seed_file << initial_seed;
+	// seed_file.close();
+
+	std::mt19937 rng(initial_seed);
+	std::uniform_real_distribution<float> epsilon_dist(0.01f, 100.0f);
+	std::uniform_real_distribution<float> length_dist(0.1f, 100.0f);
+	std::uniform_real_distribution<float> angle_dist(0.0f, 3.14159265f);
+
+	AlgorithmConfiguration config = {
+		.output_visualization = false,
+		.logger = std::nullopt,
+	};
+
+	int iterations = 100000;
+	int max_diff = -1;
+	float best_epsilon;
+	std::unique_ptr<DataStructures::Polyline> best_polyline = nullptr;
+
+	int count = 0;
+	int total_diff_sum = 0;
+
+	for (int i = 0; i < iterations; ++i) {
+		if (i % 1000 == 0) {
+			std::cout << "Iteration " << i << std::endl;
+		}
+		float min_len = length_dist(rng);
+		float max_len = length_dist(rng);
+		if (min_len > max_len) std::swap(min_len, max_len);
+		float angle = angle_dist(rng);
+
+		auto poly_ = DataGeneration::make_polyline(100, 2, min_len, max_len, angle, rng);
+		auto &poly = *poly_;
+
+		float epsilon = epsilon_dist(rng);
+		std::cout << "epsilon: " << epsilon << std::endl;
+
+
+		if (i != 168) {
+			continue;
+		} else if (i > 168) break;
+		DataGeneration::write_to_file(poly, "data/custom/last_poly");
+		try {
+			auto result1 = Simplification::simplification_advanced_euclidean_explicit(poly, epsilon, config);
+			auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
+
+			int size1 = static_cast<int>(result1->size());
+			int size2 = static_cast<int>(result2->size());
+
+			int diff = size2 - size1;
+			if (diff > max_diff) {
+				std::cout << "Found with diff " << diff << " for epsilon " << epsilon << std::endl;
+				max_diff = diff;
+				best_polyline = std::move(poly_);
+				best_epsilon = epsilon;
+			}
+			count++;
+			total_diff_sum += diff;
+		} catch (const std::exception &e) {
+			std::cerr << "Exception at iteration " << i << ": " << e.what() << "\n";
+			std::filesystem::create_directories("data/custom");
+			DataGeneration::write_to_file(poly, "data/custom/error_poly" + std::to_string(epsilon));
+		} catch (...) {
+			std::cerr << "Unknown exception at iteration " << i << "\n";
+		}
+	}
+
+	std::cout << "ratio of total diff to count: " << (double)total_diff_sum / count << std::endl;
+
+	if (best_polyline) {
+		std::filesystem::create_directories("data/custom");
+		DataGeneration::write_to_file(*best_polyline, "data/custom/high_diff_poly" + std::to_string(best_epsilon));
+		std::cout << "Best polyline written with difference " << max_diff << "\n";
+	} else {
+		std::cout << "No valid polyline found.\n";
+	}
+}
+
 int main(int argc, char *argv[]) {
-  handle_command_line_arguments(argc, argv);
+	test();
+  // handle_command_line_arguments(argc, argv);
   return 0;
 }
