@@ -14,19 +14,29 @@ namespace DataGeneration {
 std::unique_ptr<DataStructures::Polyline>
 make_polyline(PointCount point_count, Dimension dimension, float min_length,
               float max_length, float angle, std::mt19937 &gen) {
-  auto res_polyline =
-      std::make_unique<DataStructures::Polyline>(point_count, dimension);
+  auto res_polyline = std::make_unique<DataStructures::Polyline>(point_count, dimension);
   auto &polyline = *res_polyline.get();
-
-  std::uniform_real_distribution<float> full_angle_dist(0,
-                                                        2 * std::numbers::pi);
-  std::uniform_real_distribution<float> restr_angle_dist(-angle, angle);
   std::uniform_real_distribution<float> unif_dist(0, 1);
 
-  float const min_d =
-      DataStructures::integer_exponentiation(min_length, dimension);
-  float const range_d =
-      DataStructures::integer_exponentiation(max_length, dimension) - min_d;
+	// for one dimension, ignore angle, only care for line lengths.
+	// Also force no colinear, i.e., always changes direction
+	if (dimension == 1) {
+		float sign = 1.0;
+		polyline[0, 0] = 0;
+		for (unsigned int i = 1; i < point_count; i++) {
+			float value = min_length + (max_length - min_length) * unif_dist(gen);
+			polyline[i, 0] = polyline[i - 1, 0] + value * sign;
+			sign *= -1;
+		}
+
+		return res_polyline;
+	}
+
+  std::uniform_real_distribution<float> full_angle_dist(0, 2 * std::numbers::pi);
+  std::uniform_real_distribution<float> restr_angle_dist(-angle, angle);
+
+  float const min_d = DataStructures::integer_exponentiation(min_length, dimension);
+  float const range_d = DataStructures::integer_exponentiation(max_length, dimension) - min_d;
 
   size_t const angle_count = dimension - 1;
   float *angles = new float[angle_count];

@@ -285,9 +285,23 @@ float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w, siz
   return dot_product;
 }
 
-
+#define THRESHOLD 1e-5
 ReachabilityData solve_euclidean(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon) {
   float const a2 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point2);
+	
+	// division by zero = suffering, a2 is the squared distance and thus should always be nonnegative.
+	if (a2 <= THRESHOLD) { 
+		if (point3 == point1) {
+			return {0,0};
+		} else if(point3 == point2) {
+			return {1,1};
+		} else if(DataStructures::unnormalized_euclidean_distance(polyline, point1, point3) < THRESHOLD) {
+			return {0,0};
+		} else if(DataStructures::unnormalized_euclidean_distance(polyline, point2, point3) < THRESHOLD) {
+			return {1,1};
+		}
+		return EMPTY_INTERVAL_EXPLICIT;
+	}
   float const a1 = -scalar_product(polyline, point1, point2, point3);
   float const a0 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point3) - epsilon * epsilon;
 
@@ -299,7 +313,7 @@ ReachabilityData solve_euclidean(Polyline const &polyline, size_t point1, size_t
   float const root = std::sqrt(discriminant);
   float const t0 = (-a1 - root) / a2;
   float const t1 = (-a1 + root) / a2;
-  if (t0 > 1 || t1 < 0) return EMPTY_INTERVAL_EXPLICIT;
+  if(t0 > 1 || t1 < 0) return EMPTY_INTERVAL_EXPLICIT;
   
   return {t0 < 0 ? 0 : t0, t1 > 1 ? 1 : t1};
 }

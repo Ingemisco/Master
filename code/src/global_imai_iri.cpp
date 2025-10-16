@@ -130,7 +130,7 @@ struct GlobalShortcutGraph final {
 				.first_reachable = 0.0f,
 			});
 
-			PointIndex current_vertex = start_intervals[start_interval_index].end_vertex + 1;
+			PointIndex current_vertex = std::min(start_intervals[start_interval_index].end_vertex + 1, this->point_count - 1);
 			start_interval_index++;
 			while (!queue.is_empty()) {
 				ReachabilityData const solution = current_vertex == this->point_count? DataStructures::EMPTY_INTERVAL_EXPLICIT : DataStructures::solve_euclidean(polyline, shortcut_start, shortcut_end, current_vertex, this->epsilon);
@@ -160,7 +160,7 @@ struct GlobalShortcutGraph final {
 					});
 				}
 
-				while (!queue.is_empty() && queue.peek_back().first_reachable > solution.second) {
+				while (!queue.is_empty() && (queue.peek_back().first_reachable > solution.second || current_vertex >= this->point_count) ) {
 					auto const [first_index, last_index, _] = queue.peek_back();
 					queue.pop_back();
 
@@ -436,6 +436,7 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 			}
 			queue.reset();
 		}
+
 
 		unsigned int interval_that_contains_vertex; // completely invalid. Interval must be found
 		for (unsigned int interval_index = 0u; interval_index < graph.solution_intervals[i].intervals.size(); interval_index++) {

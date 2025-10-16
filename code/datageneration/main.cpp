@@ -178,12 +178,12 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
   }
 }
 
-#if testing
 static void test() {
 	std::random_device rd;
-	//uint32_t initial_seed = 4141310102; // = rd();
-	//uint32_t initial_seed = 373139026;
-	uint32_t initial_seed = rd();
+	// uint32_t initial_seed = 4141310102; // = rd();
+	// uint32_t initial_seed = 373139026;
+	uint32_t initial_seed = 2017988661;
+	// uint32_t initial_seed = rd();
 	std::cout << "Initial seed: " << initial_seed << std::endl;
 	// 
 	// Save seed to file for later reproduction
@@ -206,7 +206,6 @@ static void test() {
 	float best_epsilon;
 	std::unique_ptr<DataStructures::Polyline> best_polyline = nullptr;
 
-	int count = 0;
 	int total_diff_sum = 0;
 
 	for (int i = 0; i < iterations; ++i) {
@@ -218,16 +217,21 @@ static void test() {
 		if (min_len > max_len) std::swap(min_len, max_len);
 		float angle = angle_dist(rng);
 
-		auto poly_ = DataGeneration::make_polyline(100, 2, min_len, max_len, angle, rng);
+		auto poly_ = DataGeneration::make_polyline(100, 1, min_len, max_len, angle, rng);
 		auto &poly = *poly_;
 
 		float epsilon = epsilon_dist(rng);
 
-		// std::cout << "epsilon: " << epsilon << std::endl;
+		//if (i < 2599) {
+		//	continue;
+		//}
+		std::cout << "epsilon: " << epsilon << std::endl;
+		std::cout << "i: " << i << std::endl;
 
-		// DataGeneration::write_to_file(poly, "data/custom/last_poly");
+		DataGeneration::write_to_file(poly, "data/custom/last_poly");
 		auto result1 = Simplification::simplification_advanced_euclidean_explicit(poly, epsilon, config);
-		auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
+		//auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
+		auto result2 = Simplification::simplification_imai_iri_euclidean(poly, epsilon, config);
 
 		int size1 = static_cast<int>(result1->size());
 		int size2 = static_cast<int>(result2->size());
@@ -239,24 +243,22 @@ static void test() {
 			best_polyline = std::move(poly_);
 			best_epsilon = epsilon;
 		}
-		count++;
 		total_diff_sum += diff;
 	}
 
 	std::cout << "total diff to count: " << total_diff_sum << std::endl;
 
-	if (best_polyline) {
+	if (total_diff_sum > 0) {
 		std::filesystem::create_directories("data/custom");
 		DataGeneration::write_to_file(*best_polyline, "data/custom/high_diff_poly" + std::to_string(best_epsilon));
 		std::cout << "Best polyline written with difference " << max_diff << "\n";
 	} else {
-		std::cout << "No valid polyline found.\n";
+		std::cout << "No diff polyline found.\n";
 	}
 }
-#endif
 
 int main(int argc, char *argv[]) {
-	//test();
-  handle_command_line_arguments(argc, argv);
+	test();
+  //handle_command_line_arguments(argc, argv);
   return 0;
 }

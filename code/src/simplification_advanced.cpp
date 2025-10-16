@@ -52,6 +52,7 @@ static void cell_reachability_explicit(size_t const *entry_costs, std::pair<F, L
 			}
 			queue.pop_front();
 		}
+
 		queue.push_front(std::tuple<F, size_t, size_t>(last_interval.first, k_left, ref));
 
 		while(!queue.is_empty()) {
@@ -59,6 +60,7 @@ static void cell_reachability_explicit(size_t const *entry_costs, std::pair<F, L
 			if(t <= last_interval.second) break;
 			queue.pop_back();
 		}
+
 		auto const [start, val, i] = queue.peek_back(); 
 		exit_costs[j].first = val;
 		exit_costs[j].second = i;
@@ -79,6 +81,128 @@ struct KappaData final {
 	size_t i_;
 	size_t j_;
 };
+
+
+
+
+
+
+void printKappaData(KappaData* kappa, KappaData* kappa2, size_t n) {
+    std::cout << "\n=== KAPPA DATA DUMP ===" << std::endl;
+    std::cout << "Array dimensions: " << n << " x " << (n-1) << " = " << (n * (n-1)) << " total elements" << std::endl;
+    
+    size_t total_kappa_unreachable = 0;
+    size_t total_kappa2_unreachable = 0;
+    
+    // Print kappa array
+    std::cout << "\n--- KAPPA ARRAY ---" << std::endl;
+    for (size_t i = 0; i < n; i++) {
+        bool has_valid_data = false;
+        std::vector<size_t> valid_indices;
+        
+        for (size_t j = 0; j < n-1; j++) {
+            size_t index = i * (n-1) + j;
+            if (kappa[index].smallest_k != DataStructures::INDEX_UNREACHABLE) {
+                has_valid_data = true;
+                valid_indices.push_back(j);
+            }
+        }
+        
+        if (has_valid_data) {
+            std::cout << "Vertex " << i << " - Valid intervals: ";
+            for (size_t j : valid_indices) {
+                size_t index = i * (n-1) + j;
+                std::cout << "j=" << j << "(k=" << kappa[index].smallest_k 
+                          << ", i_=" << kappa[index].i_ 
+                          << ", j_=" << kappa[index].j_ << ") ";
+            }
+            std::cout << std::endl;
+        } else {
+            total_kappa_unreachable++;
+        }
+    }
+    
+    // Print kappa2 array  
+    std::cout << "\n--- KAPPA2 ARRAY ---" << std::endl;
+    for (size_t i = 0; i < n; i++) {
+        bool has_valid_data = false;
+        std::vector<size_t> valid_indices;
+        
+        for (size_t j = 0; j < n-1; j++) {
+            size_t index = i * (n-1) + j;
+            if (kappa2[index].smallest_k != DataStructures::INDEX_UNREACHABLE) {
+                has_valid_data = true;
+                valid_indices.push_back(j);
+            }
+        }
+        
+        if (has_valid_data) {
+            std::cout << "Vertex " << i << " - Valid intervals: ";
+            for (size_t j : valid_indices) {
+                size_t index = i * (n-1) + j;
+                std::cout << "j=" << j << "(k=" << kappa2[index].smallest_k 
+                          << ", i_=" << kappa2[index].i_ 
+                          << ", j_=" << kappa2[index].j_ << ") ";
+            }
+            std::cout << std::endl;
+        } else {
+            total_kappa2_unreachable++;
+        }
+    }
+    
+    // Print summary statistics
+    std::cout << "\n=== SUMMARY ===" << std::endl;
+    std::cout << "Kappa: " << total_kappa_unreachable << "/" << n << " vertices completely unreachable" << std::endl;
+    std::cout << "Kappa2: " << total_kappa2_unreachable << "/" << n << " vertices completely unreachable" << std::endl;
+    
+    // Print the critical last elements
+    std::cout << "\n=== CRITICAL INDICES ===" << std::endl;
+    size_t last_index_kappa = (n-1) * (n-1);
+    size_t last_index_kappa_alt = (n-1) * n - 1;
+    
+    std::cout << "Last index used: " << last_index_kappa << std::endl;
+    std::cout << "Alternative last index: " << last_index_kappa_alt << std::endl;
+    std::cout << "Array size: " << (n * (n-1)) << std::endl;
+    
+    if (last_index_kappa < n * (n-1)) {
+        std::cout << "kappa[" << last_index_kappa << "]: smallest_k=" << kappa[last_index_kappa].smallest_k
+                  << ", i_=" << kappa[last_index_kappa].i_ 
+                  << ", j_=" << kappa[last_index_kappa].j_ << std::endl;
+    } else {
+        std::cout << "ERROR: last_index_kappa out of bounds!" << std::endl;
+    }
+    
+    if (last_index_kappa_alt < n * (n-1)) {
+        std::cout << "kappa[" << last_index_kappa_alt << "]: smallest_k=" << kappa[last_index_kappa_alt].smallest_k
+                  << ", i_=" << kappa[last_index_kappa_alt].i_ 
+                  << ", j_=" << kappa[last_index_kappa_alt].j_ << std::endl;
+    } else {
+        std::cout << "ERROR: last_index_kappa_alt out of bounds!" << std::endl;
+    }
+    
+    // Find the actual maximum k value
+    size_t max_k = 0;
+    size_t max_k_index = 0;
+    for (size_t i = 0; i < n * (n-1); i++) {
+        if (kappa[i].smallest_k != DataStructures::INDEX_UNREACHABLE && 
+            kappa[i].smallest_k > max_k) {
+            max_k = kappa[i].smallest_k;
+            max_k_index = i;
+        }
+    }
+    std::cout << "Maximum k value: " << max_k << " at index " << max_k_index << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 // EMPTY_INTERVAL must satisfy that its first component is the value to be used for invalid entries, so it should not be a valid entry
 // NON_EMPTY_INTERVAL must be a non empty interval whose first point is something equivalent to 0 (i.e. start of the line segment)
@@ -200,6 +324,7 @@ struct Simplifier final {
 
 			cell_reachability_explicit<F, L, EMPTY_INTERVAL>(const_cast<size_t const *>(entry_costs), const_cast<Interval const *>(intervals), exit_costs, queue);
 			
+
 			size_t temp2 = i * (n - 1);
 			for (size_t j = 0; j < n - 1; j++) {
 				auto const exit = this->exit_costs[j];
@@ -275,8 +400,8 @@ struct Simplifier final {
 					kappa[pos] = kappa2[pos];
 				}
 			}
-
 		}
+
 
 		// ignore the warning because it is guaranteed by polyline construction that the size is >= 2 (because n > 1)
 		[[assume(n >= 2)]];
@@ -290,6 +415,7 @@ struct Simplifier final {
 		size_t i_ = n - 1;
 		size_t j_ = n - 2;
 
+		// printKappaData(kappa, kappa2, n);
 		
 		while (0 < i_) {
 			p[k] = i_;
