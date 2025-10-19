@@ -398,9 +398,13 @@ def update_polyline(click_data, n_clicks, polyline_click, filename, content):
     if distance_measure != 'IE':
         if t == 0:
             sub_poly_points.append(polyline[j])
+        elif j_ == j:
+            print("TEST")
+            sub_poly_points.append(compute_inner_point(j, t))
         else:
             sub_poly_points.append(polyline[j])
             sub_poly_points.append(compute_inner_point(j, t))
+    print(sub_poly_points)
 
     x = [a[0] for a in sub_poly_points]
     y = [a[1] for a in sub_poly_points]

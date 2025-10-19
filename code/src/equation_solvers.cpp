@@ -403,9 +403,9 @@ bool LRValue::operator==(LRValue const &other) const {
 
 // epsilon must be squared
 SEReachabilityData solve_euclidean_se(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon2) {
-  float const a2 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point2);
+  float const a2 = std::max(DataStructures::unnormalized_euclidean_distance(polyline, point1, point2), 0.0f);
   float const a1 = -scalar_product(polyline, point1, point2, point3);
-  float const a0 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point3) - epsilon2;
+  float const a0 = std::max(DataStructures::unnormalized_euclidean_distance(polyline, point1, point3), 0.0f) - epsilon2;
 
   float const discriminant = a1 * a1 - a2 * a0;
   if (discriminant < 0) {

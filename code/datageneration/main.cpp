@@ -182,8 +182,9 @@ static void test() {
 	std::random_device rd;
 	// uint32_t initial_seed = 4141310102; // = rd();
 	// uint32_t initial_seed = 373139026;
-	uint32_t initial_seed = 2017988661;
-	// uint32_t initial_seed = rd();
+	// uint32_t initial_seed = 2017988661;
+	//uint32_t initial_seed = 2425774786;
+	uint32_t initial_seed = rd();
 	std::cout << "Initial seed: " << initial_seed << std::endl;
 	// 
 	// Save seed to file for later reproduction
@@ -217,26 +218,30 @@ static void test() {
 		if (min_len > max_len) std::swap(min_len, max_len);
 		float angle = angle_dist(rng);
 
-		auto poly_ = DataGeneration::make_polyline(100, 1, min_len, max_len, angle, rng);
+		auto poly_ = DataGeneration::make_polyline(100, 2, min_len, max_len, angle, rng);
 		auto &poly = *poly_;
 
 		float epsilon = epsilon_dist(rng);
 
-		//if (i < 2599) {
+		//if (i < 7433) {
 		//	continue;
 		//}
-		std::cout << "epsilon: " << epsilon << std::endl;
-		std::cout << "i: " << i << std::endl;
+		// std::cout << "epsilon: " << epsilon << std::endl;
+		// std::cout << "i: " << i << std::endl;
 
-		DataGeneration::write_to_file(poly, "data/custom/last_poly");
+		//DataGeneration::write_to_file(poly, "data/custom/last_poly");
 		auto result1 = Simplification::simplification_advanced_euclidean_explicit(poly, epsilon, config);
-		//auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
-		auto result2 = Simplification::simplification_imai_iri_euclidean(poly, epsilon, config);
+		auto result2 = Simplification::simplification_global_imai_iri_euclidean(poly, epsilon, config);
+		//auto result2 = Simplification::simplification_imai_iri_euclidean(poly, epsilon, config);
 
 		int size1 = static_cast<int>(result1->size());
 		int size2 = static_cast<int>(result2->size());
 
 		int diff = size2 - size1;
+		if (diff < 0) {
+			std::cout << "Something went wrong on iteration "<< i << " with a negative difference of "<< diff << std::endl;
+			exit(0);
+		}
 		if (diff > max_diff) {
 			std::cout << "Found with diff " << diff << " for epsilon " << epsilon << std::endl;
 			max_diff = diff;

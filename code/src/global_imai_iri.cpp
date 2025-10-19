@@ -81,6 +81,7 @@ struct GlobalShortcutGraph final {
 				// merge adjacent intervals to one major interval.
 				// The solutions here can never be empty because 0 is valid solution since 1 is valid solution in previous interval
 				j++;
+				
 				for (; interval_end == 1 && j < this->point_count - 1; j++) {
 					interval_end = DataStructures::solve_euclidean(polyline, j, j + 1, i, this->epsilon).second;
 				}
@@ -99,6 +100,13 @@ struct GlobalShortcutGraph final {
 			}
 		}
 
+		// None of this should be necessary but somehow it is???
+		if (this->solution_intervals[0].intervals[0].start_vertex + this->solution_intervals[0].intervals[0].rel_interval_start > 0) {
+			this->solution_intervals[0].intervals.insert(this->solution_intervals[0].intervals.begin(), Interval{0,0,0,0});
+		}
+		if (this->solution_intervals[point_count-1].intervals.back().end_vertex + this->solution_intervals[point_count-1].intervals.back().rel_interval_end < point_count - 1) {
+			this->solution_intervals[point_count-1].intervals.emplace_back(point_count - 2, point_count - 2, 1, 1);
+		}
 
 	}
 
@@ -403,7 +411,7 @@ void printSimplificationDebugInfo(SimplifificationData* simplification_data,
 Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline, float epsilon, AlgorithmConfiguration &config) {
 	auto time_start = std::chrono::high_resolution_clock::now();
 	GlobalShortcutGraph graph(polyline, epsilon);
-	// graph.print();
+	//graph.print();
 
 	//auto local_simpl = simplification_local_imai_iri_from_gsg(graph);
 
@@ -450,19 +458,20 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 		exit(0);
 	proceed:
 		if (simplification_data[offset_array[i] + interval_that_contains_vertex].size == std::numeric_limits<size_t>::max()) {
-			simplification_data[offset_array[i] + interval_that_contains_vertex].size = simplification_data[offset_array[i-1] + last_interval_that_contains_vertex].size;
+			simplification_data[offset_array[i] + interval_that_contains_vertex].size = simplification_data[offset_array[i-1] + last_interval_that_contains_vertex].size + 1;
 			simplification_data[offset_array[i] + interval_that_contains_vertex].parent_vertex = i - 1;
 			simplification_data[offset_array[i] + interval_that_contains_vertex].parent_interval = last_interval_that_contains_vertex;
 		}
 		last_interval_that_contains_vertex = interval_that_contains_vertex;
 	}
 
-	// printSimplificationDebugInfo(simplification_data, offset_array, polyline.point_count, graph);
+	//printSimplificationDebugInfo(simplification_data, offset_array, polyline.point_count, graph);
 
 	auto vertex = simplification_data[offset_array[polyline.point_count] - 1].parent_vertex;
 	auto interval = simplification_data[offset_array[polyline.point_count] - 1].parent_interval;
 	auto const size = simplification_data[offset_array[polyline.point_count] - 1].size;
 	auto i = size - 1;
+
 	Simplification result = std::make_unique<std::vector<size_t>>(size);
 	(*result)[i] = polyline.point_count - 1;
 	i--;
