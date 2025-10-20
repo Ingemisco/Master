@@ -413,8 +413,6 @@ Simplification simplification_global_imai_iri_euclidean(Polyline const &polyline
 	GlobalShortcutGraph graph(polyline, epsilon);
 	//graph.print();
 
-	//auto local_simpl = simplification_local_imai_iri_from_gsg(graph);
-
 	// offset_array[i] is offset in simplification_data array at which data for the vertex i can be found. 
 	size_t *offset_array = new size_t[polyline.point_count + 1];
 	offset_array[0] = 0;
