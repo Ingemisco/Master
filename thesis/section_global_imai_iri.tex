@@ -1,7 +1,7 @@
 \section{Adapting Imai and Iri to the Global Fréchet Distance}
 \label{sec:global_imai_iri}
 
-In this section, we revisit the well-known \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm for local Fréchet polyline simplification and demonstrate how to adapt it to the global Fréchet setting. In doing so, we rediscover the simplification algorithm from \citeauthor{global_curve_simplification}. This presents a new perspective on their algorithm and the link to the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm might allow to adapt optimizations from the local setting.
+In this section, we revisit the well-known \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}~\cite{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm for local Fréchet polyline simplification and demonstrate how to adapt it to the global Fréchet setting. By using different graph traversals, we can obtain the algorithm from \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, as well as rediscover a simplification algorithm from \citeauthor{global_curve_simplification}. We modify the algorithm slightly to create a simple cubic time heuristic which achieves optimality in many cases. This heuristic only uses quadratic space in the worst case. In the best case both sapce and runtime are improved by a linear factor, i.e., it can achieve a runtime of \(\Oh(n^2)\) and a space consumption of \(\O(n)\) for sufficiently well-behaved polylines.
 
 Throughout this section we fix \(\varepsilon > 0\) and a distance \(\delta\). Further, let \(P\) be a polyline of length \(n\). We note that some of the lemmas in this section can be seen rather trivial in the free space diagram. We have not mentioned it in this thesis because it adds a layer of abstraction which makes the algorithms less intuitive in our opinion. Furtermore, up until this section there was no need for it. An introduction to it is longer than proving the lemmas directly.
 
@@ -68,7 +68,7 @@ Using \cref{lem:admissible_are_intervals}, we define an efficient representation
 \begin{proof}
 	The lemma is trivial if \(\mathcal{A}_e\) is empty. Suppose it is not empty. It holds by definition that \(\mathcal{A}_e \subseteq \mathcal{I} \times_\leq \mathcal{J}\). 
 
-	For any \(e\)-admissible subypolline \((t', t)\) there exist closed maximal intervals \(I\) and \(J\) with \(t' \in I\), \(t' \in J\), and \(I \subseteq \mathcal{I}\) and \(J \subseteq \mathcal{J}\) by the distance constraints on the endpoints by the definition of the Fréchet distance. 
+	For any \(e\)-admissible subypolyine \((t', t)\) there exist closed maximal intervals \(I\) and \(J\) with \(t' \in I\), \(t' \in J\), and \(I \subseteq \mathcal{I}\) and \(J \subseteq \mathcal{J}\) by the distance constraints on the endpoints by the definition of the Fréchet distance. 
 
 	We show that \(I \times_\leq J \subseteq \mathcal{A}_e\): pick any \(s' \leq s\) with \(s' \in I\) and \(s \in J\). If \(s' \leq t'\) then \(\delta^F(P[s' \dots t'], P[y \dots y]) \leq \varepsilon\) for any \(y \in J\) by construction of \(I\) and \(J\), and thus, we can extend any admissible \(t', y\) subpolyline to an admissible \((s', y)\). Similarly, if \(s \geq t\), for any \(x \in I\), we can extend admissible \((x, t)\) subpolylines to admissible \((x, s)\) subpolylines. Therefore, we can assume \(s' \geq t'\) and \(t \leq s\). Under these conditions, it follows that \((s', s)\) is admissible by using \cref{lem:admissible_are_intervals}.
 
@@ -135,11 +135,6 @@ To propagate these subpolylines for the vertex \(i\), we iterate over all \(j < 
 
 This results in a \(\Oh(n^4)\) algorithm as there are \(\O(n)\) propagation steps which takes \(\O(n^3)\) time. Using insights from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}, \citeauthor{global_curve_simplification} further improved the runtime to \(\Oh(n^3)\). Both algorithms works essentially the same way but with a different order of computation.
 
-\subsection{Subcubic Space and Runtime}
-Finally, we want to reanalyze the runtime more closely to investigate under which conditions this algorithm can achieve subcubic runtime. We have already seen, that the runtime to construct the global shortcut graph can be subcubic if the total amount of points that need to be considered in the intervals is small. Let us first formalize this idea.
-
-TODO
-
 \subsection{Cubic Runtime Heuristic}
 As the cubic runtime variant of this algorithm is very similar to the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorith, we instead establish a simpler heuristic which results in smaller simplifications than local simplifications and achieves optimal results in many cases.
 
@@ -149,39 +144,124 @@ To achieve worst case \(\Oh(n^3)\) time and quadratic space with possibly quadra
 
 Even though the first of the two cases is simpler to compute, it causes the most problems: It is the reason why we need cubic space as we need to track linearly many points per line segment and vertex; the second case only requires one datum per line segment. Additionally, intuitively this case is less likely to affect the simplification. In this case we have multiple consective shortcuts that make little progress on the polyline which is in opposition to the goal of achieving as few shortcuts as possible. Furthermore, interval mappings that allow make this case necessary have a restrictive nature. 
 
-We can formulate a condition, in which this first case is never necessary.
-\begin{definition}[Proceeding Polyline]
-	Let \(P\) be a polyline and \(\varepsilon > 0\). We call \(P\) \(\varepsilon\)-\emph{proceeding} if its global shortcut graph contains no mapping \(([a, b], [c, d])\) with \(c < a\).
+To formlize our approach, we split mappings into three categories:
+\begin{definition}
+	Let \(m = ([a, b], [c, d])\) be a mapping in the global shortcut graph. We call \(m\)
+	\begin{itemize}
+		\item \emph{positive} if \(b \leq c\),
+		\item \emph{neutral} if \(a \leq c \leq b\),
+		\item \emph{negative} if \(c < a\).
+	\end{itemize}
+
+	We call global shortcut graph positive if it has no negative mappings. A polyline is called \(\varepsilon\)-positive its global shortcut graph is positive. If \(\varepsilon\) is clear from context we will omit it.
 \end{definition}
 
-We call such polylines \emph{proceeding} because by applying any mapping \(([a, b], [c, d])\) on the interval \([a, b]\), the result is \([c, d]\) and thus by applying the mapping, we must proceed on the polyline from \(a\) to \(c\); waiting on \(a\) is not allowed (unless \(a = c\)).
-
 \begin{theorem}
-	Let \(\varepsilon > 0\) and \(P\) be an \(\varepsilon\)-proceeding polyline. Then \(\delta^F(P, \varepsilon)\) can be computed in \(\Oh(n^3)\) with quadratic space.
+	Let \(\varepsilon > 0\) and \(P\) be positive polyline. Then \(\delta^F(P, \varepsilon)\) can be computed in \(\Oh(n^3)\) with quadratic space.
 \end{theorem}
 
 \begin{proof}
-	It is obvious that per interval and vertex only at most one reachable subpolyline must be stored when simplifying a \(\varepsilon\)-proceeding polylines by reanalyzing our resoning for the \(\Oh(n^4)\) algorithm. Thus an array of size \(\O(\mathcal{V}) \subseteq \O(n^2)\) suffices where we store for each vertex \(u\) and interval \(I \in S(u)\) the shortest partial simplification ending in \(u\) that reaches \(I\). For this only the preceding vertex and the size of the partial simplification need to be stored. With this, a graph traversal more similar to the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} can be applied. For each vertex \(v\), we iterate over all \(u < v\) and the reachable subpolylines in all reachable \(S(v)\) and their mappings \(S(\overline{uv})\). As all of these list are ordered and at most one mapping is applicable to any interval in \(S(v)\), the propagation onto \(u\) takes constant time per interval. For each vertex there are at most linearly many mappings and intervals to consider so by using the order, a merge-like procedure requires only linear time per \(v\) and thus quadratic time per \(u\). In total cubic runtime is achieved. 
+	It is obvious that per interval and vertex only at most one reachable subpolyline must be stored when simplifying a positive polyline by reanalyzing our reasoning for the \(\Oh(n^4)\) algorithm. Thus an array of size \(\O(\mathcal{V}) \subseteq \O(n^2)\) suffices where we store for each vertex \(u\) and interval \(I \in S(u)\) the shortest partial simplification ending in \(u\) that reaches \(I\). For this only the preceding vertex and the size of the partial simplification need to be stored. With this, a graph traversal more similar to the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} can be applied. For each vertex \(v\), we iterate over all \(u < v\) and the reachable subpolylines in all reachable \(S(v)\) and their mappings \(S(\overline{uv})\). As all of these list are ordered and at most one mapping is applicable to any interval in \(S(v)\), the propagation onto \(u\) takes constant time per interval. For each vertex there are at most linearly many mappings and intervals to consider so by using the order, a merge-like procedure requires only linear time per \(v\) and thus quadratic time per \(u\). In total cubic runtime is achieved. 
 
 	To reduce space to quadratic, we observe that we do not need to precompute the mappings as the mappings in \(S(\overline{uv})\) are used all at once when propagating reachability from \(u\) to \(v\) and thus, we can defer the computation to the propagation instead of storing them global. At any time only at most linearly many mappings are stored.
 \end{proof}
 
-As not every polyline is \(\varepsilon\)-proceeding for any given \(\varepsilon\), we introduce a new heuristic simplification by transforming the polyline into an \(\varepsilon\)-proceeding one. This does not always yield optimal simplifications but the simplifications are not worse than local ones.
+As not every polyline is positive for a given \(\varepsilon\), we introduce a new heuristic simplification by transforming the global shortcut graph of the polyline into an positive one. This does not always yield optimal simplifications but the simplifications are never worse than local ones.
 
-The first step is to split the unique interval \(I = [a, b] \in S(u)\) with \(u \in I\) into two intervals \([a, u]\) and \([u, b]\). The second and final step is consists of narrowing the intervals in \(S(u)\) for all \(u\) and removing mappings in the following way. For any mapping \(([a,b], [c,d]) \in S(\overline{uv})\) with \(a > c\) we either 
+The first step is to split the unique interval \(I = [a, b] \in S(u)\) with \(u \in I\) into two intervals \([a, u]\) and \([u, b]\). The second and final step consists of narrowing the intervals in \(S(u)\) for all \(u\) and removing mappings in the following way. For any mapping negative \(([a,b], [c,d]) \in S(\overline{uv})\) with we either 
 \begin{enumerate}
 	\item update the first interval \([c, x] \in S(u)\) to \([a, x]\) if \(a \leq x\),
 	\item If \(a > x\), we remove the interval \([c, x]\) from the mapping. If there are further intervals in the range of the mapping we repeat this process with the next interval until the first case occurs or no intervals remain in the range. In the latter case, we remove the mapping completely.
 \end{enumerate}
 
-After this process, the polyline is \(\varepsilon\)-proceeding as we have modifed or removed all violating mappings. We now show that using this modified shortcut graph always yields a solution that is not worse than a local simplification. For this it suffices to show that all local shortcuts are still included. Take a local shortcut \(\overline{uv}\), which means that \(\delta^F(P[u \dots v], \overline{uv}) \leq \varepsilon)\). This means that \((u, v)\) is \(\overline{uv}\)-admissible and thus there is a mapping \((I, J) \in S(\overline{uv})\) with \(u \in I\) and \(v \in J\). Since we have split the solution intervals containing \(u\) in \(S(u)\), no intervals are removed in the process, and the intervals are only shrunk from the left, there is still an interval \([a, u]\) in \(S(u)\) and similarly for \(v\). The mapping that contains the local shortcut can not be removed by this process because \(u < v\). Thus all local shortcuts are still contained in the graph. Of course, a consequence of this is that this process can never remove too many mappings and thus will always find a solution.
+After this process, the global shortcut graph is positive as we have modifed or removed all negative mappings. We now show that using this modified shortcut graph always yields a solution that is not worse than a local simplification. For this it suffices to show that all local shortcuts are still included. Take a local shortcut \(\overline{uv}\), which means that \(\delta^F(P[u \dots v], \overline{uv}) \leq \varepsilon)\). This means that \((u, v)\) is \(\overline{uv}\)-admissible and thus there is a mapping \((I, J) \in S(\overline{uv})\) with \(u \in I\) and \(v \in J\). Since we have split the solution intervals containing \(u\) in \(S(u)\), no intervals are removed in the process, and the intervals are only shrunk from the left, there is still an interval \([a, u]\) in \(S(u)\) and similarly for \(v\). The mapping that contains the local shortcut can not be removed by this process because \(u < v\). Thus all local shortcuts are still contained in the graph. Of course, a consequence of this is that this process can never remove too many mappings and thus will always find a solution.
 
-As a final note we mention that we still do not need to precompute the whole global shortcut graph. When computing the reachable subpolylines for \(v\) the mappings in \(S(\overline{uv})\) only affect the solution intervals in \(S(v)\). It suffices to shrink the intervals as the mappings are computed and store the reachable subpolylines as an interval of indices (because the indices of the solution intervals do not change unlike their left bounds).
+To achieve quadratic space, we still do not need to precompute the whole global shortcut graph. When computing the reachable subpolylines for \(v\) the mappings in \(S(\overline{uv})\) only affect the solution intervals in \(S(v)\). It suffices to shrink the intervals as the mappings are computed and store the reachable subpolylines as an interval of indices (because the indices of the solution intervals do not change unlike their left bounds).
 
+This heuristic can also be made into a simple optimal algorithm: for each negative mapping \(([a,b], [c,d]) \in S(\overline{P(i')P(i)})\) we split the interval \([c, d] \in (S(i))\) into two intervals \([c, a]\) and \([a, d]\). This basically transforms the heuristic back into the \(\Oh(n^4)\) algorithm as the amount of intervals can be quadratic per vertex. Using other interval-splitting and mapping-update strategies might yield better results than the outlined heuristic at the potential cost of runtime.
+
+\subsection{Analysis of the Heuristic}
+We have shown that our heuristic is never worse than a local simplification. Now, we analyze polylines on which the heuristic performs well and ones where it performes poorly.
+
+The examples \cref{fig:local-global-bigdiff,fig:local-global-mostdiff} which have a high difference between the local and global simplifications can be solved optimally using our heuristic as both polylines are \(\varepsilon\)-positive using the given \(\varepsilon\). For further investigations into optimality criteria for the heuristic we differentiate polylines into two categories.
+
+\begin{definition}
+  Let \(P\) be a polyline and \(\varepsilon > 0\). We call \(P\)
+	\begin{itemize}
+		\item \(\varepsilon\)-\emph{neutral} if the result from the heuristic is optimal and 
+		\item \(\varepsilon\)-\emph{negative} if the result from the heuristic is non-optimal.
+	\end{itemize}
+\end{definition}
+
+Naturally, every positive polyline is also neutral and any the shortcut graph of a negative polyline contains at least one negative mapping. 
+
+Let us present a few simple criteria for neutral polyines.
+\begin{lemma}
+  Let \(P\) be a polyline, \(\varepsilon > 0\) and \(G\) be the global shortcut graph of \(P\) using \(\varepsilon\). \(P\) is \(\varepsilon\)-neutral if any of these following conditions hold.
+	\begin{enumerate}
+		\item \(P\) is \(\varepsilon\)-positive.
+		\item The local and global simplifications of \(P\) coincide.
+		\item \(\varepsilon\) is at least as large as the distance between any pair of vertices of \(P\).
+		\item \(S(i)\) contains exactly one solution interval and this unique interval contains only one polyline vertex (which must be \(i\)).
+		\item \(\max \set{a \mid [a, b] \in S(i')} \leq \min \set{a \mid [a, b] \in S(i)}\) for all \(i' < i\).
+	\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+	\begin{enumerate}
+	  \item Already shown previously.
+		\item The heuristic can never be smaller as the global simplification but it also cannot be larger than a local simplification.
+		\item This implies both previous criteria. Each vertex contains exactly one interval \([0, n]\), i.e., each interval spans the whole polyline. As all intervals are the same there can be no negative mappings. Furthermore, this also implies that both the loval and global simplification only contain the start and end vertex.
+		\item The interval in \(S(i)\) starts either on the line segment before the vertex \(i\) or the exactly on the vertex \(i\) (e.g., for \(i=0\)). Mapping the starts of the intervals onto the real numbers yields a monotone sequence. As shortcuts can only proceed to higher indexed vertices, the range interval must start after the domain interval and is thus neutral or positive. Thus, the polyline is positive.
+		\item Follows directly from the proof for the last criterion.
+	\end{enumerate}
+\end{proof}
+
+We present a negative polyline in \cref{fig:gii_diff_2}. The global simplification requires only four points while the heuristic needs 6. In the sequence of mappings in the global simplification there are no negative mappings, however, the heuristic stil cannot find it as the interval for the second vertex of the simplfication is shrunk because of other negative mappings. 
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=1, width=0.9\linewidth]{./figures/gii_diff_2.png}
+	\caption{A negative polyline with 10 points. The difference between the heuristic and global simplification is 2. The last blue line segment is shared by both simplifications. The circle around \(P(0)\) has radius \(\varepsilon\).}
+  \label{fig:gii_diff_2}
+\end{figure}
+
+We want to mention that we were not able to construct such an example ourselves. This example was found during testing on random polylines. We extracted the part that caused the difference into this example. Actually constructing polylines where the simplifications differ is non-trivial as negative mappings mostly arise in unintuitive substructures and to obtain a polyline with differing simplifications it is better to have multiple negative mappings.
 
 \subsection{Conclusion}
 
 This algorithm scheme generalizes \citeauthor{global_curve_simplification}'s algorithm and the \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} algorithm but also the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm. However, this approach is more complex than local simplification algorithms, and slower.
+
+We have not shown any guarantees on our heuristic but it can easily be shown that is optimal on \cref{fig:local-global-bigdiff,fig:local-global-mostdiff} since those polylines are \(\varepsilon\)-proceeding. Thus, our heuristic is reasonable on some polylines where local simplifications suffer massively.
+
+In their comprehensive study on global types of simplification, \citeauthor{global_curve_simplification} state ``what makes the problem difficult it is not well understood". We think our adaptation of the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm to the global setting and the resulting heuristic make a convincing point that a negative mappings and the resulting need to mainting large structures is a major difficulty.
+
+We conclude with further research questions regarding the global shortcut graph and our heuristic.
+
+\begin{itemize}
+	\item	How much can the heuristic differ from the optimum?
+
+	We gave an example where it differed by 2 on a polyline of length 10. By replicating it with enough distance (similarly to \cref{fig:local-global-bigdiff}) we can create polylines with an arbitrary difference. However, this process can only create polylines where the difference is within a factor of \(1.5\). We do not know if the heuristic can be arbitrarily bad (like local simplifications) or whether an approximation guarantee can be established. We think that it can be arbitrarily bad by creating polylines with many negative mappings which reduce the intervals and thus disqualify many mappings which could be used for a global simplification but we have no construction to back this hypothesis.
+
+	\item Which are strategies are there for the intervals and mappings?
+
+	Our strategy is simple but comes with no guarantees as far as we know. More sophisticated update rules may allow for better simplifications while preserving the cubic time worst case and quadratic worst case space consumption.
+
+	\item Under which conditions is a polyline positive or neutral?
+
+	We have given some basic properties. However, our conditions are either trivial or are only useful as a certificate that the found heuristic is optimal. They are rather abstract which makes it hard to reason whether they are likely to apply to any class of polylines.
+
+	\item Can the heuristic be implemented in (near-)quadratic runtime?
+
+	For sufficiently nice polylines, the algorithm can achieve quadratic runtime. For this, there should be only few mappings and intervals, and the cell reachability to compute the mappings should use early exits as often as possible. 
+
+	Our heuristic is structurally closer to the algorithm by \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} which has already been optimized to achieve that runtime (e.g. \cite{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal}). It is still more complex than the local case as we do not only track one vertex but a list of intervals for each vertex. Some concept can be adapted, for example, \citeauthor{polyline_simplification_under_the_local_frechet_distance_has_almost_quadratic_runtime_in_2d_storandtetal} use wedges based on the unit circle around points to narrow down shortcuts. These can be adapted into the global setting by widening the wedges to all points on the respective subpolylines. 
+\end{itemize}
+
+
+
+
+
 
 
 

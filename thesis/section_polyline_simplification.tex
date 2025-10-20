@@ -205,7 +205,31 @@ This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausd
   \label{fig:local-global-bigdiff}
 \end{figure}
 
-Interestingly, in our example, if we were to define the size of a simplification to not count the start and end point then a factor of \(c_2 = 2\) would be achieved. Every simplification must contain the start and endpoint, thus, when comparing their sizes, it could make sense to ignore those points.
+This example demonstrates that local and global simplifications can differ by much but is not optimal. In fact, local simplifications can be arbitrarily bad in comparison the global ones.
+\begin{theorem}
+	Let \(n \in \N\) with \(n \geq 3\) and \(\varepsilon > 0\). There is a polyline with \(n\) vertices such that \(S(\delta^{LF}_2; P, \varepsilon) = n\) but \(S(\delta^F_2; P, \varepsilon) = 3\).
+
+	It is impossible to achieve a greater difference in the simplification sizes.
+\end{theorem}
+
+\begin{proof}
+  The only way how the difference could be bigger is if the global simplification uses only two vertices. This however would also be a local simplification and thus, the difference in sizes would actually be \(0\).
+
+	For the actual construction see \cref{fig:local-global-mostdiff}. The idea is to choose an irrational angle \(\alpha\) in \((2\pi/4, 2\pi/3)\) like \(2\) radians. We consider the unit circle with radius \(\varepsilon\) and pick a point on it. Then we place the next point on the circle after rotation of \(\alpha\) and continue. We add a first point outside the circle such that \(\overline{P(0)P(1)}\) contains the center of the unit circle. The point count and angle are mostly arbitrary within the given bounds but should satisfy that \(\delta_2(P(1), P(n)) \leq \varepsilon\).
+
+	For the global simplification only three points suffice: \(P(0)\), \(P(1)\) and \(P(n)\). The radius of the circle lies by construction on the first line segment of the simplification and is within distance of the whole polyline (except \(P(0)\)). Thus we can just proceed through the whole polyline while waiting at the center. After this we can finish the shortcut and as \(\delta_2(P(1),P(n)) \leq \varepsilon\) we can just append the shortcut to the last point.
+
+	We now need to show that no local shortcuts exist. No shortcut other than \(\overline{P(0)P(1)}\) passes through the center as we rotate by an irrational angle. Any shortcut that contains the center must be constructed by two points that have a total angle of \(180^\circ\) between them which is rational but the sum of irrational angles is always irrational. This prevents us from skipping large parts of the polyline with a shortcut that contains the center like in the global case. The other possible shortcuts are easy to rule out because of the cyclical nature of the polyline. Shortcuts \(\overline{P(i-1)P(i+1)}\) that skip exactly one point \(P(i)\) cannot exist because by the choice of angle, no point on the shortcut is within \(\varepsilon\) of \(P(i)\). For any longer shortcut \(\overline{P(i')P(i)}\) we can similarly see that at least one of the skipped points has no point on the shortcut within distance \(\varepsilon\). Thus no local shortcuts exist and a local simplification requires all points.
+\end{proof}
+
+\begin{figure}[h!tbp]
+  \centering
+	\includegraphics[scale=0.3]{./figures/local-global-mostdiff.png}
+	\caption{Example polyline where the local and global sizes have maximal difference.}
+  \label{fig:local-global-mostdiff}
+\end{figure}
+
+Unlike the previous example, this one uses mostly irrational coordinates. If one wants to test a simplification algorithm on such a polyline, we recommend placing the points not exactly on the circle but at a distance of \((1-\alpha)\varepsilon\) from the center where \(\alpha > 0\) is very small, otherwise, the global simplification might not be found. If the points are too close to the center the local simplification might be smaller. Fort this reason we have also provided the more stable previous example.
 
 \subsection{A First Simplification Algorithm}
 We conclude this section with a simple simplification algorithm for both the local and global Fréchet variants under any distance. This, however, only covers the case \(\varepsilon = 0\).
