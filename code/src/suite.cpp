@@ -154,7 +154,9 @@ void measure_suite_heuristic(std::filesystem::path path) {
 	process_category(well_behaved_path, w_polylines);
 	process_category(non_well_behaved_path, n_polylines);
 
+#if __has_include(<generator>)
 	use_algorithm<Log::Algorithm::SIMPLIFICATION_GLOBAL_IMAI_IRI_HEURISTIC_EUCLIDEAN, Simplification::simplification_global_imai_iri_euclidean>(w_polylines, n_polylines, log, _epsilon);
+#endif
 }
 
 }
