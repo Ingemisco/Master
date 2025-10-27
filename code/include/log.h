@@ -73,6 +73,7 @@ void measure_suite(std::filesystem::path path);
 void measure_suite_advanced(std::filesystem::path path);
 void measure_suite_simple(std::filesystem::path path);
 void measure_suite_local(std::filesystem::path path);
+void measure_suite_heuristic(std::filesystem::path path);
 
 } // namespace Log
 #endif // INCLUDE_INCLUDE_LOG_H_

@@ -21,12 +21,14 @@ make_polyline(PointCount point_count, Dimension dimension, float min_length,
 	// for one dimension, ignore angle, only care for line lengths.
 	// Also force no colinear, i.e., always changes direction
 	if (dimension == 1) {
-		float sign = 1.0;
 		polyline[0, 0] = 0;
 		for (unsigned int i = 1; i < point_count; i++) {
 			float value = min_length + (max_length - min_length) * unif_dist(gen);
-			polyline[i, 0] = polyline[i - 1, 0] + value * sign;
-			sign *= -1;
+			if (unif_dist(gen) < 0.5f) {
+				polyline[i, 0] = polyline[i - 1, 0] + value;
+			} else {
+				polyline[i, 0] = polyline[i - 1, 0] - value;
+			}
 		}
 
 		return res_polyline;

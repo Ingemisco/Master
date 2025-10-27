@@ -20,6 +20,7 @@ struct CoordCandidate {
   float slope;
 };
 
+#define THRESHOLD 1e-5
 // returns true if no further computation would change result
 static inline bool make_solution(float &first_sol, float &last_sol, float new_sol_first, float new_sol_last) {
   if (first_sol == EXPLICIT_UNREACHABLE) {
@@ -249,7 +250,7 @@ ReachabilityData solve_chebyshev(Polyline const &polyline, size_t point1, size_t
 			bi *= -1;
 		}
 		// TODO: maybe use some threshold instead of comparing to 0
-		if (bi == 0) {
+		if (bi < THRESHOLD) {
 			if (std::abs(ai) > epsilon) {
 				return EMPTY_INTERVAL_EXPLICIT;
 			} 
@@ -285,8 +286,30 @@ float scalar_product(Polyline const &polyline, size_t u, size_t v, size_t w, siz
   return dot_product;
 }
 
-#define THRESHOLD 1e-5
 ReachabilityData solve_euclidean(Polyline const &polyline, size_t point1, size_t point2, size_t point3, float epsilon) {
+	// for stability handle this case separately
+	if (polyline.dimension == 1) {
+		auto const u = polyline[point1, 0];
+		auto const v = polyline[point2, 0];
+		auto const w = polyline[point3, 0];
+		auto const min = std::min(u, v);
+		auto const max = std::max(u, v);
+		if (w < min - epsilon || w > max + epsilon) {
+			return EMPTY_INTERVAL_EXPLICIT;
+		} else if (w - epsilon <= min && w+ epsilon >= max) {
+			return {0, 1};
+		} 
+
+		auto const start = (w - epsilon) < min? 0: (w - epsilon - min) / (max - min);
+		auto const end = (w + epsilon) >= max? 1: (w + epsilon - min) / (max - min);
+
+		if (u < v) {
+			return {start, end};
+		} else {
+			return {1 - end, 1 - start};
+		}
+
+	}
   float const a2 = DataStructures::unnormalized_euclidean_distance(polyline, point1, point2);
 	
 	// division by zero = suffering, a2 is the squared distance and thus should always be nonnegative.

@@ -11,7 +11,9 @@ static inline bool is_local_shortcut_euclidean(Polyline const &polyline, size_t 
   // first points already matched so start with 1 instead of 0
   // do not need to go to end of polyline so last point exluded
   for (unsigned int index = start + 1; index < end; index++) {
+
     auto data = DataStructures::solve_euclidean(polyline, start, end, index, epsilon);
+    //auto data = DataStructures::solve_chebyshev(polyline, start, end, index, epsilon);
     if (data == DataStructures::EMPTY_INTERVAL_EXPLICIT || !(first_reachable <= data.second)) {
       return false;
     }

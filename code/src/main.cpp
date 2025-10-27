@@ -98,17 +98,22 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 
   options("measure-suite-advanced",
 					po::value<std::string>(&suite_dir)->value_name("directory"),
-					"Perfomes measurments for all advanced algorithms on the data in a directory."
+					"Perfomes measurements for all advanced algorithms on the data in a directory."
 					"The directory must have a specific structure.");
 
   options("measure-suite-simple",
 					po::value<std::string>(&suite_dir)->value_name("directory"),
-					"Perfomes measurments for all simple algorithms on the data in a directory."
+					"Perfomes measurements for all simple algorithms on the data in a directory."
 					"The directory must have a specific structure.");
 
   options("measure-suite-local",
 					po::value<std::string>(&suite_dir)->value_name("directory"),
-					"Perfomes measurments for all local algorithms on the data in a directory."
+					"Perfomes measurements for all local algorithms on the data in a directory."
+					"The directory must have a specific structure.");
+
+  options("measure-suite-heuristic",
+					po::value<std::string>(&suite_dir)->value_name("directory"),
+					"Perfomes measurements for all heuristic algorithms on the data in a directory."
 					"The directory must have a specific structure.");
 
   options("ses",
@@ -202,6 +207,9 @@ static inline void handle_command_line_arguments(int argc, char *argv[]) {
 		exit(0);
 	} else if (map.count("measure-suite-local")) {
 		Log::measure_suite_local(suite_dir);
+		exit(0);
+	} else if (map.count("measure-suite-heuristic")) {
+		Log::measure_suite_heuristic(suite_dir);
 		exit(0);
 	}
 
