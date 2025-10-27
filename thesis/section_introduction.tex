@@ -19,6 +19,8 @@ Having seen two algorithms to simplify a polyline for a single \(\varepsilon\), 
 
 In \cref{sec:global_imai_iri}, we address the problem of finding subcubic algorithms in two dimensions. In the local variants, this has been achieved by improving the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve}. Using this as motivation, our goal is to adapt the same algorithm to the global variant to apply local techniques. The resulting algorithm is functionally equivalent to the one by \citeauthor{global_curve_simplification} but provides a more intuitive perspective on its underlying principles.
 
+We finally explore the one-dimensional case in order to establish subcubic runtimes. This shows that the conditional cubic lower bound established by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} can be broken in low dimensions. Thus, it may be possible to achieve the same in two dimensions.
+
 \cref{sec:evaluation} presents an extensive experimental evaluation of the implemented algorithms, which, to our knowledge, is the first for the global variants. We measure performance and simplification size while varying a multitude of parameters to demonstrate their effects.
 
 Finally, we conclude with \cref{sec:discussion_conclusion} and mention possible future work.

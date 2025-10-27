@@ -16,15 +16,15 @@ By exploring simplification sizes, we discovered that the well-behavedness of th
 
 We developed an algorithm that finds all optimal simplifications in \(\Oh(n^4\log n)\) time and \(\O(n^3)\) space. Using this, we were able to explore the relationship between \(\varepsilon\) and the simplification size, which appears to follow a rectangular hyperbola-like function.
 
-Finally, our attempt to adapt the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} led to an alternative, and in our opinion more visually intuitive, derivation of the algorithm from \citeauthor{global_curve_simplification}.
+Finally, our attempt to adapt the algorithm from \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} led to an alternative, and in our opinion more visually intuitive, derivation of the algorithm from \citeauthor{global_curve_simplification} and our explration of \(\R^1\) resulted in 18 new optimal algorithms.
 
 We conclude by presenting open research questions and possibilities for future work that our thesis highlights.
 
 \begin{itemize}
-  \item Is it possible to achieve worst case subcubic runtime for global Fréchet distance simplification?
+  \item Is it possible to achieve worst case subcubic runtime for two dimensional global Fréchet distance simplification?
 
-	This is an open problem since \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} discovered a cubic algorithm. For high dimensions, subcubic runtime is likely impossible due to their conditional lower bounds, but for the more practically relevant two-dimensional case, nothing is currently known. In the local Fréchet case, subcubic algorithms already exist.
-
+	This is an open problem since \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} discovered a cubic algorithm. For high dimensions, subcubic runtime is likely impossible due to their conditional lower bounds, but for the more practically relevant two-dimensional case, nothing is currently known. In the local Fréchet case, subcubic algorithms already exist and as we have shown, in \(\R^1\) it can be done in linear time.
+	
 	\item Is it possible to achieve worst case subcubic space consumption for global Fréchet distance simplification?
 
 	All known cubic-time algorithms currently require cubic space. Our tests of the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm were ultimately halted due to memory constraints, confirming this as a practical issue. Van de Kerkhof et al.'s algorithm can be implemented in quadratic space but incurs a logarithmic factor increase in runtime. A cubic-time algorithm with subcubic space consumption is currently unknown. Note that a subcubic-time algorithm would also positively answer this question.

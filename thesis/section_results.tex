@@ -176,6 +176,15 @@ We extended the evaluation of the advanced variants to polylines of up to 800 po
 
 We were not able to test longer polylines because preliminary testing revealed that larger polylines require too much space to be simplified.
 
+\begin{figure}[b]
+  \centering
+	\includegraphics[scale=0.4]{./figures/res_heuristic_runtime.png}
+	\caption{Run time of the heuristic on the same data as in \cref{fig:res_advanced800}.}
+  \label{fig:res_heuristic}
+\end{figure}
+
+\Cref{fig:res_heuristic} shows how the heuristic performs on the same data as used in \cref{fig:res_advanced800}. It is about 100 times faster than any optimal variant. Unlike the advanced algorithm, it is much less stable, especially on this dataset which only contains two polylines per point count.
+
 We now examine in more detail the dependence of the simple algorithm's runtime on the input data in \cref{fig:res_simple}. Ignoring the semiexplicit variant (the slowest), all variants on well-behaved polylines take less time than any variant on non-well-behaved data. Another interesting insight is that the runtimes are more consistent on well-behaved data, while there is more variance for non-well-behaved data.
 
 \begin{figure}[b]
@@ -240,4 +249,4 @@ Given this result, we varied all parameters of our data generation method to try
 
 Comparing our heuristic against the optimal simplification resulted in even less differences. While testing 500.000 polylines of length 100, we only found 8 with differing sizes. Only one of which had a resulted in a difference of two (which was the basis for \cref{fig:gii_diff_2}), the other ones differed only by one. 
 
-To get an estimation of how often a negative mapping is actually used, we used the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm and counted how often the value of \(\kappa\) is computed using \(\kappa_1\) (which corresponds to reachable subpolylines that don't start at the start of an interval which our heuristic avoids). We tested on both one\footnote{One-dimensional polylines only use the minimum and maximum line lengths. Instead of an angle, we always alternate between going left and right as the middle points of twice going in the same direction can always be skipped.}- and two-dimensional polylines. Over 100.000 two-dimensional polylines of length 100, \(\kappa_1\) was used only \(4.1\) times on average with a median of \(1\). For one-dimensional polylines, the mean was \(70.29\) with a median of \(78\). Both of these numbers are quite low considering in comparison to the maximum possible of 5050. Over these 200.000 polylines not a single one had differing global and local simplifications. 
+To get an estimation of how often a negative mapping is actually used, we used the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm and counted how often the value of \(\kappa\) is computed using \(\kappa_1\) (which corresponds to reachable subpolylines that don't start at the start of an interval which our heuristic avoids). We tested on both one\footnote{One-dimensional polylines only use the minimum and maximum line lengths. Instead of an angle, we randomly alternate between going left and right as the middle points of twice going in the same direction can always be skipped.}- and two-dimensional polylines. Over 100.000 two-dimensional polylines of length 100, \(\kappa_1\) was used only \(4.1\) times on average with a median of \(1\). For one-dimensional polylines, the mean was \(70.29\) with a median of \(78\). Both of these numbers are quite low considering in comparison to the maximum possible of 5050. Over these 200.000 polylines not a single one had differing global and local simplifications. Note that the heuristic must be optimal on one-dimensional polylines as local and global sizes coincide. We tested them primarily to compare \(\kappa_1\) against; in one dimension the polyline tends to be more dense causing more negative mappings. Intuitively, higher dimensions should be better as they can be less dense.

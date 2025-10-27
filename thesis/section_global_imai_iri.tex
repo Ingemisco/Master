@@ -117,7 +117,7 @@ The intervals in \(S(i)\) can be ignored, if we are only interested to compute m
 
 A small optimization that can be applied is to skip cells when the queue becomes empty and resume at the next \(S(i')\) interval. Using this, the total runtime per line shortcut is proportional to the total length of the intervals which extends to the construction of the shortcut graph. Furthermore, we can actually skip all computations when adding an interval up to the end of the interval if it is the only element in the queue (and thus especially for the first interval). This is because the lower bound for the interval is zero throughout the interval.
 
-\subsection{Simplification Construction}
+\subsection{Simplification Construction}\label{ssec:simplification_construction}
 
 To construct the simplifications from the graph, we iterate through it using the admissible subpolylines. Any simplification is a sequence of \(e_i\)-admissible subpolylines where the sequence of edges \(e_i\) form a 0-n-path and the endpoints of two consecutive subpolylines match.
 
