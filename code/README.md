@@ -1,8 +1,7 @@
 # Polyline Simplification Algorithms
 
 ## About
-
- TODO
+The code of this master's thesis is contained in here. Multiple simplification algorithms are provided as well as datageneration methods.
 
 ## Prerequisites
 
@@ -32,6 +31,8 @@ Create a `build` directory and navigate into it:
 > cd build 
 ```
 
+The global Imai Iri heuristic requires coroutines which were introduced in C++ 20 but it seems that they are not in every compiler? If the necessary header is not found, the algorithm will not be available.
+
 After that you can build the project in debug mode:
 
 ```bash
@@ -46,11 +47,12 @@ Or in Release mode:
 > cmake --build .
 ```
 
-Additionally, there is a test build (does not do anything as of yet):
+Additionally, there is a test build:
 
 ```bash
 > cmake .. -DCMAKE_BUILD_TYPE=Test 
 > cmake --build .
+> ctest .
 ```
 
 ## Usage
@@ -72,15 +74,13 @@ For more information see the -h flag
 
 ## Visualization
 
-If the project has been built in debug, applying any algorithm will
+If the project has been built in debug, applying any version of the van Kreveld et al. algorithm will
 create a visualization file in the directory visualizations.
 This can be loaded in the visualizer. To start it use the following command.
 
 ```bash
 > python vis.py
 ```
-
-TODO: add required python libraries
 
 After that open a browser at ```127.0.0.1:8050```.
 This will (if the python program is running)
