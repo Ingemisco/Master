@@ -8,7 +8,7 @@ There are two key aspects in which simplification variants differ from each othe
   \item The set from which the points of the simplification are chosen.
 	\item The distance function between polylines used to measure the quality of the simplification.
 \end{enumerate}
-These two aspects are not completely independent.
+These two aspects are interrelated, as the choice of point set can influence which distance functions are most suitable and computationally feasible.
 
 In \cref{sec:preliminaries}, we defined the \emph{Fréchet distance}. The other commonly used function is the \emph{Hausdorff distance}.
 
@@ -38,9 +38,9 @@ To understand local simplification, we need to define the allowed points for the
 
 Local simplification is mainly used in the vertex-restricted setting but also applies to the curve-restricted one. In this approach, the distance function is not applied globally between \(Q\) and \(P\). Instead, it is applied between each line segment of \(Q\) and its corresponding subpolyline in \(P\), and the maximum of these distances is taken. More specifically, for a polyline distance function \(\delta^P\), we define the local distance \(\delta^{LP}\) as
 \[\delta^{LP}(P, Q) = \max_{i = 1, \dots, q} \delta^P(P[k_{i-1}\dots k_i], Q[i-1 \dots i]),\]
-where \(P = \angl{u_0, \dots, u_p}\) and \(Q = \angl{u_{k_0}, \dots, u_{k_q}}\).
+where \(P = \angl{u_0, \dots, u_p}\) and \(Q = \angl{u_{k_0}, \dots, u_{k_q}}\). \(0 = k_0 < k_1 < \cdots < k_q = p\) are indices of the vertices of \(P\) that form the simplification \(Q\).
 
-In contrast to the local setting, we study the \emph{global} Fréchet distance in this work. In the global setting, the non-restricted cases can also be considered.
+In this work, we focus primarily on the \emph{global} Fréchet distance. While the non-restricted case is also defined in the global setting, our main emphasis is on the vertex-restricted variant.
 
 In the following, we discuss the vertex-restricted local and global (undirected) Hausdorff and Fréchet variants. For more information on other global variants, we refer to \citeauthor{global_curve_simplification}'s paper.
 
@@ -116,7 +116,7 @@ We now investigate elementary properties of polylines and their simplifications.
 \end{proof}
 
 \begin{definition}
-	Let \(P\) be a polyline, \(\varepsilon > 0\) and \(\hat \delta\) be any distance function between a polyline and a simplification. We define \(S(\hat \delta; S, \varepsilon)\) to be the size of the \(\varepsilon\)-simplification \(P\) using \(\hat \delta\).
+	Let \(P\) be a polyline, \(\varepsilon > 0\) and \(\hat \delta\) be any distance function between a polyline and a simplification. We define \(S(\hat \delta; P, \varepsilon)\) to be the size of the \(\varepsilon\)-simplification \(P\) using \(\hat \delta\).
 \end{definition}
 
 \begin{corollary}[Simplification Size Monotonicity]\label{cor:size_monotonicity}
@@ -180,7 +180,7 @@ Let us briefly explore, how different the local and global Fréchet simplificati
 This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s theorem in two aspects: first, our construction can be arbitraily long, and second, our construction has greater constants \(c_1\) and \(c_2\), even if we account for that we only approach the values \(c_1 = \sqrt{2}\) and \(c_2 = 2\) but do not reach them. Furthermore, as we will see shortly, our construction is simpler and also works for the Manhattan distance (albeit with a different range for \(c_1\)).
 
 \begin{proof}
-	For any \(i \in \N\), we construct a two-dimensional polyline \(P_i\) with \(4 i + 2\) points with \(S(\delta^{LF}; P_i, \varepsilon) = 4i + 2\) for any \(\varepsilon \in [2, 2\sqrt{2})\), but \(S(\delta^F; P_i, \varepsilon) = 2i + 2\). Such a construction satisfies all properties states. 
+	For any \(i \in \N\), we construct a two-dimensional polyline \(P_i\) with \(4 i + 2\) points with \(S(\delta^{LF}; P_i, \varepsilon) = 4i + 2\) for any \(\varepsilon \in [2, 2\sqrt{2})\). However, \(S(\delta^F; P_i, \varepsilon) = 2i + 2\). This construction satisfies all stated properties. 
 
 	Choose the points \(P(0) = (0,0)\), \(P(1) = (0, 8)\) and for all \(j \in \set{0,\dots, i-1}\) we set:
 	\begin{align*}
@@ -189,7 +189,7 @@ This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausd
 		P(4j+4) &= (4 + 4j, 4 + 4j), \\
 		P(4j+5) &= (4 + 4j, 12 + 4j).
 	\end{align*}
-	Refer to \cref{fig:local-global-bigdiff} for an example. It is easy to verify that the global simplification has a size of at most \(2i + 2\) by selecting the points \(0,1, 4, 5, 8, 9, \dots, 4j, 4j + 1, \dots, 4i, 4i+1\). This is a valid global simplification as we can ``wait" on the simplification at the point where the polyline self-intersects. This point has distance at most \(2\) from the points in the loop. Other than that, it is trivial to traverse the simplification and polyline while guaranteeing to stay within \(\varepsilon\). 
+	Refer to \cref{fig:local-global-bigdiff} for an example. It is easy to verify that the global simplification has a size of at most \(2i + 2\) by selecting the points \(0,1, 4, 5, 8, 9, \dots, 4j, 4j + 1, \dots, 4i, 4i+1\). This is a valid global simplification as we can ``wait" on the simplification at the point where the polyline self-intersects (more formally, the reparameterization for the simplification can pause at the self-intersection point while the original polyline traverses the loop). This point has distance at most \(2\) from the points in the loop. Other than that, it is trivial to traverse the simplification and polyline while guaranteeing to stay within \(\varepsilon\). 
 
 	To see that the local simplification requires all points we analyze all possible, non-trivial shortcuts (i.e., those shortcuts between non-consecutive points). Because of the repeating structure of the polyline, there are not many unique possibilities. For any point with index \(4j\) (bottom point of the ``4" shape) there are no non-trivial shortcuts, as no point following point can create a shortcut that is within \(\varepsilon\) of \(P(4j+1)\). For the point \(P(4j+1)\) (the top point of the ``4"), it is even more obvious, as all shortcuts go to the right and thus are too far away from \(P(4j+2)\). For \(P(4j+2)\) (the left point of the ``4") and \(P(4j+3)\) (the right end of the ``4") the same holds with their respective following point.
 
@@ -213,11 +213,11 @@ This example demonstrates that local and global simplifications can differ by mu
 \end{theorem}
 
 \begin{proof}
-  The only way how the difference could be bigger is if the global simplification uses only two vertices. This however would also be a local simplification and thus, the difference in sizes would actually be \(0\).
+	The maximum possible difference is \(n-3\), as a global simplification must contain at least the start and end vertices (size 2) and a global simplification of size 2 is also a valid local simplification. Therefore, if a global simplification of size 2 exists, the local simplification cannot be larger, making a difference of \(n-2\) impossible. A difference of \(n-3\) is achieved when the global simplification has size \(3\) and the local simplification has size \(n\).
 
 	For the actual construction see \cref{fig:local-global-mostdiff}. The idea is to choose an irrational angle \(\alpha\) in \((2\pi/4, 2\pi/3)\) like \(2\) radians. We consider the unit circle with radius \(\varepsilon\) and pick a point on it. Then we place the next point on the circle after rotation of \(\alpha\) and continue. We add a first point outside the circle such that \(\overline{P(0)P(1)}\) contains the center of the unit circle. The point count and angle are mostly arbitrary within the given bounds but should satisfy that \(\delta_2(P(1), P(n)) \leq \varepsilon\).
 
-	For the global simplification only three points suffice: \(P(0)\), \(P(1)\) and \(P(n)\). The radius of the circle lies by construction on the first line segment of the simplification and is within distance of the whole polyline (except \(P(0)\)). Thus we can just proceed through the whole polyline while waiting at the center. After this we can finish the shortcut and as \(\delta_2(P(1),P(n)) \leq \varepsilon\) we can just append the shortcut to the last point.
+	For the global simplification only three points suffice: \(P(0)\), \(P(1)\) and \(P(n)\). The radius of the circle lies on the first line segment of the simplification, \(\overline{P(0)P(1)}\), by construction. Furthermore, the entire subpolyline \(P[1 \dots n]\) lies within distance \(\varepsilon\) of this center point.
 
 	We now need to show that no local shortcuts exist. No shortcut other than \(\overline{P(0)P(1)}\) passes through the center as we rotate by an irrational angle. Any shortcut that contains the center must be constructed by two points that have a total angle of \(180^\circ\) between them which is rational but the sum of irrational angles is always irrational. This prevents us from skipping large parts of the polyline with a shortcut that contains the center like in the global case. The other possible shortcuts are easy to rule out because of the cyclical nature of the polyline. Shortcuts \(\overline{P(i-1)P(i+1)}\) that skip exactly one point \(P(i)\) cannot exist because by the choice of angle, no point on the shortcut is within \(\varepsilon\) of \(P(i)\). For any longer shortcut \(\overline{P(i')P(i)}\) we can similarly see that at least one of the skipped points has no point on the shortcut within distance \(\varepsilon\). Thus no local shortcuts exist and a local simplification requires all points.
 \end{proof}
@@ -274,4 +274,4 @@ This leads to a linear-time algorithm for optimal simplification when \(\varepsi
   \label{algo:simplify_epsilon0}
 \end{algorithm}
 
-Testing if a point lies on a line segment is straightforward. For completeness, we derive the condition. A point \(p\) lies on \(\overline{uv}\) if and only if there exists \(t \in [0,1]\) such that \(p = u + t(v-u)\), or equivalently, \(p - u = t(v-u)\). Thus, for all coordinates \(i\), we need \(t = (p_i - u_i)/(v_i - u_i)\) to be the same. To avoid division by zero, we can reformulate this as \((p_{i-1} - u_{i-1})(v_i - u_i) = (p_i - u_i)(v_{i-1} - u_{i-1})\) for all \(i \geq 1\). To ensure \(t \in [0, 1]\), we require \(u_i \leq p_i \leq v_i\) (or \(v_i \leq p_i \leq u_i\)) for any coordinate where \(u_i \neq v_i\).
+Testing if a point lies on a line segment is straightforward. For completeness, we derive the condition. A point \(p\) lies on \(\overline{uv}\) if and only if there exists \(t \in [0,1]\) such that \(p = u + t(v-u)\), or equivalently, \(p - u = t(v-u)\). Thus, for all coordinates \(i\), we need \(t = (p_i - u_i)/(v_i - u_i)\) to be the same. To avoid division by zero, we can reformulate this as \((p_{i-1} - u_{i-1})(v_i - u_i) = (p_i - u_i)(v_{i-1} - u_{i-1})\) for all \(i \geq 1\). To ensure \(t \in [0, 1]\), we require \(u_i \leq p_i \leq v_i\) (or \(v_i \leq p_i \leq u_i\)) for any coordinate where \(u_i \neq v_i\). In practice, due to floating-point arithmetic, a small tolerance should be used when checking the collineariy and the bounds for \(t\).

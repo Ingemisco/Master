@@ -1,6 +1,6 @@
 \section{Simplification Algorithm from Bringmann and Chaudhury}
 \label{sec:cubic_algo}
-In this section, we explain the algorithm from \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. This algorithm is a refinement of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}'s algorithm and achieve cubic worst-case runtime. We first introduce their cell reachability problem and show how to solve it before we detail their algorithm.
+In this section, we explain the cubic worst-case runtime algorithm for global Fréchet simplification by \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}. Their approach refines the earlier polynomial-time algorithm of \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance} We begin by introducing their core abstraction -- the \emph{cell reachability problem} -- and show how to solve efficiently. We then detail how this solution is integrated into the full simplification algorithm.
 
 \subsection{Cell Reachability}
 \label{ssec:cell_reachability}

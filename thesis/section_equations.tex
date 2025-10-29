@@ -328,3 +328,4 @@ The solution set is the intersection of these intervals, computable in \(\O(d)\)
 \paragraph{Summary}
 We presented three methods for the Chebyshev case: a na\"ive \(\O(d^2)\) method, a geometric \(\O(d \log d)\) method, and an algebraic \(\O(d)\) method. The linear-time algebraic method is preferred for its simplicity and efficiency.
 
+As a final note on the practical implementation of these equation-solving algorithms, we emphasize the need to account for floating-point inaccuracies. Special care must be taken to ensure that essential solutions are nost lost. For instance, when computing the solution interval for a line segment relative to one of its endpoints, the result should never be an empty interval due solely to numerical error.

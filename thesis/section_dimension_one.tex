@@ -1,24 +1,24 @@
 \section{Polyline Simplification in \(\R^1\)}\label{sec:dimension_one}
-In this section, we investigate the global and local simplifications in one dimension. We show that they always have the same size and thus local simplification algorithms can be used. Finally, we outline a linear algorithm to solve the simplification problem. This shows that \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s conditional lower bound can be broken in lower dimensions. After this, we also consider different distance metrics to measure simplification against polylines.
+In this section, we investigate the global and local simplifications in one dimension. We show that they always have the same size when using the Fréchet distance and thus local simplification algorithms can be used. Finally, we outline a linear algorithm to solve the simplification problem. We also consider various Hausdorff variants. This shows that \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal}'s conditional lower bound can be broken in lower dimensions. After this, we also consider different distance metrics to measure simplification against polylines.
 
 We identify each point with a value on the real line. We associate the negative direction with with left and the positive with right. Throughout this whole section, let \(P = \angl{u_0, \dots, u_n}\) be a polyline with \(n\) line segments and \(\varepsilon \geq 0\).
 
 \subsection{Related Works}
-The case of one dimensional polyline simplification has been considered only rarely. As far as we know, only two optimal results are known due to \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} which show that curve-restricted global Fréchet simplification simplification can be solved in linear time, and \citeauthor{min_complexity_1d_unrestricted}\cite{min_complexity_1d_unrestricted} show that the unrestricted Fréchet setting can be solved in linear time. The other settings were not considered and \citeauthor{global_curve_simplification} do not mention any one dimensional results for other settings. 
+The case of one dimensional polyline simplification has been considered less often than the two dimensional case or the general case. The known optimal results are aware of include \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} which show that curve-restricted global Fréchet simplification simplification can be solved in linear time, and \citeauthor{min_complexity_1d_unrestricted}\cite{min_complexity_1d_unrestricted} show that the unrestricted Fréchet setting can be solved in linear time. The other settings were not considered and \citeauthor{global_curve_simplification} do not mention any one dimensional results for other settings. 
 
-A linear time approximation was found by \citeauthor{clustering_time_series}~\cite{clustering_time_series} for the local vertex-restricted setting, although the simplification is a consequence of signatures which are not only used for simplifications. Their algorithm is also rather similar with small modifications.
+A linear time algorithm was found by \citeauthor{clustering_time_series}~\cite{clustering_time_series} that is optimal for all five settings, their algorithm is suboptimal \emph{only if} the problem definition allows dropping the start and end points. Under the definitions by \citeauthor{global_curve_simplification}, their algorithm is optimal. This clear distinction could be the reason that this result is less known.
 
-We consider the remaining Fréchet cases and the Hausdorff cases. The algorithms we provide are very similar to the curve-restricted algorithm from \citeauthor{global_curve_simplification} with minor modifications. Our main contribution is showing that the four restricted settings all coincide in size.
+We present alternative, visual proofs for the Fréchet cases from the perspective of polyline simplification and also cover the Hausdorff cases. The algorithms we provide are very similar to the curve-restricted algorithm from \citeauthor{global_curve_simplification} with minor modifications and equivalent to the one by \citeauthor{clustering_time_series}. This serves as a summary of known results in \(\R^1\).
 
 \subsection{Restricted Fréchet Distance}
 We show that every local vertex-restricted simplification is also global curve-restricted solution. Among the four variants (local vertex-restricted, local curve-restricted, global vertex-restricted, and global curve-restricted) these two variants always have the largest and smallest simplification sizes respectively and thus, we show that in one dimension all four variants can be solved in the same way.
 
 \begin{observation}
-  The distance \(\delta\) between points does not affect the local nor the global simplification since \(\delta(u, v) = |u-v|\) for all distances \(\delta\) in one dimension.
+	All point distances \(\delta\) coincide in \(\R^1\) with \(\delta(u, v) = |u-v|\). We will therefore not mention any specific distance \(\delta\).
 \end{observation}
 
 \begin{lemma}[Zigzag]\label{lem:zigzag}
-  Let \(Q = \angl{u_{i_0}, \dots, u_{i_k}}\) be a local or global simplification of \(P\) and \(u_{i_{j-1}}\), \(u_{i_{j}}\), and \(u_{i_{j+1}}\) be three consective vertices on the simplification. Then either
+  Let \(Q = \angl{u_{i_0}, \dots, u_{i_k}}\) be a local or global simplification of \(P\) and \(u_{i_{j-1}}\), \(u_{i_{j}}\), and \(u_{i_{j+1}}\) be three consecutive vertices on the simplification. Then either
 	\begin{itemize}
 	  \item \(u_{i_{j-1}} < u_{i_{j}}\), and \(u_{i_{j}} > u_{i_{j+1}}\), or 
 	  \item \(u_{i_{j-1}} > u_{i_{j}}\), and \(u_{i_{j}} < u_{i_{j+1}}\).
@@ -34,7 +34,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 \end{proof}
 
 \begin{theorem}[Restricted Fréchet Simplifications in \(\R^1\)]\label{thm:restr_frechet_1}
-  Let \(P\) be a one dimensional polyline. Any local vertex-restricted simplification is also a global curve-restricted simplification.
+	Let \(P\) be a one dimensional polyline. Any (minimal) local vertex-restricted simplification is also a (minimal) global curve-restricted simplification. Thus, the sizes of minimal simplifications of the four restricted variants (local vertex-restricted, local curve-restricted, global vertex-restricted, and global curve-restricted) coincide.
 \end{theorem}
 
 \begin{proof}
@@ -44,42 +44,79 @@ We show that every local vertex-restricted simplification is also global curve-r
 
 	By definition, for the shortcuts and the underlying subpolylines, we get \(\delta^F(P[i \dots b], \overline{P(i)P(j + \gamma)}) \leq \varepsilon\) and \(\delta^F(P[b \dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\). We replace \(P(j + \gamma)\) with a new vertex \(P(j')\) and show that \(\overline{P(i)P(j')}\) is local and \(\delta^F(P[j' \dots c], \overline{P(j')P(t)})  \leq \varepsilon\). Thus, we maintain a curve-restricted simplification where increasingly all global curve-restricted shortcuts are replaced with local vertex-restricted shortcuts. Finally, we obtain a local vertex-restricted simplification with the same amount of vertices.
 
-	Let \(P(j')\) be the rightmost vertex in \(P([i \dots c] \cap [i, t])\). We need to show 
+	Let \(P(j')\) be the rightmost vertex in \(P([i \dots c] \cap [i, t])\) (i.e., the part of the total subpolyline that lies between \(i\) and \(t\)). We need to show 
 	\begin{enumerate}
 		\item \(i < j' < t\) to maintain monotonicity of the simplification points,
 		\item \(\delta^F(P[i \dots j'], \overline{P(i)P(j')}) \leq \varepsilon\), and
 		\item \(\delta^F(P[j' \dots c], \overline{P(j')P(t)}) \leq \varepsilon\).
 	\end{enumerate}
 
-	\paragraph{Statement 1} We need to show that \(j'\) even exists. If no point on \(P[i \dots c]\) lies to the right of \(P(i)\) and \(P(t)\) then the shortcut \(\overline{P(i)P(t)}\) covers the whole subpolyline \([i, c]\) because going right of both \(P(i)\) and \(P(t)\) to \(P(j + \gamma)\) is useless resulting in a smaller simplification. If the first point right of both is after \(P(t)\) then the first shortcut cannot go right because \(i < j + \gamma < t\) unless \(P(i) \leq P(j+\gamma) \leq P(t)\) which is two right-going shortcuts which cannot be. Thus, there is a point (not necessarily a vertex) right of both \(P(i)\) and \(P(t)\) on \(P[i \dots c]\). Next, we claim that actually there is even a vertex, not just a point with these properties. The only possibility that this would be false is if the first vertex to the right of \(P(i)\) and \(P(t)\) is \(\lceil{c}\rceil\). In this case, as \(P(\lfloor{c}\rfloor) \leq P(t) \leq P(\lceil{c}\rceil)\) there is a point \(c' \in [\lfloor{c}\rfloor, c]\) with \(P(c') = P(t)\). We replace both shortcuts with \(\overline{P(i)P(t)}\) and update the subpolyline to \([i, c']\) and the following subpolyline from \([c, d]\) to \([c', d]\) resulting in a smaller potential simplification. We now need to show that this is actually valid. For the new shortcut, this is trivial as \([i, c'] \subseteq [i, c]\) and \(\delta(P(c'), P(t)) = 0 \leq \varepsilon\), and no point is right of both \(P(i)\) and \(P(t)\) thus going to \(P(j+\gamma)\) is unnecessary. For the following shortcut we note that it is a right-going shortcut as we have replaced a right-going and a left-going with a new shortcut so the following one must also go right. We use the same way to traverse the shortcut and subpolyline as the shortcut actually used but prepend going from \(P(c')\) to \(P(c)\) on the subpolyline which is possible as they lie on the same line segment, \(c' < c\), and the shortcut goes in the same direction as this line segment. Thus, we again obtain a contradiction to shortcut minimality of simplifications.
+	\paragraph{Statement 1} We need to show that \(j'\) even exists. If no point on \(P[i \dots c]\) lies to the right of \(P(i)\) and \(P(t)\) then the shortcut \(\overline{P(i)P(t)}\) covers the whole subpolyline \([i, c]\) because going right of both \(P(i)\) and \(P(t)\) to \(P(j + \gamma)\) is useless resulting in a smaller simplification. If the first point right of both is after \(P(t)\) then the first shortcut cannot go right because \(i < j + \gamma < t\) unless \(P(i) \leq P(j+\gamma) \leq P(t)\) which is two right-going shortcuts which cannot be. Thus, there is a point (not necessarily a vertex) right of both \(P(i)\) and \(P(t)\) on \(P[i \dots c]\). 
+
+	Next, we claim that actually there is even a vertex, not just a point with these properties. The only possibility that this would be false is if the first vertex to the right of \(P(i)\) and \(P(t)\) is \(\lceil{c}\rceil\). In this case, as \(P(\lfloor{c}\rfloor) \leq P(t) \leq P(\lceil{c}\rceil)\) there is a point \(c' \in [\lfloor{c}\rfloor, c]\) with \(P(c') = P(t)\). We replace both shortcuts with \(\overline{P(i)P(t)}\) and update the subpolyline to \([i, c']\) and the following subpolyline from \([c, d]\) to \([c', d]\) resulting in a smaller potential simplification. We now demonstrate that this replacement indeed yields a valid simplification with fewer non-vertex points, contradicting the minimality of the original simplification. For the new shortcut, this is trivial as \([i, c'] \subseteq [i, c]\) and \(\delta(P(c'), P(t)) = 0 \leq \varepsilon\), and no point is right of both \(P(i)\) and \(P(t)\) thus going to \(P(j+\gamma)\) is unnecessary. For the following shortcut we note that it is a right-going shortcut as we have replaced a right-going and a left-going with a new shortcut so the following one must also go right. We use the same way to traverse the shortcut and subpolyline as the shortcut actually used but prepend going from \(P(c')\) to \(P(c)\) on the subpolyline which is possible as they lie on the same line segment, \(c' < c\), and the shortcut goes in the same direction as this line segment. Thus, we again obtain a contradiction to shortcut minimality of simplifications.
 
 	Thus, we can actually assume that there is a vertex in \(P([i \dots c] \cap [i, t])\) that is right of both \(P(i)\) and \(P(t)\), and thus, \(j'\) is well-defined as in \([i, t] \cap [i, c]\) there are vertices and as the rightmost vertex among those is right of both \(P(i)\) and \(P(t)\) it cannot be either point and thus \(i < j' < t\).
 
 
 	\paragraph{Statement 2 and 3}
-	We distinguish two cases and show the statements each for both cases. 
+	We distinguish two cases based on the relative order of \(b\) and \(j'\) on the polyline. In the case \(j' \leq b\), the first statement is easier to prove, while the second statement is simpler in the case \(j' < b\). We provide figures to visualize the cases. The polyline segment \([i, c]\) is marked in red, vertical differences are only used to compare the \(b\) and \(j'\) (a later index corresponds to a higher position) as well as to make the figures more readable.
 	
 	\paragraph{Case 1: \(j' \leq b\)}
-	There is a point \(P(i) \leq x \leq P(j + \gamma)\) on \(e\) such that \(\delta^F(P[i \dots j'], \overline{P(i)x}) \leq \varepsilon\) and \(\delta^F(P[j' \dots b], \overline{xP(j+\gamma)}) \leq \varepsilon\). it must be \(x \leq P(j')\) because \(P(j')\) is rightmost in \([i, j']\) trivially so no other point on \([i, j']\) forces \(x\) to go right of \(P(j')\) (or even \(P(j') - \varepsilon\)) so we can just traverse the local shortcut fully as \(P(j')\) is right of every vertex in the range and thus the remaining shortcut must cover everything up to \(P(j')\). 
+	Refer to \cref{fig:case1}. There is a point \(P(i) \leq x \leq P(j + \gamma)\) on \(e\) such that \(\delta^F(P[i \dots j'], \overline{P(i)x}) \leq \varepsilon\) and \(\delta^F(P[j' \dots b], \overline{xP(j+\gamma)}) \leq \varepsilon\). it must be \(x \leq P(j')\) because \(P(j')\) is rightmost in \([i, j']\) trivially so no other point on \([i, j']\) forces \(x\) to go right of \(P(j')\) (or even \(P(j') - \varepsilon\)) so we can just traverse the local shortcut fully as \(P(j')\) is right of every vertex in the range and thus the remaining shortcut must cover everything up to \(P(j')\). 
 
 	for the third statement, we use \(\delta^F(P[b\dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\). 
 
+	\begin{figure}[b]
+		\centering
+		\includegraphics[scale=0.3]{./figures/case1.png}
+		\caption{Case 1. Showing \(\delta^F(P[i \dots j'], \overline{P(i)P(j')}) \leq \varepsilon\) using \(\delta^F(P[i \dots j'], \overline{P(i)x}) \leq \varepsilon\) and \(P(j') - \varepsilon \leq x \leq P(j')\).}
+		\label{fig:case1}
+	\end{figure}
+
 	\paragraph{Case 1.1: \(P(b) > P(j')\)} 
-	In this case \(b\) and \(c\) lie on the same line segment (otherwise both ends of the line segment on which \(b\) lies are contained in the subpolyline and thus considered in the definition of \(j'\)) which must go right (because the start of the line segment cannot be the right vertex of the line segment because \(P(b) > P(j')\)). We modify the subpolylines to \(b' = \lfloor b \rfloor\). This satisfies \(P(b') \leq P(j')\) and it still holds \(j' \leq b'\) thus we have not violated the previously proven first statement. With these modifications, we can use Case 1.2.
+	Refer to \cref{fig:case11}. In this case \(b\) and \(c\) lie on the same line segment (otherwise both ends of the line segment on which \(b\) lies are contained in the subpolyline and thus considered in the definition of \(j'\)) which must go right (because the start of the line segment cannot be the right vertex of the line segment because \(P(b) > P(j')\)). We modify the subpolylines such that \(P(b') = \min(P(j+\gamma) - \varepsilon, P(\lfloor b \rfloor))\), i.e., the leftmost point on the line segment that is within \(\varepsilon\) of \(P(j+\gamma)\). This new point \(P(b')\) is still within \(\varepsilon\) of \(P(j+\gamma)\) by construction, so the condition \(\delta^F(P[b' \dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\) still holds. This satisfies \(P(b') \leq P(j')\) (if \(P(b')\) is the start of the line segment, it is used in the definition of \(j'\). If \(P(b') = P(j+\gamma)-\varepsilon\) it is left of \(P(j')\) as \(P(j')\) is within \(\varepsilon\) of \(P(j+\gamma)\)) and it still holds \(j' \leq b'\) thus we have not violated the previously proven first statement. With these modifications, we can use Case 1.2.
+
+	\begin{figure}[b]
+		\centering
+		\includegraphics[scale=0.15]{./figures/case1-1.png}
+		\caption{Case 1.1. Modifying \(b\) to \(b'\) such that it satisfies \(P(b') \leq P(j')\).}
+		\label{fig:case11}
+	\end{figure}
 
 	\paragraph{Case 1.2: \(P(b) \leq P(j')\)} 
-	As \(P(j')\) is right of \(P(b)\) (and thus the whole subpolyline \([i, b]\)) we can use the shortcut \(\overline{P(j')P(t)}\) to go left until we have traversed the subpolyline \([j', b]\). Then we can use the traversal from \(\overline{P(j+\gamma)P(t)}\) for \([b, c]\) to traverse the rest. No point on the subpolyline requires a point on the shortcut right of \(P(j')\) (or even \(P(j') - \varepsilon\)) by construction, thus, even if \(P(j + \gamma)\) is further right than \(P(j')\) it does not yield reachable points that are unreachable using \(P(j')\) so we can imagine going left until we reach the point where we stopped on \(\overline{P(j')P(t)}\). If \(P(j+\gamma)\) is left of \(P(j')\), we first go left on \(\overline{P(j')P(t)}\) until we reach \(P(j+\gamma)\) (note that \(|P(j+\gamma) - P(j')| < \varepsilon\) as \(P(j+\gamma)\) is the right end of the previous shortcuts and must match \(P(j')\)).
+	Refer to \cref{fig:case12}. As \(P(j')\) is right of \(P(b)\) (and thus the whole subpolyline \([i, b]\)) we can use the shortcut \(\overline{P(j')P(t)}\) to go left by at most \(\varepsilon\) until we have traversed the subpolyline \([j', b]\) (if there are points further left than \(P(t)-\varepsilon\) between \(j'\) and \(b\) and \(P(j')-P(t) \leq \varepsilon\) then everything on \([i, c] \cap [i, t]\) can be covered by the direct shortcut \(\overline{P(i)P(t)}\)). Then we can use the traversal from \(\overline{P(j+\gamma)P(t)}\) for \([b, c]\) to traverse the rest. No point on the subpolyline requires a point on the shortcut right of \(P(j')\) (or even \(P(j') - \varepsilon\)) by construction, thus, even if \(P(j + \gamma)\) is further right than \(P(j')\) it does not yield reachable points that are unreachable using \(P(j')\) so we can imagine going left until we reach the point where we stopped on \(\overline{P(j')P(t)}\). If \(P(j+\gamma)\) is left of \(P(j')\), we first go left on \(\overline{P(j')P(t)}\) until we reach \(P(j+\gamma)\) (note that \(|P(j+\gamma) - P(j')| < \varepsilon\) as \(P(j+\gamma)\) is the right end of the previous shortcuts and must match \(P(j')\)).
+
+	\begin{figure}[b]
+		\centering
+		\includegraphics[scale=0.15]{./figures/case1-2.png}
+		\caption{Case 1.2. Showing \(\delta^F(P[j' \dots c], \overline{P(j')P(t)}) \leq \varepsilon\) using \(\delta^F(P[b \dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\) and \(\delta^F(P(j') - \varepsilon, P[j' \dots b]) \leq \varepsilon\).}
+		\label{fig:case12}
+	\end{figure}
 
 	\paragraph{Case 2: \(j' > b\)}
-	We first consider the last statement. To construct a traversal of \([j', c]\) while traversing the shortcut \(\overline{P(j')P(t)}\) we use that there is an \(x\) on the shortcut \(\overline{P(j+\gamma)P(t)}\) that witnesses \(\delta^F(P[b, j'], \overline{P(j+\gamma)x}) \leq \varepsilon\). Similar to Case 1, we can assume that \(x \leq P(j')\) as nothing forces \(x\) to be further right (not even \(c\) as \(P(c)\) must be within \(\varepsilon\) of \(P(t)\)). We can thus traverse the shortcut until \(x\) while reaching \(b\) on the subpolyline and from there we use the traversal from \(\overline{P(j+\gamma)P(t)}\).
+	Refer to \cref{fig:case2}. We first consider the last statement. To construct a traversal of \([j', c]\) while traversing the shortcut \(\overline{P(j')P(t)}\) we use that there is an \(x\) on the shortcut \(\overline{P(j+\gamma)P(t)}\) that witnesses \(\delta^F(P[j', c], \overline{xP(t)}) \leq \varepsilon\). Similar to Case 1, we can assume that \(x \leq P(j')\) as nothing forces \(x\) to be further right. We can thus traverse the shortcut until \(x\) while not moving on the shortcut and from there we use the traversal from \(\overline{P(j+\gamma)P(t)}\).
+
+	\begin{figure}[b]
+		\centering
+		\includegraphics[scale=0.1]{./figures/case2.png}
+		\caption{Case 2. Showing \(\delta^F(P[j' \dots c], \overline{P(j')P(t)}) \leq \varepsilon\) using \(\delta^F(P[j' \dots c], \overline{xP(t)}) \leq \varepsilon\) and \(P(j') - \varepsilon \leq x \leq P(j')\).}
+		\label{fig:case2}
+	\end{figure}
 
 	For the first statement, we differentiate two cases.
 
 	\paragraph{Case 2.1: \(P(b) > P(j')\)} 
-	Similar to Case 1.1, both \(b\) and \(c\) lie on the same line segment and we modify \(b\) to \(b' = \lfloor b \rfloor\). This does not affect the proof for the last statement as it pushes \(b'\) only to the left and thus we can adjust by also moving \(x\) to the left in the proof as necessary. Again, we can assume that we are in Case 2.2.
+	This case cannot occur as \(j' > b\) so both endpoints of the line segment that contains \(b\) are in the subpolyline \([i, c]\) and thus considered for the definition of \(j'\).
 
 	\paragraph{Case 2.2: \(P(b) \leq P(j')\)} 
-	No point on the subpolyline \([i, j']\) is right of \(P(j')\) so we can use the same traversal as used in \(\overline{P(i)P(j+\gamma)}\) but stop when we reach \(P(j')\) (in the case \(P(j+\gamma) > P(j')\)) or go to \(P(j')\) after the shortcut (if \(P(j+\gamma) \leq P(j')\)). No point on the subpolyline requires a point further right than \(P(j')\) so it must be possible to update the traversal in this way and stopping at \(P(j')\) is also valid as \(|P(j') - P(j + \gamma)| \leq \varepsilon\).
+	Refer to \cref{fig:case22}. No point on the subpolyline \([i, j']\) is right of \(P(j')\) so we can use the same traversal as used in \(\overline{P(i)P(j+\gamma)}\) but stop when we reach \(\max(P(j')-\varepsilon, P(i))\). No point on the subpolyline requires a point further right than \(P(j')\) so \(P(j')-\varepsilon\) is the rightmost point we actually need to go to on the shortcut to reach \(b\) on the polyline. Then we use the traversal from \(\overline{P(j+\gamma)P(t)}\) to go to \(j'\). This is possible because no point on \([b, j']\) can be left of \(P(j')-\varepsilon\) as the shortcut goes left but must match \(P(j')\) at some point. Then we finally go right to \(P(j')\) on the shortcut.
+
+	\begin{figure}[b]
+		\centering
+		\includegraphics[scale=0.15]{./figures/case2-2.png}
+		\caption{Case 2.2. Showing \(\delta^F(P[i \dots j'], \overline{P(i)P(j')}) \leq \varepsilon\) using \(\delta^F(P[i \dots b], \overline{P(i)x}) \leq \varepsilon\) and \(\delta^F(P[b \dots j'], x) \leq \varepsilon\) with \(x = \max(P(j')-\varepsilon, P(i))\).}
+		\label{fig:case22}
+	\end{figure}
 
 	Iterating this procedure transforms the simplification to a local vertex-restricted one concluding the proof.
 \end{proof}
@@ -89,7 +126,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 \end{corollary}
 
 \begin{proof}
-	The proof of \cref{thm:restr_frechet_1} constructs a local simplification that almost has this property. For a rightgoing shortcut \(\overline{uv}\) the construction guarantees that the end vertex is rightmost among the underlying subpolyline \([u, v]\). To also achieve the it is rightmost among the following shortcut \(\overline{vw}\), we determine the rightmost vertex in the combined subpolyline \([u, w]\) and make it the new end vertex \(v'\). The proof that that still yields local shortcuts is a simplified version of Case 1 or Case 2.2. This process can affect the vertices \(u\) and \(w\) which may need further fixing in the same way (but in the other direction) but the process must stop at some point as each time we lengthen two shortcuts and there are only finitely many simplifications so an inifinite chain of increasing larger shortcuts is impossible. This means that at the end no shortcut that violates this property can exist.
+	The proof of \cref{thm:restr_frechet_1} constructs a local simplification that almost has this property. For a rightgoing shortcut \(\overline{uv}\) the construction guarantees that the end vertex is rightmost among the underlying subpolyline \([u, v]\). To also achieve the it is rightmost among the following shortcut \(\overline{vw}\), we determine the rightmost vertex in the combined subpolyline \([u, w]\) and make it the new end vertex \(v'\). The proof that that still yields local shortcuts is a simplified version of Case 1 or Case 2.2. This process can affect the vertices \(u\) and \(w\) which may need further updates in the same way (but in the other direction) but the process must stop at some point as each time we lengthen two shortcuts while all other shortcuts are unchanged. Only finitely many local simplifications can exist and this process strictly increases the total length of the shortcuts. Thus, we must reach some maximal simplification which has the stated property.
 \end{proof}
 
 \begin{corollary}\label{cor:frechet1dall}
@@ -97,7 +134,9 @@ We show that every local vertex-restricted simplification is also global curve-r
 \end{corollary}
 
 \begin{proof}
-	The proof from \cref{thm:restr_frechet_1} gives a linear time algorithm to transform curve-restricted global simplifications to local vertex-restricted ones in linear time and shows that all four restricted cases have the same size. A curve-restricted simplification can be computed using the algorithm from \citeauthor{global_curve_simplification}. The final case is the unrestricted case which was demonstrated to be solvable in linear time by \citeauthor{min_complexity_1d_unrestricted}.
+	The proof from \cref{thm:restr_frechet_1} gives a linear time algorithm to transform curve-restricted global simplifications to local vertex-restricted ones in linear time and shows that all four restricted cases have the same size. A curve-restricted simplification can be computed using the algorithm from \citeauthor{global_curve_simplification}. 
+
+	The final case is the unrestricted case. We transform an unrestricted simplification to a restricted one. We can assume that all points of the simplification actually lie on the polyline (although not necessarily in order) because if the lie outside the total range of the polyline we can move the respective points to the nearest extremal point on the polyline as no point on the polyline requires going that away. We can reexamine the proof of \cref{thm:restr_frechet_1} and note that we actually do not need that \(i < j + \gamma < t\) as we only argued using the position of \(P(j+\gamma)\) not its index.
 \end{proof}
 
 \subsection{Local Simplification in Linear Time}
@@ -120,7 +159,7 @@ Although this already yields a simplification algorithm in linear time for all f
 
 	We finally argue that we can actually always go to the rightmost vertex for the shortcut. Consider the following shortcut for this. If it is after the rightmost vertex, we use \cref{cor:local_extremal}. Otherwise the following shortcut goes to a vertex before the rightmost one. Such a shortcut can be replaced by a direct shortcut to the end of the second shortcut as we have already argued that it must be a valid local shortcut.
 
-	With this the algorithm for both Fréchet and Hausdorff can be described as a simple greedy algorithm: Find the first vertex outside of \(\varepsilon\) of the start and this determines the direction which is right (left). Then go to the rightmost (leftmost) vertex possible while maintaining the left (right) boundary that when exceeded disqualifies all further shortcuts. In the Fréchet case the left boundary is updated as \(P(v) - \varepsilon\) where \(v\) is the rightmost vertex currently found (or \(P(v) + \varepsilon\) for the right boundary when going left). In the Hausdorff case this boundary never needs to change and remains at \(P(u) - \varepsilon\) for the left boundary (or \(P(u) + \varepsilon\) for the right boundary) where \(u\) is the vertex from which we want to find the next shortcut. If at any point a shortcut to the end is possible we just go there. If we exceed the boundary, we add the rightmost (leftmost) vertex, change direction and repeat. Pseudocode for both variant can be found in \cref{algo:frechet1d,algo:hausdorff1d}; here \(1\) is right and \(-1\) is left.
+	With this the algorithm for both Fréchet and Hausdorff can be described as a simple greedy algorithm: Find the first vertex outside of \(\varepsilon\) of the start and this determines the direction which is right (left). Then go to the rightmost (leftmost) vertex possible while maintaining the left (right) boundary that when exceeded disqualifies all further shortcuts. In the Fréchet case the left boundary is updated as \(P(v) - 2\varepsilon\) where \(v\) is the rightmost vertex currently found (or \(P(v) + 2\varepsilon\) for the right boundary when going left) because we can wait on the shortcut to the rightmost (leftmost) point with a distance of \(\varepsilon\) which covers everything \(2\varepsilon\) to the left of the rightmost (leftmost) vertex. In the Hausdorff case this boundary never needs to change and remains at \(P(u) - \varepsilon\) for the left boundary (or \(P(u) + \varepsilon\) for the right boundary) where \(u\) is the vertex from which we want to find the next shortcut. If at any point a shortcut to the end is possible we just go there. If we exceed the boundary, we add the rightmost (leftmost) vertex, change direction and repeat. Pseudocode for both variant can be found in \cref{algo:frechet1d,algo:hausdorff1d}; here \(1\) is right and \(-1\) is left and use the sign function sgn. 
 \end{proof}
 
 \begin{algorithm}[htb]
@@ -137,8 +176,9 @@ Although this already yields a simplification algorithm in linear time for all f
 	\For{\(j = i\) \KwTo \(n\)}{
 		\If{\((P(j) - P(\textrm{extremal})) \cdot \textrm{dir} > 0\)}{
 			extremal \(\gets j\)
-		} \ElseIf{\((P(\textrm{extremal}) - P(j)) \cdot \textrm{dir} > \varepsilon\)}{
+		} \ElseIf{\((P(\textrm{extremal}) - P(j)) \cdot \textrm{dir} > 2\varepsilon\)}{
 			\(Q\).append(extremal)\;
+			extremal \(\gets j\)\;
 			dir \(\gets -\textrm{dir}\)
 		}
 	}
@@ -164,7 +204,9 @@ Although this already yields a simplification algorithm in linear time for all f
 			extremal \(\gets j\)
 		} \ElseIf{\((\textrm{boundary} - P(j)) \cdot \textrm{dir} > 0\)}{
 			\(Q\).append(extremal)\;
-			dir \(\gets -\textrm{dir}\)
+			dir \(\gets -\textrm{dir}\)\;
+			boundary \(\gets P(j) -\textrm{dir} \cdot \varepsilon\)\;
+			extremal \(\gets j\)
 		}
 	}
 	\Return \(Q + \angl{P(n)}\)
@@ -194,4 +236,4 @@ We summarize our findings in \cref{thm:results1d}.
 	We have a linear algorithm for the local cases in \cref{algo:hausdorff1d}. We now claim that the vertex-restricted simplification is also optimal in the curve-restricted setting. If only one shortcut is needed, this is trivial. Thus assume there are at least two shortcuts and let \(e = \overline{P(i)P(j+\gamma)}\) be the first non vertex-restricted local shortcut. If it is the last shortcut mirror the polyline. Otherwise there is a following local shortcut \(e' = \overline{P(j+\gamma)P(t)}\) and assume \(e\) goes right and \(e'\) goes left. We use the same idea and replace \(P(j+\gamma)\) with the rightmost vertex in \([i, t]\). If this does not contain \(P(j+1)\) then \(P(t)\) lies on the line segment \(\overline{P(j)P(j+1)}\) and thus must go right of \(P(j+\gamma)\). This contradicts that \(e'\) goes left. Thus both endpoints of \(P(j+\gamma)\) are in \([i, t]\). Replacing \(P(j+\gamma)\) with the rightmost vertex (which is at least one of the endpoints of \(P(j+\gamma)\)) results in valid local shortcuts because of the simple nature of the Hausdorff distance as we have extended the shortcut to cover exactly the underlying polyline and no order needs to be considered.
 \end{proof}
 
-This solves the complexity problem for 20 out of the 30 settings in \citeauthor{global_curve_simplification}. The only ones missing are the five discrete Fréchet settings and the five weak Fréchet settings. Interestingly, in all cases, the vertex-restricted simplification is a curve-restricted simplification. We speculate that this is also the case for the other two settings.
+This solves the complexity problem for 20 out of the 30 settings in \citeauthor{global_curve_simplification}. The only ones missing are the five discrete Fréchet settings and the five weak Fréchet settings. Interestingly, in all cases, the vertex-restricted simplification is a curve-restricted simplification. We speculate that this is also the case for the other two settings, as the core geometric constraints of the one-dimensional line likely impose similar structural properties on their optimal simplifications.

@@ -101,11 +101,11 @@ Property (3) implies that the set \(\set{u \mid \delta(u, v) \leq \varepsilon }\
     \item Follows directly from the definitions.
 		\item Assume \(\delta(u, w) \leq \varepsilon\) and \(\delta(v, w) \leq \varepsilon\). Let \(z = (1-t)u + tv\). Then,
 			\begin{flalign*}
-				\delta(z, w) &= \delta(z - w, 0) && \text{(Translation)} \\
+				\delta(z, w) &= \delta(z - w, 0) && \text{(Translation Invariance)} \\
         	&= \delta((1-t)(u-w) + t(v-w), 0) \\
 					&\leq \delta((1-t)(u-w), 0) + \delta(t(v-w), 0) && \text{(Triangle Inequality)} \\
 					&= (1-t)\delta(u-w, 0) + t\delta(v-w, 0) && \text{(Homogeneity)} \\
-					&= (1-t)\delta(u, w) + t\delta(v, w) && \text{(Translation)} \\
+					&= (1-t)\delta(u, w) + t\delta(v, w) && \text{(Translation Invariance)} \\
 					&\leq (1-t)\varepsilon + t\varepsilon = \varepsilon.
     \end{flalign*}
 	\item (\(\Rightarrow\)) This direction follows because the reparameterizations \(f\) and \(g\) must satisfy \(f(0) = g(0) = 0\) and \(f(1) = g(1) = 1\), so the endpoints are matched at \(t=0\) and \(t=1\).
@@ -113,9 +113,9 @@ Property (3) implies that the set \(\set{u \mid \delta(u, v) \leq \varepsilon }\
 		(\(\Leftarrow\)) For the backward direction, consider the linear reparameterizations \(f(s) = s\) and \(g(s) = s\) for \(s \in [0,1]\). Then, for any \(s \in [0, 1]\),
     \begin{flalign*}
 			\delta(P(f(s)), Q(g(s))) &= \delta((1-s)u + sv, (1-s)w + sx) \\
-			&= \delta((1-s)(u-w) + s(v-x), 0) && \text{(Translation)} \\
+			&= \delta((1-s)(u-w) + s(v-x), 0) && \text{(Translation Invariance)} \\
 			&\leq \delta((1-s)(u-w), 0) + \delta(s(v-x), 0) && \text{(Triangle Inequality)} \\
-			&= (1-s)\delta(u, w) + s\delta(v, x) && \text{(Homogeneity and Translation)} \\
+			&= (1-s)\delta(u, w) + s\delta(v, x) && \text{(Homogeneity and Translation Invariance)} \\
 			&\leq (1-s)\varepsilon + s\varepsilon = \varepsilon.
     \end{flalign*}
 		Since the maximum over \(s \in [0,1]\) is at most \(\varepsilon\), the Fréchet distance is at most \(\varepsilon\).
