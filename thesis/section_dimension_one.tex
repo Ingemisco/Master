@@ -66,7 +66,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 
 	for the third statement, we use \(\delta^F(P[b\dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\). 
 
-	\begin{figure}[b]
+	\begin{figure}[htbp]
 		\centering
 		\includegraphics[scale=0.3]{./figures/case1.png}
 		\caption{Case 1. Showing \(\delta^F(P[i \dots j'], \overline{P(i)P(j')}) \leq \varepsilon\) using \(\delta^F(P[i \dots j'], \overline{P(i)x}) \leq \varepsilon\) and \(P(j') - \varepsilon \leq x \leq P(j')\).}
@@ -76,7 +76,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 	\paragraph{Case 1.1: \(P(b) > P(j')\)} 
 	Refer to \cref{fig:case11}. In this case \(b\) and \(c\) lie on the same line segment (otherwise both ends of the line segment on which \(b\) lies are contained in the subpolyline and thus considered in the definition of \(j'\)) which must go right (because the start of the line segment cannot be the right vertex of the line segment because \(P(b) > P(j')\)). We modify the subpolylines such that \(P(b') = \min(P(j+\gamma) - \varepsilon, P(\lfloor b \rfloor))\), i.e., the leftmost point on the line segment that is within \(\varepsilon\) of \(P(j+\gamma)\). This new point \(P(b')\) is still within \(\varepsilon\) of \(P(j+\gamma)\) by construction, so the condition \(\delta^F(P[b' \dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\) still holds. This satisfies \(P(b') \leq P(j')\) (if \(P(b')\) is the start of the line segment, it is used in the definition of \(j'\). If \(P(b') = P(j+\gamma)-\varepsilon\) it is left of \(P(j')\) as \(P(j')\) is within \(\varepsilon\) of \(P(j+\gamma)\)) and it still holds \(j' \leq b'\) thus we have not violated the previously proven first statement. With these modifications, we can use Case 1.2.
 
-	\begin{figure}[b]
+	\begin{figure}[htbp]
 		\centering
 		\includegraphics[scale=0.15]{./figures/case1-1.png}
 		\caption{Case 1.1. Modifying \(b\) to \(b'\) such that it satisfies \(P(b') \leq P(j')\).}
@@ -86,7 +86,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 	\paragraph{Case 1.2: \(P(b) \leq P(j')\)} 
 	Refer to \cref{fig:case12}. As \(P(j')\) is right of \(P(b)\) (and thus the whole subpolyline \([i, b]\)) we can use the shortcut \(\overline{P(j')P(t)}\) to go left by at most \(\varepsilon\) until we have traversed the subpolyline \([j', b]\) (if there are points further left than \(P(t)-\varepsilon\) between \(j'\) and \(b\) and \(P(j')-P(t) \leq \varepsilon\) then everything on \([i, c] \cap [i, t]\) can be covered by the direct shortcut \(\overline{P(i)P(t)}\)). Then we can use the traversal from \(\overline{P(j+\gamma)P(t)}\) for \([b, c]\) to traverse the rest. No point on the subpolyline requires a point on the shortcut right of \(P(j')\) (or even \(P(j') - \varepsilon\)) by construction, thus, even if \(P(j + \gamma)\) is further right than \(P(j')\) it does not yield reachable points that are unreachable using \(P(j')\) so we can imagine going left until we reach the point where we stopped on \(\overline{P(j')P(t)}\). If \(P(j+\gamma)\) is left of \(P(j')\), we first go left on \(\overline{P(j')P(t)}\) until we reach \(P(j+\gamma)\) (note that \(|P(j+\gamma) - P(j')| < \varepsilon\) as \(P(j+\gamma)\) is the right end of the previous shortcuts and must match \(P(j')\)).
 
-	\begin{figure}[b]
+	\begin{figure}[htbp]
 		\centering
 		\includegraphics[scale=0.15]{./figures/case1-2.png}
 		\caption{Case 1.2. Showing \(\delta^F(P[j' \dots c], \overline{P(j')P(t)}) \leq \varepsilon\) using \(\delta^F(P[b \dots c], \overline{P(j+\gamma)P(t)}) \leq \varepsilon\) and \(\delta^F(P(j') - \varepsilon, P[j' \dots b]) \leq \varepsilon\).}
@@ -96,7 +96,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 	\paragraph{Case 2: \(j' > b\)}
 	Refer to \cref{fig:case2}. We first consider the last statement. To construct a traversal of \([j', c]\) while traversing the shortcut \(\overline{P(j')P(t)}\) we use that there is an \(x\) on the shortcut \(\overline{P(j+\gamma)P(t)}\) that witnesses \(\delta^F(P[j', c], \overline{xP(t)}) \leq \varepsilon\). Similar to Case 1, we can assume that \(x \leq P(j')\) as nothing forces \(x\) to be further right. We can thus traverse the shortcut until \(x\) while not moving on the shortcut and from there we use the traversal from \(\overline{P(j+\gamma)P(t)}\).
 
-	\begin{figure}[b]
+	\begin{figure}[htbp]
 		\centering
 		\includegraphics[scale=0.1]{./figures/case2.png}
 		\caption{Case 2. Showing \(\delta^F(P[j' \dots c], \overline{P(j')P(t)}) \leq \varepsilon\) using \(\delta^F(P[j' \dots c], \overline{xP(t)}) \leq \varepsilon\) and \(P(j') - \varepsilon \leq x \leq P(j')\).}
@@ -111,7 +111,7 @@ We show that every local vertex-restricted simplification is also global curve-r
 	\paragraph{Case 2.2: \(P(b) \leq P(j')\)} 
 	Refer to \cref{fig:case22}. No point on the subpolyline \([i, j']\) is right of \(P(j')\) so we can use the same traversal as used in \(\overline{P(i)P(j+\gamma)}\) but stop when we reach \(\max(P(j')-\varepsilon, P(i))\). No point on the subpolyline requires a point further right than \(P(j')\) so \(P(j')-\varepsilon\) is the rightmost point we actually need to go to on the shortcut to reach \(b\) on the polyline. Then we use the traversal from \(\overline{P(j+\gamma)P(t)}\) to go to \(j'\). This is possible because no point on \([b, j']\) can be left of \(P(j')-\varepsilon\) as the shortcut goes left but must match \(P(j')\) at some point. Then we finally go right to \(P(j')\) on the shortcut.
 
-	\begin{figure}[b]
+	\begin{figure}[htbp]
 		\centering
 		\includegraphics[scale=0.15]{./figures/case2-2.png}
 		\caption{Case 2.2. Showing \(\delta^F(P[i \dots j'], \overline{P(i)P(j')}) \leq \varepsilon\) using \(\delta^F(P[i \dots b], \overline{P(i)x}) \leq \varepsilon\) and \(\delta^F(P[b \dots j'], x) \leq \varepsilon\) with \(x = \max(P(j')-\varepsilon, P(i))\).}

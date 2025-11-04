@@ -24,14 +24,14 @@ To generate the polylines, we fix the first point at the origin (since simplific
 
 Examples of such generated polylines can be seen in \cref{fig:well-behaved-300} and \cref{fig:non-well-behaved-300}.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
   \includegraphics[scale=0.3]{./figures/well-behaved-300.png}
   \caption{Example of a well-behaved polyline consisting of \(300\) points in \(2\) dimensions.}
   \label{fig:well-behaved-300}
 \end{figure}
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.3]{./figures/non-well-behaved-300.png}
   \caption{Example of a non-well-behaved polyline consisting of \(300\) points in \(2\) dimensions.}
@@ -97,7 +97,7 @@ For parallelization, we compare the fully parallelized version (8 cores) against
 
 First, we compare the effect of parallelization. \Cref{fig:simple-seq} shows both the sequential and parallelized versions. The parallelized versions are consistently about three times faster.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/simple-seq.png}
   \caption{Simple algorithm with and without parallelization.}
@@ -106,7 +106,7 @@ First, we compare the effect of parallelization. \Cref{fig:simple-seq} shows bot
 
 Next, we inspect how the other optimizations affect runtime. All following tests are parallelized. \Cref{fig:simple-noopt} compares having all three optimizations versus having none of them. Without any optimizations, the theoretical \(\Oh(n^6)\) runtime seems to be evident. The figure illustrates the significant effectiveness of these optimizations.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/simple-noopt.png}
   \caption{Simple algorithm with all optimizations and with none of them.}
@@ -123,21 +123,21 @@ The global minimality optimization has the most positive effect. Note that \cref
 
 For the main results, we use all optimizations and parallelization, as they have proven to be beneficial, especially for the implicit variant.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/simple-g.png}
   \caption{Simple algorithm with all optimizations and with all but the global optimality optimization.}
   \label{fig:simple-g}
 \end{figure}
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/simple-l.png}
   \caption{Simple algorithm with all optimizations and with all but the local optimality optimization.}
   \label{fig:simple-l}
 \end{figure}
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/simple-r.png}
   \caption{Simple algorithm with all optimizations and with all but the reachability optimization.}
@@ -154,7 +154,7 @@ We present the results of our experimental evaluation in two parts. First, in \c
 
 \Cref{fig:res_all300w} provides an overview of all nine variants on well-behaved data. The advanced versions are faster on longer polylines, while the simple variants remain competitive due to parallelization and the well-behaved nature of the input data. The semiexplicit Euclidean and Manhattan variants are the slowest in both the simple and advanced categories. For the simple variant, the semiexplicit version is by far the slowest, which we attribute to worse parallelizability caused by more complicated comparison operators. For the advanced versions, the Manhattan variant becomes the slowest, likely due to its more complex equation-solving algorithm, which cannot be offset by better parallelization.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{figures/res_all300w.png}
   \caption{All nine variants on well-behaved data. Measurements are averages over 30 polylines per point count. Data marked with an ``x" are the advanced variants; those marked with dots are the simple variants.}
@@ -167,7 +167,7 @@ Furthermore, the stability of the data for the advanced variants is remarkable. 
 
 We extended the evaluation of the advanced variants to polylines of up to 800 points to gain further insights into their scaling. Given their observed stability, we reduced the test cases per polyline length to 2 to reduce total testing time. The results can be seen in \cref{fig:res_advanced800}. Even with more variance in individual data points, the trend remains stable and unsurprising. The variants are also insensitive to the well-behavedness of the data, as expected.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/res_advanced800.png}
   \caption{All advanced variants on well-behaved and non-well-behaved data. This uses only two cases per polyline size.}
@@ -176,7 +176,7 @@ We extended the evaluation of the advanced variants to polylines of up to 800 po
 
 We were not able to test longer polylines because preliminary testing revealed that larger polylines require too much space to be simplified.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/res_heuristic_runtime.png}
 	\caption{Run time of the heuristic on the same data as in \cref{fig:res_advanced800}.}
@@ -187,7 +187,7 @@ We were not able to test longer polylines because preliminary testing revealed t
 
 We now examine in more detail the dependence of the simple algorithm's runtime on the input data in \cref{fig:res_simple}. Ignoring the semiexplicit variant (the slowest), all variants on well-behaved polylines take less time than any variant on non-well-behaved data. Another interesting insight is that the runtimes are more consistent on well-behaved data, while there is more variance for non-well-behaved data.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/res_simple.png}
   \caption{Effect of well-behavedness on the runtime of the simple algorithms.}
@@ -196,7 +196,7 @@ We now examine in more detail the dependence of the simple algorithm's runtime o
 
 Finally, we show the runtime of the data structure construction algorithm (\cref{algo:query-datastructure}) in \cref{fig:res_ds}. We used only one test case per point count not only to reduce testing time but also to highlight the algorithm's stability. This notable stability can be explained by the predictable number of simplification calls required by the binary search and the already observed stability of the advanced algorithm used as a subroutine.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/res_ds.png}
   \caption{Runtime to create the data structure for simplification queries using the Euclidean distance, with one case per point count.}
@@ -209,7 +209,7 @@ Having compared the performance of the algorithms, we now compare the simplifica
 
 \Cref{fig:simplification_sizes} shows the average computed sizes for the same data used in \cref{fig:res_all300w} and \cref{fig:res_simple}. It is clear that the Chebyshev simplifications are the smallest and the Manhattan ones are the largest, which we already know from \cref{cor:size_monotonicity}. However, the well-behavedness of the data has a greater impact on the size than the distance function used. The difference between the well-behaved Manhattan and the non-well-behaved Chebyshev simplifications is larger than the difference between the non-well-behaved or the well-behaved simplifications for the same distance. Other Minkowski distances \(\delta_\ell\) would fall between the Euclidean and Chebyshev distances if \(\ell > 2\), or between the Euclidean and Manhattan distances if \(\ell \in (1,2)\), so they would not create more spread within these well-behavedness clusters.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/simplification_sizes.png}
   \caption{Average simplification sizes of the tested data.}
@@ -222,14 +222,14 @@ Again, we see a clear difference between well-behaved and non-well-behaved polyl
 
 Interestingly, all four plots seem to approach concave functions, for which we have no explanation.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/vary_e10.png}
   \caption{Average simplification sizes of 20 polylines of length 10 over normalized \(\varepsilon\). Well-behaved in red and non-well-behaved in blue.}
   \label{fig:vary_e10}
 \end{figure}
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/vary_e200.png}
   \caption{Simplification sizes of a single polyline of length 200 over normalized \(\varepsilon\). Well-behaved in red and non-well-behaved in blue.}
@@ -238,7 +238,7 @@ Interestingly, all four plots seem to approach concave functions, for which we h
 
 Finally, we investigate how local and global simplification sizes differ in \cref{fig:res-local-global}. For this, we used the Euclidean variant of the \citeauthor{computational_geometric_methods_for_polygonal_approximations_of_a_curve} algorithm (local Fréchet) for comparison and plotted the average simplification sizes on well-behaved and non-well-behaved data. This is a particularly noteworthy result, as the simplification sizes show no meaningful difference. On well-behaved data, they are indistinguishable, and on non-well-behaved data, the local simplifications are only marginally larger, and even this minor difference may not be significant for most applications.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.4]{./figures/res_local_global.png}
   \caption{Comparison of local and global simplification sizes on well-behaved and non-well-behaved data.}
@@ -249,6 +249,6 @@ To further investigate this phenomenon, we conducted an extensive parameter swee
 
 The performance of our heuristic was even closer to the optimal simplification. In a test 500,000 polylines of length 100, our heuristic produced suboptimal simplifications in only 8 cases. Among these, the simplification size differed by 2 in a single case (the basis for \cref{fig:gii_diff_2}) and by only 1 in the remaining cases. 
 
-To get an estimation of how often a negative mapping is actually used, we used the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm and counted how often the value of \(\kappa\) is computed using \(\kappa_1\) (which corresponds to reachable subpolylines that don't start at the start of an interval which our heuristic avoids). We tested on both one\footnote{One-dimensional polylines only use the minimum and maximum line lengths. Instead of an angle, we randomly alternate between going left and right as the middle points of twice going in the same direction can always be skipped.}- and two-dimensional polylines. 
+To get an estimation of how often a negative mapping is actually used, we used the \citeauthor{polyline_simplification_has_cubic_complexity_bringmannetal} algorithm and counted how often the value of \(\kappa\) is computed using \(\kappa_1\) (which corresponds to reachable subpolylines that don't start at the start of an interval which our heuristic avoids). We tested on both one\footnote{One-dimensional polylines only use the minimum and maximum line lengths. Instead of an angle, we randomly alternate between going left and right.}- and two-dimensional polylines. 
 
 Strikingly, over 100.000 two-dimensional polylines of length 100, the \(\kappa_1\) computation was triggered only \(4.1\) times on average with (median: \(1\)). For one-dimensional polylines, the mean was \(70.29\) with a median of \(78\). Both of these numbers are quite low considering in comparison to the maximum possible of 5050. Over these 100.000 polylines not a single one had differing global and local simplifications. Note that the heuristic must be optimal on one-dimensional polylines as local and global sizes coincide. We tested them primarily to compare \(\kappa_1\) against; in one dimension the polyline tends to be more dense causing more negative mappings. Intuitively, higher-dimensional spaces offer more 'room' for the polyline to avoid the dense, self-intersecting configurations that necessitate negative mappings, which explains the lower frequency of \(\kappa_1\) usage in two dimensions compared to one.

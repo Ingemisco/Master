@@ -81,6 +81,45 @@ Finally, \citeauthor{global_curve_simplification}~\cite{global_curve_simplificat
   \label{fig:polyline-ex-local-global-f}
 \end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    
+    % First row
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/simpl-ex-orig.png}
+        %\caption{Subfigure A description}
+        %\label{fig:sub1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/simpl-ex-2.png}
+        %\caption{Subfigure B description}
+        %\label{fig:sub2}
+    \end{subfigure}
+    
+    \vspace{0.5cm} % Vertical space between rows
+    
+    % Second row
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/simpl-ex-5.png}
+        %\caption{Subfigure C description}
+        %\label{fig:sub3}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/simpl-ex-10.png}
+        %\caption{Subfigure D description}
+        %\label{fig:sub4}
+    \end{subfigure}
+    
+    \caption{Global polyline simplifications for different \(\varepsilon\).}
+    \label{fig:my_figure}
+\end{figure}
+
 \subsection{Basic Properties}
 We now investigate elementary properties of polylines and their simplifications. Many of these properties are used implicitly in \cref{sec:evaluation} to standardize experiments and for automated testing in our implementations.
 
@@ -200,7 +239,7 @@ This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausd
 
 \begin{figure}[h!tbp]
   \centering
-	\includegraphics[scale=0.3]{./figures/local-global-bigdiff.png}
+	\includegraphics[width=5cm, height=8cm]{./figures/local-global-bigdiff.png}
 	\caption{Construction from \cref{thm:lg-approx} with \(i = 5\), a polyline consisting of multiple ``4"s. The local simplification contains all points and the global one is marked in red. The circle in blue has radius \(\varepsilon = 2\) and is centered around the self-intersection of the polyline.}
   \label{fig:local-global-bigdiff}
 \end{figure}
@@ -219,7 +258,7 @@ This example demonstrates that local and global simplifications can differ by mu
 
 	For the global simplification only three points suffice: \(P(0)\), \(P(1)\) and \(P(n)\). The radius of the circle lies on the first line segment of the simplification, \(\overline{P(0)P(1)}\), by construction. Furthermore, the entire subpolyline \(P[1 \dots n]\) lies within distance \(\varepsilon\) of this center point.
 
-	We now need to show that no local shortcuts exist. No shortcut other than \(\overline{P(0)P(1)}\) passes through the center as we rotate by an irrational angle. Any shortcut that contains the center must be constructed by two points that have a total angle of \(180^\circ\) between them which is rational but the sum of irrational angles is always irrational. This prevents us from skipping large parts of the polyline with a shortcut that contains the center like in the global case. The other possible shortcuts are easy to rule out because of the cyclical nature of the polyline. Shortcuts \(\overline{P(i-1)P(i+1)}\) that skip exactly one point \(P(i)\) cannot exist because by the choice of angle, no point on the shortcut is within \(\varepsilon\) of \(P(i)\). For any longer shortcut \(\overline{P(i')P(i)}\) we can similarly see that at least one of the skipped points has no point on the shortcut within distance \(\varepsilon\). Thus no local shortcuts exist and a local simplification requires all points.
+	We now need to show that no local shortcuts exist. No shortcut other than \(\overline{P(0)P(1)}\) passes through the center as we rotate by an irrational angle. Any shortcut that contains the center must be constructed by two points that have a total angle of \(180^\circ\) between them which is rational but the sum of irrational angles is always irrational. This prevents us from skipping large parts of the polyline with a shortcut that contains the center like in the global case. The other possible shortcuts are easy to rule out because of the cyclical nature of the polyline. Shortcuts \(\overline{P(i-1)P(i+1)}\) that skip exactly one point \(P(i)\) cannot exist because by the choice of angle, no point on the shortcut is within \(\varepsilon\) of \(P(i)\). For any longer shortcut \(\overline{P(i')P(i)}\) we can similarly see that at least one of the skipped points has no point on the shortcut within distance \(\varepsilon\). For this split the circle into two halves through the center such that the start of the shortcut \(P(i-1)\) and the vertex \(P(j)\) contained in the subpolyline under the shortcut are on different sides. No shortcut from \(P(i-1)\) to a point on the same half can cover \(P(j)\). By considering \(P(i)\), \(P(i+1)\) and \(P(i+2)\) we can rule out any shortcut other than the trivial one. Thus no local shortcuts exist and a local simplification requires all points.
 \end{proof}
 
 \begin{figure}[h!tbp]

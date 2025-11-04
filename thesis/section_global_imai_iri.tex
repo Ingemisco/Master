@@ -183,7 +183,7 @@ This heuristic can also be made into a simple optimal algorithm: for each negati
 \subsection{Analysis of the Heuristic}
 We have shown that our heuristic is never worse than a local simplification. Now, we analyze polylines on which the heuristic performs well and ones where it performes poorly.
 
-The examples \cref{fig:local-global-bigdiff,fig:local-global-mostdiff} which have a high difference between the local and global simplifications can be solved optimally using our heuristic as both polylines are \(\varepsilon\)-positive using the given \(\varepsilon\). For further investigations into optimality criteria for the heuristic we differentiate polylines into two categories.
+The examples \cref{fig:local-global-bigdiff,fig:local-global-mostdiff} which have a high difference between the local and global simplifications can be solved optimally using our heuristic as \cref{fig:local-global-bigdiff} is \(\varepsilon\)-positive using the given \(\varepsilon\). the polyline in \cref{fig:local-global-mostdiff} is not necessarily positive but can still be solved optimally because only three solution intervals are required to find the solution. The starting interval can never be narrowed by our construction and the second and third interval end in the last point of the polyline which can never be removed. For further investigations into optimality criteria for the heuristic we differentiate polylines into two categories.
 
 \begin{definition}
   Let \(P\) be a polyline and \(\varepsilon > 0\). We call \(P\)
@@ -204,6 +204,7 @@ Let us present a few simple criteria for neutral polyines.
 		\item \(\varepsilon\) is at least as large as the distance between any pair of vertices of \(P\).
 		\item \(S(i)\) contains exactly one solution interval and this unique interval contains only one polyline vertex (which must be \(i\)).
 		\item \(\max \set{a \mid [a, b] \in S(i')} \leq \min \set{a \mid [a, b] \in S(i)}\) for all \(i' < i\).
+		\item There is a global simplification that only uses positive intervals.
 	\end{enumerate}
 \end{lemma}
 
@@ -214,6 +215,7 @@ Let us present a few simple criteria for neutral polyines.
 		\item This implies both previous criteria. Each vertex contains exactly one interval \([0, n]\), i.e., each interval spans the whole polyline. As all intervals are the same there can be no negative mappings. Furthermore, this also implies that both the loval and global simplification only contain the start and end vertex.
 		\item The interval in \(S(i)\) starts either on the line segment before the vertex \(i\) or the exactly on the vertex \(i\) (e.g., for \(i=0\)). Mapping the starts of the intervals onto the real numbers yields a monotone sequence. As shortcuts can only proceed to higher indexed vertices, the range interval must start after the domain interval and is thus neutral or positive. Thus, the polyline is positive.
 		\item Follows directly from the proof for the last criterion.
+		\item If such a simplification exists, we can always proceed from the end of each solution interval to the end of the next one. As solution intervals are only shrunk from the start and never removed, the end of each solution interval is never removed. Thus, the simplification is still found.
 	\end{enumerate}
 \end{proof}
 

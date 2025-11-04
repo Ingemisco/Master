@@ -57,7 +57,7 @@ The correctness of this initialization can be shown rather easily.
   (\(\Leftarrow\)) Since every point on \(Q\) has distance at most \(\varepsilon\) from \(P(0)\), we can choose any suitable function \(g\). This follows directly from the convexity property from \cref{lem:distance_properties} applied to all individual line segments of \(Q\).
 \end{proof}
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
   \includegraphics{tikz-fig/simpl_init.pdf}
   \caption{Initialization of the simplification algorithm for \(k = 0, i = 0\). Only the points in the circle up to \(P(2)\) are reachable.}
@@ -104,7 +104,7 @@ There are \(\O(k^* n^2)\) iterations to fill the table, and each entry requires 
 \subsection{Examples}
 Before discussing possible optimizations, we will go through an example for the algorithm as well as the \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} subroutine. This provides more intuition for the algorithms and may yield ideas for further optimizations. Due to the large number of entries (cubic in \(n\)), it is unreasonable to show all computations. Thus, we only show the computations that lead to the final simplification and the relevant subroutine calls.
 
-\begin{figure}
+\begin{figure}[htbp]
   \centering
   \includegraphics{tikz-fig/poly-ex-main.pdf}
   \caption{Example polyline with circles of radius \(\varepsilon\) drawn around all points. We note the following relations which may be hard to see: \(\delta(P(2), P(4)) = \delta(P(2), P(5)) = \varepsilon\), \(\delta(P(2), P(3)) > \varepsilon\), \(\delta(P(2), P(6)) > \varepsilon\).}
@@ -114,7 +114,7 @@ Before discussing possible optimizations, we will go through an example for the 
 For the polyline and \(\varepsilon\) value in \cref{fig:poly-ex-main}, we initialize the table layer for \(k = 0\) by only setting the value \(DP[0,0,0]\) to \(0\), because \(\delta(P(0), P(1)) > \varepsilon\). Even though \(\delta(P(0), P(4)) \leq \varepsilon\), the value \(DP[0,0,4]\) is \(\infty\) because there are intermediate points (like \(P(1)\)) that already exceed the distance threshold.
 
 For the layer \(k = 1\), we can only proceed from the entry \(DP[0,0,0] = 0\), as it is the only valid entry found on the previous layer. All triples \((k, i, j)\) for which a valid entry in \([0, 1]\) can be found for the layer \(k = 1\) are listed in \cref{tab:exlayer1}. We do not list the respective \(i'\) and \(j'\) or the value \(t'\), as there is only one possible predecessor entry.
-\begin{table}[ht]
+\begin{table}[htbp]
 \centering
 \begin{tabular}{|ccc|}
 \hline
@@ -132,7 +132,7 @@ $(1,5,1)$ & $(1,5,2)$ & \\
 
 Let us explicitly go through the AltGodau subroutine for the entry \((1, 2, 3)\). This corresponds to a simplification consisting of one line segment for the subpolyline \(P[0\dots 2]\) that has a Fréchet distance of at most \(\varepsilon\) from \(P[0 \dots 3 + t]\), where \(t\) is the result of the subroutine. We consider the line segment \(\overline{P(i')P(i)} = \overline{P(0)P(2)}\) and the polyline segment \(P[j' + t' \dots j + 1] = P[0 \dots 4]\) and perform the algorithm.
 
-\begin{figure}
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics{tikz-fig/poly-ex-123-ag-1.pdf}
@@ -152,7 +152,7 @@ Let us explicitly go through the AltGodau subroutine for the entry \((1, 2, 3)\)
 
 From \(DP[1,2,3] = 0.04\), we can proceed to the end of the polyline to get a simplification of size \(2\), as seen in \cref{fig:poly-ex-265-ag}. A simplification of size \(1\) is not possible, as that would be the line segment \(\overline{P(0)P(6)}\), but there is no point on that line segment within distance \(\varepsilon\) of \(P(3)\).
 
-\begin{figure}
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics{tikz-fig/poly-ex-265-ag-1.pdf}
@@ -170,7 +170,7 @@ From \(DP[1,2,3] = 0.04\), we can proceed to the end of the polyline to get a si
 We can also verify that the solution must be correct, as the application of the algorithm from \citeauthor{computing_the_frechet_distance_between_two_polygonal_curves} guarantees by construction that the Fréchet distance is at most \(\varepsilon\) and even yields the correspondence that can be used to construct suitable monotone functions.
 
 For completeness, the valid entries on the layer \(k = 2\) are listed in \cref{tab:exlayer2}. The predecessor entry \((k - 1, i', j')\) from the previous layer is added after the tuple. This predecessor tuple is not necessarily unique; in fact, every single one of these entries has at least two different possibilities for \(i'\) and \(j'\).
-\begin{table}[ht]
+\begin{table}[htbp]
 \centering
 \begin{tabular}{|ccc|}
 \hline
