@@ -42,48 +42,48 @@ Let \(\hat{t}_0\) and \(\hat{t}_1\) be the smallest and largest solutions to \cr
 
 The \(\infty\) value indicates an empty intersection. \Cref{fig:solution_kinds} illustrates these cases. For a line segment \(\overline{uv}\) and point \(w\), we denote the relevant solutions as \(\hat t_0'(\overline{uv}, w)\) and \(\hat t_1'(\overline{uv}, w)\); the parameter \(\varepsilon\) is omitted as it is fixed contextually.
 
-\begin{figure}
+\begin{figure}[htbp]
     \centering
     % First row of subfigures
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-1.pdf}
       \caption{\(\hat t_0 < 0 < \hat t_1 < 1\) \\
         \(\hat t_0' = 0, \hat t_1' = \hat t_1\)}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-2.pdf}
       \caption{\(0 < \hat t_0 < \hat t_1 < 1\) \\
         \(\hat t_0' = \hat t_0, \hat t_1' = \hat t_1\)}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-3.pdf}
       \caption{\(0 < \hat t_0 < 1 < \hat t_1 \) \\
         \(\hat t_0' = \hat t_0, \hat t_1' = 1\)}
     \end{subfigure}
 
     % Second row of subfigures
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-4.pdf}
       \caption{\(\hat t_0 < \hat t_1 < 0\) \\
         \(\hat t_0' = \hat t_1' = \infty\)}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-5.pdf}
       \caption{\(\hat t_0 < 0 < 1 < \hat t_1\) \\
         \(\hat t_0' = 0, \hat t_1' = 1\)}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-6.pdf}
       \caption{\(1 < \hat t_0 < \hat t_1\) \\
         \(\hat t_0' =  \hat t_1' = \infty\)}
     \end{subfigure}
 
     % Third row of subfigures (centered)
-    \begin{subfigure}[t]{0.3\textwidth}
+    \begin{subfigure}[htbp]{0.3\textwidth}
       \includegraphics{tikz-fig/solution-kinds-7.pdf}
       \caption{\(\hat t_0, \hat t_1\) do not exist \\
         \(\hat t_0' = \hat t_1' = \infty\)}
@@ -212,7 +212,7 @@ A simple method considers all \(2d\) candidate expressions (positive and negativ
 \paragraph{Geometric Approach}
 Each term \(|u_i - w_i + t(v_i - u_i)|\) is linear in \(t\). The problem reduces to finding where the upper envelope of these \(2d\) lines reaches height \(\varepsilon\) over \(t \in [0,1]\). A sweep-line algorithm, inspired by Bentley-Ottmann~\cite{computational_geometry}, maintains the upper envelope using a doubly-linked list and a priority queue for intersections. This runs in \(\O(d \log d)\) time. Pseudocode is provided in \cref{algo:solve_chebyshev_init,algo:solve_chebyshev}, and an example is illustrated in \cref{fig:chebyshev_algo}.
 
-\begin{figure}
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[t]{0.3\textwidth}
 		\includegraphics{tikz-fig/chebyshev-algo-1.pdf}

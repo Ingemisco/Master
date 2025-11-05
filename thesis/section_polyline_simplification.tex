@@ -47,7 +47,7 @@ In the following, we discuss the vertex-restricted local and global (undirected)
 \subsection{Hausdorff Distance}
 In this thesis, we study only the Fréchet distance. The global Hausdorff distance is the least useful among the four variants discussed here. Van Kreveld et al. showed that finding such simplifications is NP-hard~\cite{on_optimal_polyline_simplification_using_the_hausdorff_and_frechet_distance}, making it impractical for applications. Furthermore, it does not capture the contour of a polyline well, as the order of points is not considered. This can lead to oversimplifications. See \cref{fig:polyline-ex-hausdorff} for an example illustrating why the Hausdorff distance may be problematic for measuring similarity.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
   \includegraphics{./tikz-fig/polyline-ex-hausdorff.pdf}
   \caption{Two polylines with a comparatively high Fréchet distance but small Hausdorff distance. Each point on either polyline is close to some point on the other, resulting in a small Hausdorff distance. However, the completely different contours cause a high Fréchet distance.}
@@ -74,7 +74,7 @@ First, \citeauthor{on_optimal_polyline_simplification_using_the_hausdorff_and_fr
 
 Finally, \citeauthor{global_curve_simplification}~\cite{global_curve_simplification} provided a formal classification of global variants and presented multiple results. For the global Fréchet variant discussed here, they presented an additional cubic-time algorithm.
 
-\begin{figure}[b]
+\begin{figure}[htbp]
   \centering
   \includegraphics{./tikz-fig/polyline-ex-local-global-f.pdf}
   \caption{This polyline has a global Fréchet simplification consisting of two line segments but no local simplification of the same size.}
@@ -237,7 +237,7 @@ This expands upon \citeauthor{on_optimal_polyline_simplification_using_the_hausd
 	The local simplification using the Manhattan distance does not change as it already contains all points and cannot reduce in size because of \cref{cor:size_monotonicity}. The global simplification also has the same size as when using the Euclidean distance with the same argument as before.
 \end{proof}
 
-\begin{figure}[h!tbp]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[width=5cm, height=8cm]{./figures/local-global-bigdiff.png}
 	\caption{Construction from \cref{thm:lg-approx} with \(i = 5\), a polyline consisting of multiple ``4"s. The local simplification contains all points and the global one is marked in red. The circle in blue has radius \(\varepsilon = 2\) and is centered around the self-intersection of the polyline.}
@@ -254,21 +254,21 @@ This example demonstrates that local and global simplifications can differ by mu
 \begin{proof}
 	The maximum possible difference is \(n-3\), as a global simplification must contain at least the start and end vertices (size 2) and a global simplification of size 2 is also a valid local simplification. Therefore, if a global simplification of size 2 exists, the local simplification cannot be larger, making a difference of \(n-2\) impossible. A difference of \(n-3\) is achieved when the global simplification has size \(3\) and the local simplification has size \(n\).
 
-	For the actual construction see \cref{fig:local-global-mostdiff}. The idea is to choose an irrational angle \(\alpha\) in \((2\pi/4, 2\pi/3)\) like \(2\) radians. We consider the unit circle with radius \(\varepsilon\) and pick a point on it. Then we place the next point on the circle after rotation of \(\alpha\) and continue. We add a first point outside the circle such that \(\overline{P(0)P(1)}\) contains the center of the unit circle. The point count and angle are mostly arbitrary within the given bounds but should satisfy that \(\delta_2(P(1), P(n)) \leq \varepsilon\).
+	For the actual construction see \cref{fig:local-global-mostdiff}. The idea is to choose an irrational multiple of \(\pi\) as angle \(\alpha\) in \((2\pi/4, 2\pi/3)\) like \(2\) radians. We consider the unit circle with radius \(\varepsilon\) and pick a point on it. Then we place the next point on the circle after rotation of \(\alpha\) and continue. We add a first point outside the circle such that \(\overline{P(0)P(1)}\) contains the center of the unit circle. The point count and angle are mostly arbitrary within the given bounds but should satisfy that \(\delta_2(P(1), P(n)) \leq \varepsilon\).
 
 	For the global simplification only three points suffice: \(P(0)\), \(P(1)\) and \(P(n)\). The radius of the circle lies on the first line segment of the simplification, \(\overline{P(0)P(1)}\), by construction. Furthermore, the entire subpolyline \(P[1 \dots n]\) lies within distance \(\varepsilon\) of this center point.
 
 	We now need to show that no local shortcuts exist. No shortcut other than \(\overline{P(0)P(1)}\) passes through the center as we rotate by an irrational angle. Any shortcut that contains the center must be constructed by two points that have a total angle of \(180^\circ\) between them which is rational but the sum of irrational angles is always irrational. This prevents us from skipping large parts of the polyline with a shortcut that contains the center like in the global case. The other possible shortcuts are easy to rule out because of the cyclical nature of the polyline. Shortcuts \(\overline{P(i-1)P(i+1)}\) that skip exactly one point \(P(i)\) cannot exist because by the choice of angle, no point on the shortcut is within \(\varepsilon\) of \(P(i)\). For any longer shortcut \(\overline{P(i')P(i)}\) we can similarly see that at least one of the skipped points has no point on the shortcut within distance \(\varepsilon\). For this split the circle into two halves through the center such that the start of the shortcut \(P(i-1)\) and the vertex \(P(j)\) contained in the subpolyline under the shortcut are on different sides. No shortcut from \(P(i-1)\) to a point on the same half can cover \(P(j)\). By considering \(P(i)\), \(P(i+1)\) and \(P(i+2)\) we can rule out any shortcut other than the trivial one. Thus no local shortcuts exist and a local simplification requires all points.
 \end{proof}
 
-\begin{figure}[h!tbp]
+\begin{figure}[htbp]
   \centering
 	\includegraphics[scale=0.3]{./figures/local-global-mostdiff.png}
 	\caption{Example polyline where the local and global sizes have maximal difference.}
   \label{fig:local-global-mostdiff}
 \end{figure}
 
-Unlike the previous example, this one uses mostly irrational coordinates. If one wants to test a simplification algorithm on such a polyline, we recommend placing the points not exactly on the circle but at a distance of \((1-\alpha)\varepsilon\) from the center where \(\alpha > 0\) is very small, otherwise, the global simplification might not be found. If the points are too close to the center the local simplification might be smaller. Fort this reason we have also provided the more stable previous example.
+Unlike the previous example, this one uses mostly irrational coordinates. If one wants to test a simplification algorithm on such a polyline, we recommend placing the points not exactly on the circle but at a distance of \((1-\mu)\varepsilon\) from the center where \(\mu > 0\) is very small, otherwise, the global simplification might not be found. If the points are too close to the center the local simplification might be smaller. For this reason we have also provided the more stable previous example.
 
 \subsection{A First Simplification Algorithm}
 We conclude this section with a simple simplification algorithm for both the local and global Fréchet variants under any distance. This, however, only covers the case \(\varepsilon = 0\).
@@ -301,13 +301,13 @@ This leads to a linear-time algorithm for optimal simplification when \(\varepsi
   \KwData{Polyline \(P\) of length \(n\)}
   \KwResult{Smallest \(0\)-simplification of \(P\)}
   \BlankLine
-	\(simplification \gets [0]\)\;
+	\(simplification \gets \angl 0\)\;
 	\For{\(i=1\) \KwTo \(n - 1\)}{
 		\If{\(P(i)\) does not lie on \(\overline{P(i-1)P(i+1)}\)}{
 			\(simplification.\text{append}(i)\)
 		}
 	}
-	\(simplification.\text{append}(n)\)
+	\(simplification.\text{append}(n)\)\;
 	\Return{\(simplification\)}
   \caption{PolylineSimplificationWithEpsilon0(\(P\))}
   \label{algo:simplify_epsilon0}
